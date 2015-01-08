@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact name="modules-journal:GWT">
+    <output-path>$PROJECT_DIR$/target/classes/VAADIN/widgetsets</output-path>
+    <root id="root">
+      <element id="gwt-compiler-output" facet="modules-journal/gwt/GWT" />
+    </root>
+  </artifact>
+</component>

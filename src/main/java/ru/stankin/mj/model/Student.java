@@ -8,6 +8,8 @@ import java.util.ArrayList;
  */
 public class Student implements Serializable, Comparable {
 
+    public int id = 0;
+
     public String group;
     public String surname;
     public String initials;
@@ -15,7 +17,7 @@ public class Student implements Serializable, Comparable {
     public String login = "";
     public String password = "";
 
-    ArrayList<Module> modules = new ArrayList<>();
+    public ArrayList<Module> modules = new ArrayList<>();
 
     public Student() {
     }

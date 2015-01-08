@@ -14,14 +14,18 @@ import java.util.stream.Stream;
 public class Storage {
 
     private TreeSet<Student> students = new TreeSet<>();
+    private ArrayList<Student> studentsList = new ArrayList<>();
 
-    public void updateModules(Student student) {
+    public synchronized void updateModules(Student student) {
         System.out.println("updateModules:"+student);
-            if(!students.add(student)){
-                Student floor = students.floor(student);
-                System.out.println("floor:"+floor);
-                floor.modules = student.modules;
-            }
+        if (students.add(student)) {
+            student.id = students.size()-1;
+            studentsList.add(student);
+        } else {
+            Student floor = students.floor(student);
+            System.out.println("floor:"+floor);
+            floor.modules = student.modules;
+        }
 
         System.out.println("studentscount:"+students.size());
     }
@@ -37,5 +41,9 @@ public class Storage {
                 s.surname.contains(text) ||
                 s.initials.contains(text)
         );
+    }
+
+    public Student getStudentById(int value) {
+        return studentsList.get(value);
     }
 }

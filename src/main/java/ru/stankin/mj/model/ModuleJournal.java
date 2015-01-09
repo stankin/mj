@@ -1,6 +1,8 @@
 package ru.stankin.mj.model;
 
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 
@@ -15,6 +17,8 @@ import java.util.stream.StreamSupport;
 @ApplicationScoped
 public class ModuleJournal {
 
+    private static final Logger logger = LogManager.getLogger(ModuleJournal.class);
+
 
     @Inject
     private Storage storage;
@@ -24,76 +28,8 @@ public class ModuleJournal {
 
         Workbook workbook = WorkbookFactory.create(is);
 
+        new WorkbookReader(workbook).writeTo(storage);
 
-        for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-            Sheet sheet = workbook.getSheetAt(i);
-            if (sheet.getPhysicalNumberOfRows() > 4) {
-                int lastRowNum = sheet.getLastRowNum();
-                Row subjRow = sheet.getRow(0);
-                //System.out.println("tabrow:" + rowTabsepareted(subjRow));
-                List<String> subjsList = getStringStream(subjRow).filter(str -> !str.isEmpty()).collect(Collectors
-                        .toList());
-
-                System.out.println("subjsList:" + subjsList);
-
-                Row modulesrow = sheet.getRow(2);
-
-                Map<Integer, Module> moduleMap = new LinkedHashMap<>();
-
-                for (int j = 0; j < modulesrow.getLastCellNum(); j++) {
-
-                    Cell cell = modulesrow.getCell(j);
-                    if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-                        if (cell.getStringCellValue().equals("М1")) {
-                            String subject = subjRow.getCell(j).getStringCellValue();
-                            System.out.println(j + " " + subject);
-                            if (!modulesrow.getCell(j + 1).getStringCellValue().equals("М2"))
-                                throw new IllegalArgumentException("no m2");
-
-                            moduleMap.put(j, new Module(subject, 1));
-                            moduleMap.put(j + 1, new Module(subject, 2));
-                        }
-                    }
-
-                }
-
-                sheet.iterator().forEachRemaining(row -> {
-                    if (row.getCell(0) != null && !row.getCell(0).getStringCellValue().isEmpty()) {
-
-                        Student student = new Student(
-                                row.getCell(0).getStringCellValue(),
-                                row.getCell(1).getStringCellValue(),
-                                row.getCell(2).getStringCellValue()
-                        );
-
-                        storage.updateModules(student);
-
-                        for (Map.Entry<Integer, Module> entry : moduleMap.entrySet()) {
-                            Module module = entry.getValue().clone();
-                            Cell cell = row.getCell(entry.getKey());
-                            if (cell != null)
-                                module.value = (int) cell.getNumericCellValue();
-                            else
-                                module.value = 0;
-                            student.modules.add(module);
-                        }
-
-                        System.out.println("Student:" + student);
-
-                    }
-                });
-
-
-//                for (int j = 0; j <= lastRowNum; j++) {
-//                    Row row = sheet.getRow(j);
-//
-//                    String tabrow = rowTabsepareted(row);
-//
-//                    System.out.println("tabrow:"+tabrow);
-//
-//                }
-            }
-        }
 
         is.close();
 
@@ -107,31 +43,137 @@ public class ModuleJournal {
 
     }
 
-    private String rowTabsepareted(Row row) {
-        return getStringStream(row).collect(Collectors.joining("\t"));
-    }
+    static class WorkbookReader{
 
-    private Stream<String> getStringStream(Row row) {
-        return stream(row.cellIterator()).map(ModuleJournal::strigValue);
-    }
+        private Workbook workbook;
 
-    private static String strigValue(Cell cell) {
-        switch (cell.getCellType()) {
-            case Cell.CELL_TYPE_BLANK: return "";
-            case Cell.CELL_TYPE_NUMERIC: return cell.getNumericCellValue() + "";
-            case Cell.CELL_TYPE_STRING: return cell.getStringCellValue();
-            case Cell.CELL_TYPE_FORMULA: return "FORMULA";
-            case Cell.CELL_TYPE_BOOLEAN: return cell.getBooleanCellValue() + "";
-            case Cell.CELL_TYPE_ERROR: return "Error";
-            default: return "None";
+        public WorkbookReader(Workbook workbook) {
+            this.workbook = workbook;
         }
+
+        void writeTo(Storage storage){
+
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                if (sheet.getPhysicalNumberOfRows() > 4) {
+
+                    Row subjRow = detectSubjsRow(sheet);
+
+                    Row modulesrow = sheet.getRow(2);
+
+                    Map<Integer, Module> moduleMap = new LinkedHashMap<>();
+
+                    for (int j = 0; j < modulesrow.getLastCellNum(); j++) {
+
+                        Cell cell = modulesrow.getCell(j);
+                        if (cell!= null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
+                            if (cell.getStringCellValue().equals("М1")) {
+                                String subject = subjRow.getCell(j).getStringCellValue();
+                                logger.debug(j + " " + subject);
+                                if (!modulesrow.getCell(j + 1).getStringCellValue().equals("М2"))
+                                    throw new IllegalArgumentException("no m2");
+
+                                moduleMap.put(j, new Module(subject, 1));
+                                moduleMap.put(j + 1, new Module(subject, 2));
+                            }
+                        }
+
+                    }
+
+                    sheet.iterator().forEachRemaining(row -> {
+                        if (row.getCell(0) != null && !row.getCell(0).getStringCellValue().isEmpty()) {
+
+                            Student student = new Student(
+                                    row.getCell(0).getStringCellValue(),
+                                    row.getCell(1).getStringCellValue(),
+                                    row.getCell(2).getStringCellValue()
+                            );
+
+                            storage.updateModules(student);
+
+                            for (Map.Entry<Integer, Module> entry : moduleMap.entrySet()) {
+                                Module module = entry.getValue().clone();
+                                Cell cell = row.getCell(entry.getKey());
+                                if (cell != null)
+                                    module.value = (int) cell.getNumericCellValue();
+                                else
+                                    module.value = 0;
+                                student.modules.add(module);
+                            }
+
+                            logger.debug("Student: {}", student);
+
+                        }
+                    });
+
+
+//                for (int j = 0; j <= lastRowNum; j++) {
+//                    Row row = sheet.getRow(j);
+//
+//                    String tabrow = rowTabsepareted(row);
+//
+//                    System.out.println("tabrow:"+tabrow);
+//
+//                }
+                }
+            }
+
+        }
+
+        private Row detectSubjsRow(Sheet sheet) {
+
+            for (int i = 0; i < sheet.getLastRowNum(); i++) {
+
+
+                Row subjRow = sheet.getRow(i);
+                if(subjRow == null)
+                    continue;
+                //System.out.println("tabrow:" + rowTabsepareted(subjRow));
+                List<String> subjsList = getStringStream(subjRow).filter(str -> !str.matches("\\s*")).collect(Collectors
+                        .toList());
+
+                logger.debug("subjsList: {} {}", subjsList, subjsList.size());
+                if(!subjsList.isEmpty())
+                return subjRow;
+            }
+            throw new IllegalArgumentException("no SubjsRow found");
+        }
+
+
+        private String rowTabsepareted(Row row) {
+            return getStringStream(row).collect(Collectors.joining("\t"));
+        }
+
+        private Stream<String> getStringStream(Row row) {
+            return stream(row.cellIterator()).map(this::strigValue);
+        }
+
+        private String strigValue(Cell cell) {
+            switch (cell.getCellType()) {
+                case Cell.CELL_TYPE_BLANK: return "";
+                case Cell.CELL_TYPE_NUMERIC: return cell.getNumericCellValue() + "";
+                case Cell.CELL_TYPE_STRING: return cell.getStringCellValue();
+                case Cell.CELL_TYPE_FORMULA: return "FORMULA";
+                case Cell.CELL_TYPE_BOOLEAN: return cell.getBooleanCellValue() + "";
+                case Cell.CELL_TYPE_ERROR: return "Error";
+                default: return "None";
+            }
+        }
+
+
+        public <T> Stream<T> stream(Iterator<T> sourceIterator) {
+            return StreamSupport.stream(
+                    Spliterators.spliteratorUnknownSize(sourceIterator, Spliterator.ORDERED),
+                    false);
+        }
+
     }
 
-
-    public static <T> Stream<T> stream(Iterator<T> sourceIterator) {
-        return StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize(sourceIterator, Spliterator.ORDERED),
-                false);
+    public Storage getStorage() {
+        return storage;
     }
 
+    public void setStorage(Storage storage) {
+        this.storage = storage;
+    }
 }

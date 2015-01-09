@@ -9,6 +9,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.stankin.mj.model.ModuleJournal;
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
@@ -21,6 +23,8 @@ import java.util.concurrent.*;
 
 @CDIView("")
 public class MainView extends CustomComponent implements View {
+
+    private static final Logger logger = LogManager.getLogger(MainView.class);
 
     @Inject
     private UserInfo user;
@@ -79,8 +83,8 @@ public class MainView extends CustomComponent implements View {
                         @Override
                         public void valueChange(Property.ValueChangeEvent event) {
 
-                            System.out.println("Property.ValueChangeEvent:" + event);
-                            System.out.println("itemId:" + itemId);
+                            logger.debug("Property.ValueChangeEvent:" + event);
+                            logger.debug("itemId:" + itemId);
                         }
                     });
                     return field;
@@ -126,7 +130,9 @@ public class MainView extends CustomComponent implements View {
 
         Label label = new Label("", ContentMode.HTML);
         students.addValueChangeListener(event1 -> {
-            System.out.println("selection:" + event1);
+            //System.out.println("selection:" + event1);
+            if(event1.getProperty() == null || event1.getProperty().getValue() == null)
+                return;
             Student student = storage.getStudentById((Integer) event1.getProperty().getValue());
             label.setValue("<b>" + student.surname + " " + student.initials + "</b>");
 

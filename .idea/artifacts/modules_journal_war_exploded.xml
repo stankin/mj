@@ -7,6 +7,8 @@
           <element id="module-output" name="modules-journal" />
         </element>
         <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: org.apache.logging.log4j:log4j-api:2.1" />
+          <element id="library" level="project" name="Maven: org.apache.logging.log4j:log4j-core:2.1" />
           <element id="library" level="project" name="Maven: com.vaadin:vaadin-server:7.3.7" />
           <element id="library" level="project" name="Maven: com.vaadin:vaadin-sass-compiler:0.9.10" />
           <element id="library" level="project" name="Maven: org.w3c.css:sac:1.3" />

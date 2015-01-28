@@ -3,10 +3,8 @@ package ru.stankin.mj;
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
-import com.vaadin.event.FieldEvents;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.apache.logging.log4j.LogManager;
@@ -17,7 +15,6 @@ import ru.stankin.mj.model.Student;
 
 import javax.inject.Inject;
 import java.io.*;
-import java.util.List;
 import java.util.concurrent.*;
 
 
@@ -40,18 +37,44 @@ public class MainView extends CustomComponent implements View {
 
     @Override
     public void enter(ViewChangeEvent event) {
-
+        setHeight("100%");
         VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setWidth("100%");
-        verticalLayout.setHeight("100%");
 
-        verticalLayout.setMargin(true);
+//        verticalLayout.setWidth("100%");
+//        verticalLayout.setHeight("100%");
+        Panel pael1 = new Panel();
+        HorizontalLayout content = new HorizontalLayout();
+         content.setWidth("100%");
+        content.addComponent(new Button("77"));
+
+        Button exit = new Button("exit");
+        content.addComponent(exit);
+        content.setComponentAlignment(exit, Alignment.TOP_RIGHT);
+
+        pael1.setContent(content);
+
+       // pael1.setWidth(100, Unit.PERCENTAGE);
+      //  pael1.setHeight(100, Unit.PERCENTAGE);
+        verticalLayout.addComponent(pael1);
+
+        Component c = buildGrids();
+        //TextArea c = new TextArea();
+        c.setHeight(100, Unit.PERCENTAGE);
+        verticalLayout.addComponent(c);
+        verticalLayout.setExpandRatio(c,1);
+        verticalLayout.setSizeFull();
+        setCompositionRoot(verticalLayout);
+
+    }
+
+    private Component buildGrids() {
+
+
+        //verticalLayout.setMargin(true);
         FileReceiver uploadReceiver = new FileReceiver();
         Upload upload = new Upload("Загрузка файла", uploadReceiver);
 
         uploadReceiver.serve(upload);
-
-
 
         Table students = new Table();
         students.setWidth(400, Unit.PIXELS);
@@ -159,11 +182,8 @@ public class MainView extends CustomComponent implements View {
         grid.setRowExpandRatio(1,0);
         grid.setRowExpandRatio(2,1);
 
-
-        verticalLayout.addComponent(grid);
-
-
-        setCompositionRoot(verticalLayout);
+        grid.setMargin(true);
+        return /*new Panel(*/grid/*)*/;
     }
 
     class FileReceiver implements Upload.Receiver {

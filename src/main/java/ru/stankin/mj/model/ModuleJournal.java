@@ -1,20 +1,24 @@
 package ru.stankin.mj.model;
 
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-@ApplicationScoped
+//@ApplicationScoped
+@Singleton
 public class ModuleJournal {
 
     private static final Logger logger = LogManager.getLogger(ModuleJournal.class);
@@ -22,6 +26,35 @@ public class ModuleJournal {
 
     @Inject
     private Storage storage;
+
+
+
+    @PostConstruct
+    public void fill(){
+        System.out.println("filling");
+        logger.info("filling");
+        try {
+            File dir = new File("/home/nickl/NetBeansProjects/modules-journal/src/test/resources/");
+            File[] files = dir.listFiles((dir1, name) -> {
+                return name.endsWith(".xls");
+            });
+
+            for (File file : files) {
+                try {
+                    BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
+                    processIncomingDate(is);
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InvalidFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            logger.catching(Level.WARN, e);
+        }
+    }
 
 
     public void processIncomingDate(InputStream is) throws IOException, InvalidFormatException {

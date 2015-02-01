@@ -2,8 +2,6 @@ package ru.stankin.mj;
 
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.Container;
-import com.vaadin.data.Property;
-import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -158,15 +156,15 @@ public class MainView extends CustomComponent implements View {
             logger.debug("stacktacer:{}",new Exception("stacktrace"));
             if(event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
-            Student student = storage.getStudentById((Integer) event1.getProperty().getValue());
+            Student student = storage.getStudentById((Integer) event1.getProperty().getValue(), true);
             label.setValue("<b>" + student.surname + " " + student.initials + "</b>");
 
             marks.removeAllItems();
 
-            for (int i = 0; i < student.modules.size(); i += 2) {
-                String subject = student.modules.get(i).subject;
-                int m1 = student.modules.get(i).value;
-                int m2 = student.modules.get(i + 1).value;
+            for (int i = 0; i < student.getModules().size(); i += 2) {
+                String subject = student.getModules().get(i).subject;
+                int m1 = student.getModules().get(i).value;
+                int m2 = student.getModules().get(i + 1).value;
                 marks.addItem(new Object[]{subject, inNotNull(m1), inNotNull(m2)}, i);
             }
 

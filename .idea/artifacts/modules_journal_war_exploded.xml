@@ -32,6 +32,7 @@
           <element id="library" level="project" name="Maven: org.apache.poi:poi-ooxml-schemas:3.11" />
           <element id="library" level="project" name="Maven: org.apache.xmlbeans:xmlbeans:2.6.0" />
           <element id="library" level="project" name="Maven: stax:stax-api:1.0.1" />
+          <element id="library" level="project" name="Maven: org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec:1.0.0.Final" />
         </element>
       </element>
       <element id="directory" name="META-INF">

@@ -3,14 +3,13 @@ package ru.stankin.mj;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.Assert;
 import org.junit.Test;
+import ru.stankin.mj.model.MemoryStorage;
 import ru.stankin.mj.model.ModuleJournal;
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.StreamSupport;
 
 public class ModuleJournalTest {
 
@@ -44,7 +43,7 @@ public class ModuleJournalTest {
     private Collection<Student> getStudents(String name) throws IOException, InvalidFormatException {
         ModuleJournal mj = new ModuleJournal();
 
-        Storage storage = new Storage();
+        Storage storage = new MemoryStorage();
         mj.setStorage(storage);
 
         mj.processIncomingDate(ModuleJournalTest.class.getResourceAsStream(name));

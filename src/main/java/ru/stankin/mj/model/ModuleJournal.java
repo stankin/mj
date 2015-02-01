@@ -8,7 +8,6 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.*;
@@ -122,8 +121,6 @@ public class ModuleJournal {
                                     row.getCell(2).getStringCellValue()
                             );
 
-                            storage.updateModules(student);
-
                             for (Map.Entry<Integer, Module> entry : moduleMap.entrySet()) {
                                 Module module = entry.getValue().clone();
                                 Cell cell = row.getCell(entry.getKey());
@@ -131,8 +128,10 @@ public class ModuleJournal {
                                     module.value = (int) cell.getNumericCellValue();
                                 else
                                     module.value = 0;
-                                student.modules.add(module);
+                                student.getModules().add(module);
                             }
+
+                            storage.updateModules(student);
 
                             logger.debug("Student: {}", student);
 

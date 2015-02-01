@@ -40,7 +40,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
         public StudentItem(Student student) {
             //this.student = student;
             props.put("id", new ObjectProperty<>(student.id));
-            props.put("Группа", new ObjectProperty<>(student.group));
+            props.put("Группа", new ObjectProperty<>(student.stgroup));
             props.put("Фамилия", new ObjectProperty<>(student.surname));
             props.put("Инициалы", new ObjectProperty<>(student.initials));
             props.put("Логин", new ObjectProperty<>(student.login));
@@ -82,7 +82,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
     @Override
     public Item getItem(Object itemId) {
-        return new StudentItem(storage.getStudentById((Integer) itemId));
+        return new StudentItem(storage.getStudentById((Integer) itemId, false));
     }
 
     @Override

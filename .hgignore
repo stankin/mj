@@ -1,0 +1,3 @@
+syntax: glob
+target/**
+src/main/webapp/VAADIN/widgetsets/**

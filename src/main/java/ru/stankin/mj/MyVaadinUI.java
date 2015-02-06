@@ -2,6 +2,7 @@ package ru.stankin.mj;
 
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Widgetset;
 import com.vaadin.cdi.CDIUI;
 import com.vaadin.cdi.CDIViewProvider;
 import com.vaadin.navigator.Navigator;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 //@Push
 @SuppressWarnings("serial")
 @SessionScoped
+@Widgetset("ru.stankin.mj.WidgetSet")
 public class MyVaadinUI extends UI {
 
     @Inject

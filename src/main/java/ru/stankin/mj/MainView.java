@@ -8,7 +8,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.stankin.mj.model.ModuleJournal;
+import ru.stankin.mj.model.ModuleJournalUploader;
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
 
@@ -28,7 +28,7 @@ public class MainView extends CustomComponent implements View {
     private Storage storage;
 
     @Inject
-    private ModuleJournal moduleJournal;
+    private ModuleJournalUploader moduleJournalUploader;
 
     @Inject
     private ExecutorService ecs;
@@ -45,10 +45,21 @@ public class MainView extends CustomComponent implements View {
 //        verticalLayout.setHeight("100%");
         Panel pael1 = new Panel();
         HorizontalLayout content = new HorizontalLayout();
-         content.setWidth("100%");
-        content.addComponent(new Button("77"));
-
-        Button exit = new Button("exit");
+        content.setWidth("100%");
+        //content.setHeight(30, Unit.PIXELS);
+        Label label = new Label("<b>&nbsp;МОДУЛЬНЫЙ ЖУРНАЛ</b>", ContentMode.HTML);
+        content.addComponent(label);
+        //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
+        content.setExpandRatio(label, 1);
+        //label.setHeight(30,Unit.PIXELS);
+        Button settings = new Button("Аккаунт");
+        content.addComponent(settings);
+        content.setComponentAlignment(settings, Alignment.TOP_RIGHT);
+        Button exit = new Button("Выход");
+        exit.addClickListener(event1 -> {
+                    user.setUser(null);
+            this.getUI().getPage().reload();
+        });
         content.addComponent(exit);
         content.setComponentAlignment(exit, Alignment.TOP_RIGHT);
 
@@ -72,7 +83,7 @@ public class MainView extends CustomComponent implements View {
 
 
         //verticalLayout.setMargin(true);
-        FileReceiver uploadReceiver = new FileReceiver(this, moduleJournal, ecs);
+        FileReceiver uploadReceiver = new FileReceiver(this, moduleJournalUploader, ecs);
         Upload upload = new Upload("Загрузка файла", uploadReceiver);
 
         uploadReceiver.serve(upload);
@@ -118,24 +129,16 @@ public class MainView extends CustomComponent implements View {
         TextField find = new TextField();
         Layout formLayout = new HorizontalLayout(new Label("Поиск"), find);
 
-        students.setContainerDataSource(new StudentsContainer(storage));
+        StudentsContainer studentsContainer = new StudentsContainer(storage);
+        students.setContainerDataSource(studentsContainer);
 
-//        find.addTextChangeListener(event1 -> {
-//            students.removeAllItems();
-//            String text = event1.getText();
-//            if (text.length() > 4) {
-//                storage.getStudentsFiltred(text).forEach(student -> {
-//                    Object[] cells = {student.group, student.surname, student.initials, student.login, student
-//                            .password};
-//                    students.addItem(cells, student.id);
-//                });
-////                    for (int i = 0; i < students.size(); i++) {
-////                        Student student = students.get(i);
-////
-////                    }
-//            }
-//
-//        });
+        find.addTextChangeListener(event1 -> {
+            String text = event1.getText();
+            //if (text.length() > 2) {
+                studentsContainer.setFilter(text);
+            //}
+
+        });
 
 
         Table marks = new Table();
@@ -153,7 +156,7 @@ public class MainView extends CustomComponent implements View {
         Label label = new Label("", ContentMode.HTML);
         students.addValueChangeListener(event1 -> {
             logger.debug("selection:{}",event1);
-            logger.debug("stacktacer:{}",new Exception("stacktrace"));
+            //logger.debug("stacktacer:{}",new Exception("stacktrace"));
             if(event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
             Student student = storage.getStudentById((Integer) event1.getProperty().getValue(), true);

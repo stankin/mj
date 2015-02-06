@@ -3,7 +3,7 @@ package ru.stankin.mj;
 import com.vaadin.shared.Position;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Upload;
-import ru.stankin.mj.model.ModuleJournal;
+import ru.stankin.mj.model.ModuleJournalUploader;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,12 +21,12 @@ class FileReceiver implements Upload.Receiver {
     private Upload upload;
     private MainView components;
     private ExecutorService ecs;
-    private ModuleJournal moduleJournal;
+    private ModuleJournalUploader moduleJournalUploader;
 
-    public FileReceiver(MainView components, ModuleJournal moduleJournal, ExecutorService ecs) {
+    public FileReceiver(MainView components, ModuleJournalUploader moduleJournalUploader, ExecutorService ecs) {
         this.components = components;
         this.ecs = ecs;
-        this.moduleJournal = moduleJournal;
+        this.moduleJournalUploader = moduleJournalUploader;
     }
 
     @Override
@@ -36,7 +36,7 @@ class FileReceiver implements Upload.Receiver {
         try {
             parsing = ecs.submit(() -> {
                 try {
-                    moduleJournal.processIncomingDate(pipedInputStream);
+                    moduleJournalUploader.processIncomingDate(pipedInputStream);
                     parsing = null;
                     return null;
                 } catch (Exception e) {

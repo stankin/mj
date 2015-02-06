@@ -27,9 +27,10 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
     List<String> properiesNames = Arrays.asList("id","Группа","Фамилия","Инициалы","Логин","Пароль");
 
-
     private List<Integer> idis;
     private Set<Integer> idisSet;
+
+    private String filter;
 
     class StudentItem implements Item{
 
@@ -76,8 +77,13 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
     public StudentsContainer(Storage storage) {
         this.storage = storage;
-        idis = storage.getStudents().stream().map(s -> s.id).collect(Collectors.toList());
+        updateData();
+    }
+
+    private void updateData() {
+        idis = this.storage.getStudentsFiltred(filter).map(s -> s.id).collect(Collectors.toList());
         idisSet = idis.stream().collect(Collectors.toSet());
+        fireItemSetChange();
     }
 
     @Override
@@ -108,7 +114,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
     @Override
     public int size() {
-        return storage.getStudents().size();
+        return idis.size();
     }
 
     @Override
@@ -169,5 +175,15 @@ public class StudentsContainer extends AbstractContainer implements Container, C
     @Override
     public void removeItemSetChangeListener(ItemSetChangeListener listener) {
         super.removeItemSetChangeListener(listener);
+    }
+
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        logger.debug("update Filters {}", filter);
+        this.filter = filter;
+        updateData();
     }
 }

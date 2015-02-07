@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 
 import javax.enterprise.inject.Alternative;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
@@ -37,8 +36,8 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public Collection<Student> getStudents() {
-        return students;
+    public Stream<Student> getStudents() {
+        return students.stream();
     }
 
     @Override

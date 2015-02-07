@@ -25,7 +25,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
     Storage storage;
 
-    List<String> properiesNames = Arrays.asList("id","Группа","Фамилия","Инициалы","Логин","Пароль");
+    List<String> properiesNames = Arrays.asList("id","Группа","Фамилия","ИО","Логин","Пароль");
 
     private List<Integer> idis;
     private Set<Integer> idisSet;
@@ -43,7 +43,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
             props.put("id", new ObjectProperty<>(student.id));
             props.put("Группа", new ObjectProperty<>(student.stgroup));
             props.put("Фамилия", new ObjectProperty<>(student.surname));
-            props.put("Инициалы", new ObjectProperty<>(student.initials));
+            props.put("ИО", new ObjectProperty<>(student.initials));
             props.put("Логин", new ObjectProperty<>(student.login));
             props.put("Пароль", new ObjectProperty<>(student.password));
 

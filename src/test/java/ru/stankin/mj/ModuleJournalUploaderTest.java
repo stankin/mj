@@ -10,6 +10,7 @@ import ru.stankin.mj.model.Student;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class ModuleJournalUploaderTest {
 
@@ -48,6 +49,6 @@ public class ModuleJournalUploaderTest {
 
         mj.processIncomingDate(ModuleJournalUploaderTest.class.getResourceAsStream(name));
 
-        return storage.getStudents();
+        return storage.getStudents().collect(Collectors.toList());
     }
 }

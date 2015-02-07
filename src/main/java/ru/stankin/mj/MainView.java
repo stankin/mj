@@ -1,5 +1,6 @@
 package ru.stankin.mj;
 
+import com.google.gwt.thirdparty.guava.common.io.Files;
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.View;
@@ -8,11 +9,16 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.vaadin.easyuploads.FileBuffer;
+import org.vaadin.easyuploads.MultiFileUpload;
 import ru.stankin.mj.model.ModuleJournalUploader;
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
 
 import javax.inject.Inject;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.concurrent.*;
 
 
@@ -53,6 +59,7 @@ public class MainView extends CustomComponent implements View {
         content.setExpandRatio(label, 1);
         //label.setHeight(30,Unit.PIXELS);
         Button settings = new Button("Аккаунт");
+        settings.setEnabled(false);
         content.addComponent(settings);
         content.setComponentAlignment(settings, Alignment.TOP_RIGHT);
         Button exit = new Button("Выход");
@@ -69,11 +76,26 @@ public class MainView extends CustomComponent implements View {
       //  pael1.setHeight(100, Unit.PERCENTAGE);
         verticalLayout.addComponent(pael1);
 
+        MultiFileUpload marksUpload = createUpload();
+        HorizontalLayout uploadAndGrids = new HorizontalLayout();
+        //uploadAndGrids.setMargin(true);
+        VerticalLayout uploads = new VerticalLayout();
+        uploads.setHeight(100, Unit.PERCENTAGE);
+        uploads.setMargin(true);
+        uploads.addComponent(marksUpload);
+        Panel panel = new Panel(uploads);
+        panel.setWidth(200, Unit.PIXELS);
+        panel.setHeight(100, Unit.PERCENTAGE);
+        uploadAndGrids.addComponent(panel);
+
         Component c = buildGrids();
         //TextArea c = new TextArea();
         c.setHeight(100, Unit.PERCENTAGE);
-        verticalLayout.addComponent(c);
-        verticalLayout.setExpandRatio(c,1);
+        uploadAndGrids.addComponent(c);
+        uploadAndGrids.setExpandRatio(c, 1);
+        uploadAndGrids.setSizeFull();
+        verticalLayout.addComponent(uploadAndGrids);
+        verticalLayout.setExpandRatio(uploadAndGrids, 1);
         verticalLayout.setSizeFull();
         setCompositionRoot(verticalLayout);
 
@@ -81,15 +103,8 @@ public class MainView extends CustomComponent implements View {
 
     private Component buildGrids() {
 
-
-        //verticalLayout.setMargin(true);
-        FileReceiver uploadReceiver = new FileReceiver(this, moduleJournalUploader, ecs);
-        Upload upload = new Upload("Загрузка файла", uploadReceiver);
-
-        uploadReceiver.serve(upload);
-
         Table students = new Table();
-        students.setWidth(400, Unit.PIXELS);
+        students.setWidth(100, Unit.PERCENTAGE);
         students.setHeight(100, Unit.PERCENTAGE);
 
 
@@ -99,9 +114,9 @@ public class MainView extends CustomComponent implements View {
         students.setColumnWidth("Фамилия", 100);
         students.addContainerProperty("ИО", String.class, null);
         students.setColumnWidth("ИО", 30);
-        students.addContainerProperty("Логин", String.class, "");
+        students.addContainerProperty("Логин", String.class, null);
         students.setColumnWidth("Логин", 60);
-        students.addContainerProperty("Пароль", String.class, "");
+        students.addContainerProperty("Пароль", String.class, null);
         students.setColumnWidth("Пароль", 60);
 
         students.setEditable(true);
@@ -126,16 +141,20 @@ public class MainView extends CustomComponent implements View {
         });
 
 
-        TextField find = new TextField();
-        Layout formLayout = new HorizontalLayout(new Label("Поиск"), find);
-
+        TextField searchField = new TextField();
+        searchField.setWidth(100, Unit.PERCENTAGE);
+        Label searchLabel = new Label("Поиск");
+        searchLabel.setWidth(60, Unit.PIXELS);
+        HorizontalLayout searchForm = new HorizontalLayout(searchLabel, searchField);
+        searchForm.setExpandRatio(searchField, 1);
+        searchForm.setWidth(100, Unit.PERCENTAGE);
         StudentsContainer studentsContainer = new StudentsContainer(storage);
         students.setContainerDataSource(studentsContainer);
 
-        find.addTextChangeListener(event1 -> {
+        searchField.addTextChangeListener(event1 -> {
             String text = event1.getText();
             //if (text.length() > 2) {
-                studentsContainer.setFilter(text);
+            studentsContainer.setFilter(text);
             //}
 
         });
@@ -151,7 +170,7 @@ public class MainView extends CustomComponent implements View {
         marks.setColumnWidth("М2", 30);
 
         marks.setSizeFull();
-        marks.setWidth(400, Unit.PIXELS);
+        marks.setWidth(100, Unit.PERCENTAGE);
 
         Label label = new Label("", ContentMode.HTML);
         students.addValueChangeListener(event1 -> {
@@ -175,18 +194,70 @@ public class MainView extends CustomComponent implements View {
 
         GridLayout grid = new GridLayout(2, 3);
         grid.setHeight(100, Unit.PERCENTAGE);
-        grid.addComponent(upload, 0 , 0);
-        grid.addComponent(formLayout, 0 , 1);
-        grid.addComponent(students, 0 , 2);
-        grid.addComponent(label, 1 , 1);
-        grid.addComponent(marks, 1 , 2);
+        grid.setWidth(100, Unit.PERCENTAGE);
+        //grid.addComponent(upload, 0, 0);
+        grid.addComponent(searchForm, 0, 0);
+        grid.addComponent(students, 0 , 1);
+        grid.addComponent(label, 1 , 0);
+        grid.addComponent(marks, 1 , 1);
         grid.setSpacing(true);
         grid.setRowExpandRatio(0,0);
-        grid.setRowExpandRatio(1,0);
-        grid.setRowExpandRatio(2,1);
+        grid.setRowExpandRatio(1,1);
+        grid.setColumnExpandRatio(0,1);
+        grid.setColumnExpandRatio(1,1);
 
         grid.setMargin(true);
         return /*new Panel(*/grid/*)*/;
+    }
+
+    private MultiFileUpload createUpload() {
+        //verticalLayout.setMargin(true);
+//        FileReceiver uploadReceiver = new FileReceiver(this, moduleJournalUploader, ecs);
+//        Upload upload = new Upload("Загрузка файла", uploadReceiver);
+//
+//        uploadReceiver.serve(upload);
+
+        MultiFileUpload upload = new MultiFileUpload() {
+
+            @Override
+            protected String getAreaText() {
+                return "<small>Перетащите<br/>файлы</small>";
+            }
+
+            @Override
+            protected void handleFile(File file, String fileName,
+                                      String mimeType, long length) {
+                String msg = fileName + " uploaded. Saved to file "
+                        + file.getAbsolutePath() + " (size " + length
+                        + " bytes)";
+
+                try {
+                    BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
+                    moduleJournalUploader.processIncomingDate(is);
+                    is.close();
+                    Notification.show(msg);
+                }
+                catch (Exception e){
+                    Notification.show(e.getMessage(), Notification.Type.ERROR_MESSAGE);
+                }
+
+
+            }
+
+//            @Override
+//            protected FileBuffer createReceiver() {
+//                FileBuffer receiver = super.createReceiver();
+//                /*
+//                 * Make receiver not to delete files after they have been
+//                 * handled by #handleFile().
+//                 */
+//                receiver.setDeleteFiles(false);
+//                return receiver;
+//            }
+        };
+        upload.setCaption("Загрузить файлы с оценками");
+        upload.setRootDirectory(Files.createTempDir().toString());
+        return upload;
     }
 
     private Object inNotNull(int m1) {

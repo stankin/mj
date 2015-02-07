@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 public interface Storage {
     void updateModules(Student student);
 
-    Collection<Student> getStudents();
+    Stream<Student> getStudents();
 
     Stream<Student> getStudentsFiltred(String text);
 

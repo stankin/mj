@@ -1,5 +1,8 @@
 package ru.stankin.mj.model;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,13 +15,15 @@ import java.util.stream.Collectors;
  * Created by nickl on 08.01.15.
  */
 @Entity
-@Table(name = "Student")
+@Table(name = "Student", indexes = {
+        @Index(columnList = "stgroup, surname, initials")
+})
 public class Student implements Serializable, Comparable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     public int id = 0;
 
     public String stgroup;
@@ -30,8 +35,14 @@ public class Student implements Serializable, Comparable {
 
     //@ElementCollection
     //@Transient
-    @OneToMany(fetch=FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
+    @NotFound(action = NotFoundAction.IGNORE)
     private List<Module> modules = new ArrayList<>();
+    public String name;
+    public String patronym;
+
+    @Column(unique = true)
+    public String cardid;
 
     public Student() {
     }
@@ -42,14 +53,28 @@ public class Student implements Serializable, Comparable {
         this.initials = initials;
     }
 
+    public void initialsFromNP() {
+        if (initials != null)
+            return;
+        if (name == null || surname == null)
+            return;
 
+        String sp = "";
+        if (patronym.length() > 0)
+            sp = Character.toUpperCase(patronym.charAt(0)) + ".";
+        initials = Character.toUpperCase(name.charAt(0)) + "." + sp;
+    }
 
     @Override
     public String toString() {
         return "Student{" +
-                "'" + stgroup + '\'' +
+                "id='" + id + '\'' +
+                " card='" + cardid + '\'' +
+                ", '" + stgroup + '\'' +
                 ", '" + surname + '\'' +
                 ", '" + initials + '\'' +
+                ", '" + name + '\'' +
+                ", '" + patronym + '\'' +
                 ", " + getModules() +
                 '}';
     }
@@ -92,9 +117,9 @@ public class Student implements Serializable, Comparable {
 
     public Map<String, Map<String, Module>> getModulesGrouped() {
         return getModules().stream().collect(
-                Collectors.groupingBy(m -> m.subject,
-                        Collectors.groupingBy(m -> m.num,
-                                Collectors.reducing(((Module)null), (Module a,Module b) -> b)
+                Collectors.groupingBy(Module::getSubject,
+                        Collectors.groupingBy(Module::getNum,
+                                Collectors.reducing(((Module) null), (Module a, Module b) -> b)
                         )));
     }
 
@@ -102,11 +127,11 @@ public class Student implements Serializable, Comparable {
         this.modules = modules;
     }
 
-    public void foo(){
+    public void foo() {
         System.out.println("ssss");
     }
 
-    public void bar(){
+    public void bar() {
         System.out.println("ssss");
     }
 }

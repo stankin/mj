@@ -54,4 +54,19 @@ public class MemoryStorage implements Storage {
     public Student getStudentById(int value, boolean eager) {
         return studentsList.get(value);
     }
+
+    @Override
+    public Student getStudentByCardId(String cardid) {
+        return null;
+    }
+
+    @Override
+    public void saveStudent(Student student) {
+
+    }
+
+    @Override
+    public Student getStudentByGroupSurnameInitials(String group, String surname, String initials) {
+        return new Student(group, surname, initials);
+    }
 }

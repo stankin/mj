@@ -1,7 +1,6 @@
 package ru.stankin.mj.model;
 
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.util.HSSFColor;
@@ -9,7 +8,6 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.*;
@@ -30,11 +28,11 @@ public class ModuleJournalUploader {
 
     private static Set<String> markTypes = Arrays.asList("З", "Э").stream().collect(Collectors.toSet());
 
-    public void processIncomingDate(InputStream is) throws IOException, InvalidFormatException {
+    public List<String> updateMarksFromExcel(InputStream is) throws IOException, InvalidFormatException {
 
         Workbook workbook = WorkbookFactory.create(is);
 
-        new WorkbookReader(workbook).writeTo(storage);
+        List<String> strings = new WorkbookReader(workbook).writeTo(storage);
 
 
         is.close();
@@ -46,6 +44,50 @@ public class ModuleJournalUploader {
 //
 //        outputStream.close();
 
+       return strings;
+    }
+
+    public void updateStudentsFromExcel(InputStream inputStream) throws IOException, InvalidFormatException {
+
+        Workbook workbook = WorkbookFactory.create(inputStream);
+
+        Sheet sheet = workbook.getSheetAt(0);
+
+        for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
+
+            Row row = sheet.getRow(i);
+            if(row == null)
+                continue;
+
+
+            String surname = stringValue(row.getCell(0));
+            String name = stringValue(row.getCell(1));
+            String patronym = stringValue(row.getCell(2));
+            String cardid = stringValue(row.getCell(3));
+            String group = stringValue(row.getCell(5));
+            if(surname == null || surname.isEmpty())
+                continue;
+
+            Student student = null;
+            student = storage.getStudentByCardId(cardid);
+            if(student == null)
+                student = new Student();
+
+            student.surname = surname;
+            student.name = name;
+            student.patronym = patronym;
+            student.cardid = cardid;
+            student.stgroup = group;
+            student.initials = null;
+            logger.debug("initi student {}", student);
+            student.initialsFromNP();
+            logger.debug("Saving student {}", student);
+            storage.saveStudent(student);
+
+        }
+
+
+        inputStream.close();
 
     }
 
@@ -57,7 +99,9 @@ public class ModuleJournalUploader {
             this.workbook = workbook;
         }
 
-        void writeTo(Storage storage) {
+        List<String> writeTo(Storage storage) {
+
+            List<String> messages = new ArrayList<>();
 
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
@@ -99,27 +143,38 @@ public class ModuleJournalUploader {
                     sheet.iterator().forEachRemaining(row -> {
                         if (row.getCell(0) != null && !row.getCell(0).getStringCellValue().isEmpty()) {
 
-                            Student student = new Student(
+                            String group = row.getCell(0).getStringCellValue();
+                            String surname = row.getCell(1).getStringCellValue();
+                            String initials = row.getCell(2).getStringCellValue();
+                            Student student = storage.getStudentByGroupSurnameInitials(group, surname, initials);
+
+                            if(student == null){
+                                messages.add("Не найден студент "+group+" "+surname+" "+initials);
+                            }
+                            else{
+
+                                student.getModules().clear();
+                             /*new Student(
                                     row.getCell(0).getStringCellValue(),
                                     row.getCell(1).getStringCellValue(),
                                     row.getCell(2).getStringCellValue()
-                            );
+                            ); */
 
-                            for (Map.Entry<Integer, Module> entry : moduleMap.entrySet()) {
-                                Module module = entry.getValue().clone();
-                                Cell cell = row.getCell(entry.getKey());
-                                if (cell != null) {
-                                    module.color = colorToInt(cell.getCellStyle());
-                                    module.value = (int) cell.getNumericCellValue();
+                                for (Map.Entry<Integer, Module> entry : moduleMap.entrySet()) {
+                                    Module module = entry.getValue().clone();
+                                    Cell cell = row.getCell(entry.getKey());
+                                    if (cell != null) {
+                                        module.setColor(colorToInt(cell.getCellStyle()));
+                                        module.setValue((int) cell.getNumericCellValue());
+                                    } else
+                                        module.setValue(0);
+                                    student.getModules().add(module);
                                 }
-                                else
-                                    module.value = 0;
-                                student.getModules().add(module);
+
+                                storage.updateModules(student);
+
+                                logger.debug("Student: {}", student);
                             }
-
-                            storage.updateModules(student);
-
-                            logger.debug("Student: {}", student);
 
                         }
                     });
@@ -136,84 +191,95 @@ public class ModuleJournalUploader {
                 }
             }
 
-        }
+            return messages;
 
-        private int colorToInt(CellStyle style) {
-
-            //logger.debug("fillBackgroundColorColor {}", style.getFillBackgroundColorColor());
-            //logger.debug("FillForegroundColorColor {}", style.getFillForegroundColorColor());
-
-            int bgInt = colorToInt(style.getFillBackgroundColorColor());
-            return  (bgInt !=0) ?
-                    bgInt:
-                    colorToInt(style.getFillForegroundColorColor());
-        }
-
-        private int colorToInt(Color fillBackgroundColorColor) {
-            if(fillBackgroundColorColor instanceof HSSFColor){
-                HSSFColor hssfColor = (HSSFColor) fillBackgroundColorColor;
-                //logger.debug("processing color {}", hssfColor);
-                //logger.debug("processing colorhex {}", hssfColor.getHexString());
-                short[] triplet = hssfColor.getTriplet();
-                //logger.debug("HSSFColor {}", Arrays.toString(triplet));
-                return triplet[0] << 16 | triplet[1] << 8 | triplet[2];
-            }
-            if(fillBackgroundColorColor instanceof XSSFColor){
-                byte[] aRgb = ((XSSFColor) fillBackgroundColorColor).getARgb();
-                //logger.debug("XSSFColor {}", Arrays.toString(aRgb));
-                return aRgb[1] << 16 | aRgb[2] << 8 | aRgb[3];
-            }
-
-            return 0;
-        }
-
-        private Row detectSubjsRow(Sheet sheet) {
-
-            for (int i = 0; i < sheet.getLastRowNum(); i++) {
-
-
-                Row subjRow = sheet.getRow(i);
-                if (subjRow == null)
-                    continue;
-                //System.out.println("tabrow:" + rowTabsepareted(subjRow));
-                List<String> subjsList = getStringStream(subjRow).filter(str -> !str.matches("\\s*")).collect(Collectors
-                        .toList());
-
-                logger.debug("subjsList: {} {}", subjsList, subjsList.size());
-                if (!subjsList.isEmpty())
-                    return subjRow;
-            }
-            throw new IllegalArgumentException("no SubjsRow found");
         }
 
 
-        private String rowTabsepareted(Row row) {
-            return getStringStream(row).collect(Collectors.joining("\t"));
+
+
+
+
+    }
+
+    private static int colorToInt(CellStyle style) {
+
+        //logger.debug("fillBackgroundColorColor {}", style.getFillBackgroundColorColor());
+        //logger.debug("FillForegroundColorColor {}", style.getFillForegroundColorColor());
+
+        int bgInt = colorToInt(style.getFillBackgroundColorColor());
+        return  (bgInt !=0) ?
+                bgInt:
+                colorToInt(style.getFillForegroundColorColor());
+    }
+
+    private static int colorToInt(Color fillBackgroundColorColor) {
+        if(fillBackgroundColorColor instanceof HSSFColor){
+            HSSFColor hssfColor = (HSSFColor) fillBackgroundColorColor;
+            //logger.debug("processing color {}", hssfColor);
+            //logger.debug("processing colorhex {}", hssfColor.getHexString());
+            short[] triplet = hssfColor.getTriplet();
+            //logger.debug("HSSFColor {}", Arrays.toString(triplet));
+            return triplet[0] << 16 | triplet[1] << 8 | triplet[2];
+        }
+        if(fillBackgroundColorColor instanceof XSSFColor){
+            byte[] aRgb = ((XSSFColor) fillBackgroundColorColor).getARgb();
+            //logger.debug("XSSFColor {}", Arrays.toString(aRgb));
+            return aRgb[1] << 16 | aRgb[2] << 8 | aRgb[3];
         }
 
-        private Stream<String> getStringStream(Row row) {
-            return stream(row.cellIterator()).map(this::strigValue);
+        return 0;
+    }
+
+    private static Row detectSubjsRow(Sheet sheet) {
+
+        for (int i = 0; i < sheet.getLastRowNum(); i++) {
+
+
+            Row subjRow = sheet.getRow(i);
+            if (subjRow == null)
+                continue;
+            //System.out.println("tabrow:" + rowTabsepareted(subjRow));
+            List<String> subjsList = getStringStream(subjRow).filter(str -> !str.matches("\\s*")).collect(Collectors
+                    .toList());
+
+            logger.debug("subjsList: {} {}", subjsList, subjsList.size());
+            if (!subjsList.isEmpty())
+                return subjRow;
         }
+        throw new IllegalArgumentException("no SubjsRow found");
+    }
 
-        private String strigValue(Cell cell) {
-            switch (cell.getCellType()) {
-                case Cell.CELL_TYPE_BLANK: return "";
-                case Cell.CELL_TYPE_NUMERIC: return cell.getNumericCellValue() + "";
-                case Cell.CELL_TYPE_STRING: return cell.getStringCellValue();
-                case Cell.CELL_TYPE_FORMULA: return "FORMULA";
-                case Cell.CELL_TYPE_BOOLEAN: return cell.getBooleanCellValue() + "";
-                case Cell.CELL_TYPE_ERROR: return "Error";
-                default: return "None";
-            }
+
+    private static String rowTabsepareted(Row row) {
+        return getStringStream(row).collect(Collectors.joining("\t"));
+    }
+
+    private  static Stream<String> getStringStream(Row row) {
+        return stream(row.cellIterator()).map(ModuleJournalUploader::stringValue);
+    }
+
+    
+    private static DataFormatter dataFormatter = new DataFormatter();
+    
+    private static String stringValue(Cell cell) {
+        if(cell == null)
+            return null;
+        switch (cell.getCellType()) {
+            case Cell.CELL_TYPE_BLANK: return "";
+            case Cell.CELL_TYPE_NUMERIC: return dataFormatter.formatCellValue(cell);
+            case Cell.CELL_TYPE_STRING: return cell.getStringCellValue().trim();
+            case Cell.CELL_TYPE_FORMULA: return "FORMULA";
+            case Cell.CELL_TYPE_BOOLEAN: return cell.getBooleanCellValue() + "";
+            case Cell.CELL_TYPE_ERROR: return "Error";
+            default: return "None";
         }
+    }
 
-
-        public <T> Stream<T> stream(Iterator<T> sourceIterator) {
-            return StreamSupport.stream(
-                    Spliterators.spliteratorUnknownSize(sourceIterator, Spliterator.ORDERED),
-                    false);
-        }
-
+    public static  <T> Stream<T> stream(Iterator<T> sourceIterator) {
+        return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(sourceIterator, Spliterator.ORDERED),
+                false);
     }
 
     public Storage getStorage() {

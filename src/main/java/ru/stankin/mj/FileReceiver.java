@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -36,9 +37,9 @@ class FileReceiver implements Upload.Receiver {
         try {
             parsing = ecs.submit(() -> {
                 try {
-                    moduleJournalUploader.processIncomingDate(pipedInputStream);
+                    List<String> messages = moduleJournalUploader.updateMarksFromExcel(pipedInputStream);
                     parsing = null;
-                    return null;
+                    return String.join("\n", messages);
                 } catch (Exception e) {
                     try {
                         pipedInputStream.close();

@@ -11,16 +11,16 @@ public class Module implements Cloneable, Serializable {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
-    public int id = 0;
+    private int id = 0;
 
-    public String subject = "";
-    public String num = "";
-    public int value = -1;
-    public int color = 0;
+    private String subject = "";
+    private String num = "";
+    private int value = -1;
+    private int color = 0;
 
     @ManyToOne
     @JoinColumn(name = "student_id")
-    Student student;
+    private Student student;
 
     @Override
     public Module clone()  {
@@ -33,8 +33,8 @@ public class Module implements Cloneable, Serializable {
     }
 
     public Module(String subject, String num) {
-        this.subject = subject;
-        this.num = num;
+        this.setSubject(subject);
+        this.setNum(num);
     }
 
     public Module() {
@@ -43,9 +43,57 @@ public class Module implements Cloneable, Serializable {
     @Override
     public String toString() {
         return "Module{" +
-                "'" + subject + '\'' +
-                ", " + num +
-                ", " + value +
+                "'" + getSubject() + '\'' +
+                ", " + getNum() +
+                ", " + getValue() +
                 '}';
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getNum() {
+        return num;
+    }
+
+    public void setNum(String num) {
+        this.num = num;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public void setStudent(Student student) {
+        this.student = student;
     }
 }

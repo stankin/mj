@@ -11,7 +11,9 @@ import org.hibernate.criterion.Restrictions;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -32,11 +34,40 @@ public class JPAStorage implements Storage {
 
     @Override
     @javax.transaction.Transactional
-    public void updateModules(Student student) {
+    public void updateModules(Student student0) {
+        Student student = em.merge(student0);
         logger.debug("saving student {}", student);
-        student.getModules().forEach(m -> m.student = student);
+        List<Module> studentModules = new ArrayList<>(student.getModules());
+
+        //TODO: но вообще это какой-то ад
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
+        Root<Module> from = query.from(Module.class);
+        query.where(b.equal(from.get("student"), student));
+        int deleted = em.createQuery(query).executeUpdate();
+        logger.debug("deleted {}", deleted);
+
+        studentModules.forEach(m -> {
+            m.setStudent(student);
+            em.persist(m);
+            logger.debug("persist module {} {}", m.getStudent(), m);
+        });
+        em.flush();
+        em.refresh(student);
+//        student.getModules().forEach(m -> {
+//            m.setStudent(student);
+//            em.refresh(m);
+//            logger.debug("refresing module {} {}", m.getStudent(), m);
+//        });
+    }
+
+    @Override
+    @javax.transaction.Transactional
+    public void saveStudent(Student student) {
         em.persist(student);
     }
+
+
 
     @Override
     public Stream<Student> getStudents() {
@@ -82,6 +113,43 @@ public class JPAStorage implements Storage {
         }
         return student;
     }
+
+    @Override
+    @javax.transaction.Transactional
+    public Student getStudentByGroupSurnameInitials(String group, String surname, String initials) {
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaQuery<Student> query = b.createQuery(Student.class);
+        Root<Student> from = query.from(Student.class);
+        query.where(b.and(
+                b.equal(from.get("stgroup"), group),
+                b.equal(from.get("surname"), surname),
+                b.equal(from.get("initials"), initials)
+        ));
+        try {
+            Student singleResult = em.createQuery(query).getSingleResult();
+            singleResult.getModules().size();
+            return singleResult;
+        }
+        catch (NoResultException e){
+            return null;
+        }
+    }
+
+    @Override
+    public Student getStudentByCardId(String cardid) {
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaQuery<Student> query = b.createQuery(Student.class);
+        Root<Student> from = query.from(Student.class);
+        query.where(b.equal(from.get("cardid"), cardid));
+        try {
+            return em.createQuery(query).getSingleResult();
+        }
+        catch (javax.persistence.NoResultException e){
+            return null;
+        }
+    }
+
+
 
     private <T> Spliterator<T> toSplitIterator(ScrollableResults scroll, Class<T> type){
         return Spliterators.spliteratorUnknownSize(

@@ -15,4 +15,10 @@ public interface Storage {
     Stream<Student> getStudentsFiltred(String text);
 
     Student getStudentById(int value, boolean eager);
+
+    Student getStudentByCardId(String cardid);
+
+    void saveStudent(Student student);
+
+    Student getStudentByGroupSurnameInitials(String group, String surname, String initials);
 }

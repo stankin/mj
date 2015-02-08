@@ -3,14 +3,15 @@ package ru.stankin.mj;
 import com.google.gwt.thirdparty.guava.common.io.Files;
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.Container;
+import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.vaadin.easyuploads.FileBuffer;
 import org.vaadin.easyuploads.MultiFileUpload;
+import org.vaadin.easyuploads.UploadField;
 import ru.stankin.mj.model.Module;
 import ru.stankin.mj.model.ModuleJournalUploader;
 import ru.stankin.mj.model.Storage;
@@ -20,8 +21,8 @@ import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.*;
 
 
@@ -79,13 +80,17 @@ public class MainView extends CustomComponent implements View {
         //  pael1.setHeight(100, Unit.PERCENTAGE);
         verticalLayout.addComponent(pael1);
 
-        MultiFileUpload marksUpload = createUpload();
         HorizontalLayout uploadAndGrids = new HorizontalLayout();
         //uploadAndGrids.setMargin(true);
         VerticalLayout uploads = new VerticalLayout();
         uploads.setHeight(100, Unit.PERCENTAGE);
         uploads.setMargin(true);
-        uploads.addComponent(marksUpload);
+        uploads.setSpacing(true);
+        uploads.addComponent(createEtalonUpload());
+        uploads.addComponent(createMarksUpload());
+        Label c1 = new Label();
+        uploads.addComponent(c1);
+        uploads.setExpandRatio(c1,1);
         Panel panel = new Panel(uploads);
         panel.setWidth(200, Unit.PIXELS);
         panel.setHeight(100, Unit.PERCENTAGE);
@@ -227,7 +232,35 @@ public class MainView extends CustomComponent implements View {
         return /*new Panel(*/grid/*)*/;
     }
 
-    private MultiFileUpload createUpload() {
+    private Component createEtalonUpload() {
+        final UploadField uploadField2 = new UploadField();
+        uploadField2.setFieldType(UploadField.FieldType.FILE);
+        uploadField2.setCaption("Загрузить эталон");
+        uploadField2.setButtonCaption("Выбрать файл");
+        uploadField2.addListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+
+                File file = (File) uploadField2.getValue();
+                if(file == null)
+                    return;
+
+                try {
+                    try(BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+                        moduleJournalUploader.updateStudentsFromExcel(bufferedInputStream);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
+        return uploadField2;
+    }
+
+
+    private MultiFileUpload createMarksUpload() {
         //verticalLayout.setMargin(true);
 //        FileReceiver uploadReceiver = new FileReceiver(this, moduleJournalUploader, ecs);
 //        Upload upload = new Upload("Загрузка файла", uploadReceiver);
@@ -250,10 +283,14 @@ public class MainView extends CustomComponent implements View {
 
                 try {
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
-                    moduleJournalUploader.processIncomingDate(is);
+                    List<String> messages = moduleJournalUploader.updateMarksFromExcel(is);
+                    messages.add(0, msg);
                     is.close();
-                    Notification.show(msg);
+                    String join = String.join("\n", messages);
+                    logger.debug("uploadmesages:{}", join);
+                    Notification.show(join);
                 } catch (Exception e) {
+                    logger.error("error processing {}", file, e);
                     Notification.show(e.getMessage(), Notification.Type.ERROR_MESSAGE);
                 }
 
@@ -272,6 +309,7 @@ public class MainView extends CustomComponent implements View {
 //            }
         };
         upload.setCaption("Загрузить файлы с оценками");
+        upload.setUploadButtonCaption("Выбрать файлы");
         upload.setRootDirectory(Files.createTempDir().toString());
         return upload;
     }
@@ -281,12 +319,12 @@ public class MainView extends CustomComponent implements View {
             return new Label();
         Module module = m1;
         String bgColorStyle = "";
-        if (module.color != 0)
-            bgColorStyle = "background-color: " + String.format("#%06X", (0xFFFFFF & module.color)) + ";";
+        if (module.getColor() != 0)
+            bgColorStyle = "background-color: " + String.format("#%06X", (0xFFFFFF & module.getColor())) + ";";
         String moduleHtml = "<div style='" + bgColorStyle + "width: 20px; padding: 2px 2px 2px 2px'>";
         logger.debug("moduleHtml:{}", moduleHtml);
         return new Label(moduleHtml
-                + (module.value != 0 ? module.value + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
+                + (module.getValue() != 0 ? module.getValue() + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
     }
 
 }

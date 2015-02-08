@@ -4,8 +4,10 @@ package ru.stankin.mj.model;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -26,35 +28,7 @@ public class ModuleJournalUploader {
     @Inject
     private Storage storage;
 
-
-
-//    @PostConstruct
-//    public void fill(){
-//        System.out.println("filling");
-//        logger.info("filling");
-//        try {
-//            File dir = new File("/home/nickl/NetBeansProjects/modules-journal/src/test/resources/");
-//            File[] files = dir.listFiles((dir1, name) -> {
-//                return name.endsWith(".xls");
-//            });
-//
-//            for (File file : files) {
-//                try {
-//                    BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
-//                    processIncomingDate(is);
-//                    is.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                } catch (InvalidFormatException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        } catch (Exception e){
-//            e.printStackTrace();
-//            logger.catching(Level.WARN, e);
-//        }
-//    }
-
+    private static Set<String> markTypes = Arrays.asList("З", "Э").stream().collect(Collectors.toSet());
 
     public void processIncomingDate(InputStream is) throws IOException, InvalidFormatException {
 
@@ -75,7 +49,7 @@ public class ModuleJournalUploader {
 
     }
 
-    static class WorkbookReader{
+    static class WorkbookReader {
 
         private Workbook workbook;
 
@@ -83,7 +57,7 @@ public class ModuleJournalUploader {
             this.workbook = workbook;
         }
 
-        void writeTo(Storage storage){
+        void writeTo(Storage storage) {
 
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
@@ -98,15 +72,25 @@ public class ModuleJournalUploader {
                     for (int j = 0; j < modulesrow.getLastCellNum(); j++) {
 
                         Cell cell = modulesrow.getCell(j);
-                        if (cell!= null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
-                            if (cell.getStringCellValue().equals("М1")) {
-                                String subject = subjRow.getCell(j).getStringCellValue();
+                        if (cell != null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
+                            if (cell.getStringCellValue().trim().equals("М1")) {
+                                String subject = subjRow.getCell(j).getStringCellValue().trim();
                                 logger.debug(j + " " + subject);
-                                if (!modulesrow.getCell(j + 1).getStringCellValue().equals("М2"))
+                                if (!modulesrow.getCell(j + 1).getStringCellValue().trim().equals("М2"))
                                     throw new IllegalArgumentException("no m2");
 
-                                moduleMap.put(j, new Module(subject, 1));
-                                moduleMap.put(j + 1, new Module(subject, 2));
+                                moduleMap.put(j, new Module(subject, "М1"));
+                                moduleMap.put(j + 1, new Module(subject, "М2"));
+
+                                for (int k = 2; k < 5; k++) {
+                                    String markType = modulesrow.getCell(j + k).getStringCellValue().trim();
+                                    if (markType.equals("М1"))
+                                        break;
+
+                                    if (markTypes.contains(markType))
+                                        moduleMap.put(j + k, new Module(subject, markType));
+                                }
+
                             }
                         }
 
@@ -124,8 +108,10 @@ public class ModuleJournalUploader {
                             for (Map.Entry<Integer, Module> entry : moduleMap.entrySet()) {
                                 Module module = entry.getValue().clone();
                                 Cell cell = row.getCell(entry.getKey());
-                                if (cell != null)
+                                if (cell != null) {
+                                    module.color = colorToInt(cell.getCellStyle());
                                     module.value = (int) cell.getNumericCellValue();
+                                }
                                 else
                                     module.value = 0;
                                 student.getModules().add(module);
@@ -152,21 +138,50 @@ public class ModuleJournalUploader {
 
         }
 
+        private int colorToInt(CellStyle style) {
+
+            //logger.debug("fillBackgroundColorColor {}", style.getFillBackgroundColorColor());
+            //logger.debug("FillForegroundColorColor {}", style.getFillForegroundColorColor());
+
+            int bgInt = colorToInt(style.getFillBackgroundColorColor());
+            return  (bgInt !=0) ?
+                    bgInt:
+                    colorToInt(style.getFillForegroundColorColor());
+        }
+
+        private int colorToInt(Color fillBackgroundColorColor) {
+            if(fillBackgroundColorColor instanceof HSSFColor){
+                HSSFColor hssfColor = (HSSFColor) fillBackgroundColorColor;
+                //logger.debug("processing color {}", hssfColor);
+                //logger.debug("processing colorhex {}", hssfColor.getHexString());
+                short[] triplet = hssfColor.getTriplet();
+                //logger.debug("HSSFColor {}", Arrays.toString(triplet));
+                return triplet[0] << 16 | triplet[1] << 8 | triplet[2];
+            }
+            if(fillBackgroundColorColor instanceof XSSFColor){
+                byte[] aRgb = ((XSSFColor) fillBackgroundColorColor).getARgb();
+                //logger.debug("XSSFColor {}", Arrays.toString(aRgb));
+                return aRgb[1] << 16 | aRgb[2] << 8 | aRgb[3];
+            }
+
+            return 0;
+        }
+
         private Row detectSubjsRow(Sheet sheet) {
 
             for (int i = 0; i < sheet.getLastRowNum(); i++) {
 
 
                 Row subjRow = sheet.getRow(i);
-                if(subjRow == null)
+                if (subjRow == null)
                     continue;
                 //System.out.println("tabrow:" + rowTabsepareted(subjRow));
                 List<String> subjsList = getStringStream(subjRow).filter(str -> !str.matches("\\s*")).collect(Collectors
                         .toList());
 
                 logger.debug("subjsList: {} {}", subjsList, subjsList.size());
-                if(!subjsList.isEmpty())
-                return subjRow;
+                if (!subjsList.isEmpty())
+                    return subjRow;
             }
             throw new IllegalArgumentException("no SubjsRow found");
         }

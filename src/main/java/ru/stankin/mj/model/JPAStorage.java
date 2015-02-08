@@ -34,6 +34,7 @@ public class JPAStorage implements Storage {
     @javax.transaction.Transactional
     public void updateModules(Student student) {
         logger.debug("saving student {}", student);
+        student.getModules().forEach(m -> m.student = student);
         em.persist(student);
     }
 

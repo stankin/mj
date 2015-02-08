@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.easyuploads.FileBuffer;
 import org.vaadin.easyuploads.MultiFileUpload;
+import ru.stankin.mj.model.Module;
 import ru.stankin.mj.model.ModuleJournalUploader;
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
@@ -19,6 +20,8 @@ import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 
@@ -64,7 +67,7 @@ public class MainView extends CustomComponent implements View {
         content.setComponentAlignment(settings, Alignment.TOP_RIGHT);
         Button exit = new Button("Выход");
         exit.addClickListener(event1 -> {
-                    user.setUser(null);
+            user.setUser(null);
             this.getUI().getPage().reload();
         });
         content.addComponent(exit);
@@ -72,8 +75,8 @@ public class MainView extends CustomComponent implements View {
 
         pael1.setContent(content);
 
-       // pael1.setWidth(100, Unit.PERCENTAGE);
-      //  pael1.setHeight(100, Unit.PERCENTAGE);
+        // pael1.setWidth(100, Unit.PERCENTAGE);
+        //  pael1.setHeight(100, Unit.PERCENTAGE);
         verticalLayout.addComponent(pael1);
 
         MultiFileUpload marksUpload = createUpload();
@@ -168,26 +171,40 @@ public class MainView extends CustomComponent implements View {
         marks.setColumnWidth("М1", 30);
         marks.addContainerProperty("М2", Label.class, null);
         marks.setColumnWidth("М2", 30);
+        marks.addContainerProperty("З", Label.class, null);
+        marks.setColumnWidth("З", 30);
+        marks.addContainerProperty("Э", Label.class, null);
+        marks.setColumnWidth("Э", 30);
 
         marks.setSizeFull();
         marks.setWidth(100, Unit.PERCENTAGE);
 
         Label label = new Label("", ContentMode.HTML);
         students.addValueChangeListener(event1 -> {
-            logger.debug("selection:{}",event1);
+            logger.debug("selection:{}", event1);
             //logger.debug("stacktacer:{}",new Exception("stacktrace"));
-            if(event1.getProperty() == null || event1.getProperty().getValue() == null)
+            if (event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
             Student student = storage.getStudentById((Integer) event1.getProperty().getValue(), true);
             label.setValue("<b>" + student.surname + " " + student.initials + "</b>");
 
             marks.removeAllItems();
 
-            for (int i = 0; i < student.getModules().size(); i += 2) {
-                String subject = student.getModules().get(i).subject;
-                int m1 = student.getModules().get(i).value;
-                int m2 = student.getModules().get(i + 1).value;
-                marks.addItem(new Object[]{subject, inNotNull(m1), inNotNull(m2)}, i);
+            int size = student.getModules().size();
+            logger.debug("student has:{} modules", size);
+            int i = 0;
+            Map<String, Map<String, Module>> modulesGrouped = student.getModulesGrouped();
+            logger.debug("modulesGrouped:{} ", modulesGrouped);
+
+            for (Map.Entry<String, Map<String, Module>> subj : modulesGrouped.entrySet()) {
+
+
+                String subject = subj.getKey();
+                Module m1 = subj.getValue().get("М1");
+                Module m2 = subj.getValue().get("М2");
+                Module m3 = subj.getValue().get("З");
+                Module m4 = subj.getValue().get("Э");
+                marks.addItem(new Object[]{subject, inNotNull(m1), inNotNull(m2), inNotNull(m3), inNotNull(m4)}, i++);
             }
 
         });
@@ -197,14 +214,14 @@ public class MainView extends CustomComponent implements View {
         grid.setWidth(100, Unit.PERCENTAGE);
         //grid.addComponent(upload, 0, 0);
         grid.addComponent(searchForm, 0, 0);
-        grid.addComponent(students, 0 , 1);
-        grid.addComponent(label, 1 , 0);
-        grid.addComponent(marks, 1 , 1);
+        grid.addComponent(students, 0, 1);
+        grid.addComponent(label, 1, 0);
+        grid.addComponent(marks, 1, 1);
         grid.setSpacing(true);
-        grid.setRowExpandRatio(0,0);
-        grid.setRowExpandRatio(1,1);
-        grid.setColumnExpandRatio(0,1);
-        grid.setColumnExpandRatio(1,1);
+        grid.setRowExpandRatio(0, 0);
+        grid.setRowExpandRatio(1, 1);
+        grid.setColumnExpandRatio(0, 1);
+        grid.setColumnExpandRatio(1, 1);
 
         grid.setMargin(true);
         return /*new Panel(*/grid/*)*/;
@@ -236,8 +253,7 @@ public class MainView extends CustomComponent implements View {
                     moduleJournalUploader.processIncomingDate(is);
                     is.close();
                     Notification.show(msg);
-                }
-                catch (Exception e){
+                } catch (Exception e) {
                     Notification.show(e.getMessage(), Notification.Type.ERROR_MESSAGE);
                 }
 
@@ -260,8 +276,17 @@ public class MainView extends CustomComponent implements View {
         return upload;
     }
 
-    private Object inNotNull(int m1) {
-        return new Label("<span style='background-color: blue; padding: 2px 2px 2px 2px'>"+(m1 != 0 ? m1 + "" : "")+"</span>", ContentMode.HTML);
+    private Object inNotNull(Module m1) {
+        if (m1 == null)
+            return new Label();
+        Module module = m1;
+        String bgColorStyle = "";
+        if (module.color != 0)
+            bgColorStyle = "background-color: " + String.format("#%06X", (0xFFFFFF & module.color)) + ";";
+        String moduleHtml = "<div style='" + bgColorStyle + "width: 20px; padding: 2px 2px 2px 2px'>";
+        logger.debug("moduleHtml:{}", moduleHtml);
+        return new Label(moduleHtml
+                + (module.value != 0 ? module.value + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
     }
 
 }

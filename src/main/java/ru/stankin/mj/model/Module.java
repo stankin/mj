@@ -1,15 +1,26 @@
 package ru.stankin.mj.model;
 
+import javax.persistence.*;
 import java.io.Serializable;
 
-/**
- * Created by nickl on 08.01.15.
- */
+@Entity
+@Table(name = "Modules")
 public class Module implements Cloneable, Serializable {
 
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
+    public int id = 0;
+
     public String subject = "";
-    public int num = 0;
+    public String num = "";
     public int value = -1;
+    public int color = 0;
+
+    @ManyToOne
+    @JoinColumn(name = "student_id")
+    Student student;
 
     @Override
     public Module clone()  {
@@ -21,7 +32,7 @@ public class Module implements Cloneable, Serializable {
         }
     }
 
-    public Module(String subject, int num) {
+    public Module(String subject, String num) {
         this.subject = subject;
         this.num = num;
     }

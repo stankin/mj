@@ -4,6 +4,9 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by nickl on 08.01.15.
@@ -11,6 +14,8 @@ import java.util.List;
 @Entity
 @Table(name = "Student")
 public class Student implements Serializable, Comparable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
@@ -23,8 +28,9 @@ public class Student implements Serializable, Comparable {
     public String login = "";
     public String password = "";
 
-    @ElementCollection
+    //@ElementCollection
     //@Transient
+    @OneToMany(fetch=FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
     private List<Module> modules = new ArrayList<>();
 
     public Student() {
@@ -84,7 +90,23 @@ public class Student implements Serializable, Comparable {
         return modules;
     }
 
+    public Map<String, Map<String, Module>> getModulesGrouped() {
+        return getModules().stream().collect(
+                Collectors.groupingBy(m -> m.subject,
+                        Collectors.groupingBy(m -> m.num,
+                                Collectors.reducing(((Module)null), (Module a,Module b) -> b)
+                        )));
+    }
+
     public void setModules(List<Module> modules) {
         this.modules = modules;
+    }
+
+    public void foo(){
+        System.out.println("ssss");
+    }
+
+    public void bar(){
+        System.out.println("ssss");
     }
 }

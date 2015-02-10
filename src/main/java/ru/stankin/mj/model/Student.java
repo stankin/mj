@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
  */
 @Entity
 @Table(name = "Student", indexes = {
-        @Index(columnList = "stgroup, surname, initials")
+        @Index(columnList = "stgroup, surname, initials") ,
+        @Index(columnList = "cardid")
 })
 public class Student implements Serializable, Comparable {
 
@@ -35,8 +36,7 @@ public class Student implements Serializable, Comparable {
 
     //@ElementCollection
     //@Transient
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
-    @NotFound(action = NotFoundAction.IGNORE)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, mappedBy = "student")
     private List<Module> modules = new ArrayList<>();
     public String name;
     public String patronym;

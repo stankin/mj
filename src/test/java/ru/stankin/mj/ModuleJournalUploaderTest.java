@@ -21,6 +21,8 @@ public class ModuleJournalUploaderTest {
         Collection<Student> students = getStudentMarks("/information_items_property_2349.xls");
 
         Assert.assertEquals(335, (long) students.size());
+        Integer collect = students.stream().map(s -> s.getModules().size()).collect(Collectors.summingInt(i -> i));
+        Assert.assertEquals(10519, collect.intValue());
 
     }
 

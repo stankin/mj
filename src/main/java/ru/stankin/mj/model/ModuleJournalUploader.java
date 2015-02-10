@@ -47,6 +47,7 @@ public class ModuleJournalUploader {
        return strings;
     }
 
+    @javax.transaction.Transactional
     public void updateStudentsFromExcel(InputStream inputStream) throws IOException, InvalidFormatException {
 
         Workbook workbook = WorkbookFactory.create(inputStream);
@@ -153,7 +154,7 @@ public class ModuleJournalUploader {
                             }
                             else{
 
-                                student.getModules().clear();
+                                student.setModules(new ArrayList<>());
                              /*new Student(
                                     row.getCell(0).getStringCellValue(),
                                     row.getCell(1).getStringCellValue(),

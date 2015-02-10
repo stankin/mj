@@ -280,7 +280,6 @@ public class MainView extends CustomComponent implements View {
                 String msg = fileName + " uploaded. Saved to file "
                         + file.getAbsolutePath() + " (size " + length
                         + " bytes)";
-
                 try {
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
                     List<String> messages = moduleJournalUploader.updateMarksFromExcel(is);

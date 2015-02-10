@@ -18,7 +18,7 @@ public class Module implements Cloneable, Serializable {
     private int value = -1;
     private int color = 0;
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "student_id")
     private Student student;
 

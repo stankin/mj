@@ -10,10 +10,9 @@ import org.hibernate.criterion.Restrictions;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
+import javax.persistence.*;
 import javax.persistence.criteria.*;
+import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -35,9 +34,10 @@ public class JPAStorage implements Storage {
     @Override
     @javax.transaction.Transactional
     public void updateModules(Student student0) {
-        Student student = em.merge(student0);
-        logger.debug("saving student {}", student);
+
+        Student student = /*em.merge(*/student0/*)*/;
         List<Module> studentModules = new ArrayList<>(student.getModules());
+        logger.debug("saving student {} modules: {}", student.name,studentModules.size());
 
         //TODO: но вообще это какой-то ад
         CriteriaBuilder b = em.getCriteriaBuilder();
@@ -46,14 +46,15 @@ public class JPAStorage implements Storage {
         query.where(b.equal(from.get("student"), student));
         int deleted = em.createQuery(query).executeUpdate();
         logger.debug("deleted {}", deleted);
+        em.flush();
 
         studentModules.forEach(m -> {
             m.setStudent(student);
             em.persist(m);
-            logger.debug("persist module {} {}", m.getStudent(), m);
+            //logger.debug("persist module {} ",   m);
         });
-        em.flush();
-        em.refresh(student);
+        //em.flush();
+        //em.refresh(student);
 //        student.getModules().forEach(m -> {
 //            m.setStudent(student);
 //            em.refresh(m);
@@ -64,7 +65,7 @@ public class JPAStorage implements Storage {
     @Override
     @javax.transaction.Transactional
     public void saveStudent(Student student) {
-        em.persist(student);
+        em.merge(student);
     }
 
 
@@ -127,7 +128,7 @@ public class JPAStorage implements Storage {
         ));
         try {
             Student singleResult = em.createQuery(query).getSingleResult();
-            singleResult.getModules().size();
+            //singleResult.getModules().size();
             return singleResult;
         }
         catch (NoResultException e){
@@ -141,8 +142,12 @@ public class JPAStorage implements Storage {
         CriteriaQuery<Student> query = b.createQuery(Student.class);
         Root<Student> from = query.from(Student.class);
         query.where(b.equal(from.get("cardid"), cardid));
+
         try {
-            return em.createQuery(query).getSingleResult();
+            TypedQuery<Student> query1 = em.createQuery(query);
+            query1.setFlushMode(FlushModeType.COMMIT);
+            query1.setMaxResults(1);
+            return query1.getSingleResult();
         }
         catch (javax.persistence.NoResultException e){
             return null;

@@ -1,20 +1,22 @@
 package ru.stankin.mj;
 
+import javax.enterprise.inject.Alternative;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
+@Alternative
 public class TestingUserDAO implements UserDAO, Serializable {
 
     static List<User> users;
 
     static {
         users = new LinkedList<User>();
-        users.add(new User(0, "admin", "admin", "System", "Administrator",
-                null, true));
-        users.add(new User(1, "user", "user", "Some", "User", null, false));
-        users.add(new User(2, "ernest", "john", "Ernest", "Worthing", null,
-                false));
+//        users.add(new AdminUser(0, "admin", "admin", "System", "Administrator",
+//                null, true));
+//        users.add(new AdminUser(1, "user", "user", "Some", "User", null, false));
+//        users.add(new AdminUser(2, "ernest", "john", "Ernest", "Worthing", null,
+//                false));
     }
 
     public TestingUserDAO() {

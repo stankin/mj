@@ -26,7 +26,7 @@ public class UserInfo implements Serializable {
         if (user == null) {
             return "anonymous user";
         } else {
-            return user.getName();
+            return user.getUsername();
         }
     }
 
@@ -43,5 +43,9 @@ public class UserInfo implements Serializable {
 
     public List<String> getRoles() {
         return roles;
+    }
+
+    public boolean isAdmin() {
+        return user != null && user.isAdmin();
     }
 }

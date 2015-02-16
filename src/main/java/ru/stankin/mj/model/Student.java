@@ -2,6 +2,7 @@ package ru.stankin.mj.model;
 
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import ru.stankin.mj.User;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
         @Index(columnList = "stgroup, surname, initials") ,
         @Index(columnList = "cardid")
 })
-public class Student implements Serializable, Comparable {
+public class Student implements Serializable, User, Comparable {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,8 +32,7 @@ public class Student implements Serializable, Comparable {
     public String surname;
     public String initials;
 
-    public String login = "";
-    public String password = "";
+    public String password;
 
     //@ElementCollection
     //@Transient
@@ -127,11 +127,23 @@ public class Student implements Serializable, Comparable {
         this.modules = modules;
     }
 
-    public void foo() {
-        System.out.println("ssss");
+    @Override
+    public String getUsername() {
+        return cardid;
     }
 
-    public void bar() {
-        System.out.println("ssss");
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public boolean isAdmin() {
+        return false;
     }
 }

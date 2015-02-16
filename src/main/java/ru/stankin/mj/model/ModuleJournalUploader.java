@@ -144,9 +144,9 @@ public class ModuleJournalUploader {
                     sheet.iterator().forEachRemaining(row -> {
                         if (row.getCell(0) != null && !row.getCell(0).getStringCellValue().isEmpty()) {
 
-                            String group = row.getCell(0).getStringCellValue();
-                            String surname = row.getCell(1).getStringCellValue();
-                            String initials = row.getCell(2).getStringCellValue();
+                            String group = row.getCell(0).getStringCellValue().trim();
+                            String surname = row.getCell(1).getStringCellValue().trim();
+                            String initials = row.getCell(2).getStringCellValue().trim();
                             Student student = storage.getStudentByGroupSurnameInitials(group, surname, initials);
 
                             if(student == null){

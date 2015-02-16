@@ -65,7 +65,11 @@ public class JPAStorage implements Storage {
     @Override
     @javax.transaction.Transactional
     public void saveStudent(Student student) {
-        em.merge(student);
+        Student merge = em.merge(student);
+        if(merge.password == null) {
+            merge.password = merge.cardid;
+            em.merge(merge);
+        }
     }
 
 

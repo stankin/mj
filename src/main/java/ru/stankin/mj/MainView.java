@@ -6,6 +6,8 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Sizeable;
+import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.apache.logging.log4j.LogManager;
@@ -35,6 +37,9 @@ public class MainView extends CustomComponent implements View {
     private UserInfo user;
 
     @Inject
+    private UserDAO userDao;
+
+    @Inject
     private Storage storage;
 
     @Inject
@@ -42,6 +47,8 @@ public class MainView extends CustomComponent implements View {
 
     @Inject
     private ExecutorService ecs;
+
+    Table marks;
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -62,13 +69,16 @@ public class MainView extends CustomComponent implements View {
         //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
         content.setExpandRatio(label, 1);
         //label.setHeight(30,Unit.PIXELS);
-        Button settings = new Button("Аккаунт");
-        settings.setEnabled(false);
+        Button settings = new Button("Аккаунт: " + user.getName(), event1 -> {
+            this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser));
+        });
+        //settings.setEnabled(false);
         content.addComponent(settings);
         content.setComponentAlignment(settings, Alignment.TOP_RIGHT);
         Button exit = new Button("Выход");
         exit.addClickListener(event1 -> {
             user.setUser(null);
+            VaadinService.getCurrentRequest().getWrappedSession().invalidate();
             this.getUI().getPage().reload();
         });
         content.addComponent(exit);
@@ -80,6 +90,23 @@ public class MainView extends CustomComponent implements View {
         //  pael1.setHeight(100, Unit.PERCENTAGE);
         verticalLayout.addComponent(pael1);
 
+        Component mainPanel;
+         if(user.isAdmin())
+             mainPanel = genUploadAndGrids();
+        else{
+             mainPanel = genMarks();
+             Student student = (Student) user.getUser();
+             fillMarks(storage.getStudentById(student.id, true));
+         }
+
+        verticalLayout.addComponent(mainPanel);
+        verticalLayout.setExpandRatio(mainPanel, 1);
+        verticalLayout.setSizeFull();
+        setCompositionRoot(verticalLayout);
+
+    }
+
+    private HorizontalLayout genUploadAndGrids() {
         HorizontalLayout uploadAndGrids = new HorizontalLayout();
         //uploadAndGrids.setMargin(true);
         VerticalLayout uploads = new VerticalLayout();
@@ -102,11 +129,7 @@ public class MainView extends CustomComponent implements View {
         uploadAndGrids.addComponent(c);
         uploadAndGrids.setExpandRatio(c, 1);
         uploadAndGrids.setSizeFull();
-        verticalLayout.addComponent(uploadAndGrids);
-        verticalLayout.setExpandRatio(uploadAndGrids, 1);
-        verticalLayout.setSizeFull();
-        setCompositionRoot(verticalLayout);
-
+        return uploadAndGrids;
     }
 
     private Component buildGrids() {
@@ -124,8 +147,8 @@ public class MainView extends CustomComponent implements View {
         students.setColumnWidth("ИО", 30);
         students.addContainerProperty("Логин", String.class, null);
         students.setColumnWidth("Логин", 60);
-        students.addContainerProperty("Пароль", String.class, null);
-        students.setColumnWidth("Пароль", 60);
+//        students.addContainerProperty("Пароль", String.class, null);
+//        students.setColumnWidth("Пароль", 60);
 
         students.setEditable(true);
         students.setSelectable(true);
@@ -135,7 +158,7 @@ public class MainView extends CustomComponent implements View {
             @Override
             public Field<?> createField(Container container, Object itemId, Object propertyId, Component uiContext) {
 
-                if (propertyId.equals("Логин") || propertyId.equals("Пароль")) {
+                if (propertyId.equals("Пароль")) {
                     Field field = DefaultFieldFactory.get().createField(container, itemId, propertyId, uiContext);
                     field.addValueChangeListener(event -> {
                         logger.debug("Property.ValueChangeEvent:" + event);
@@ -168,7 +191,46 @@ public class MainView extends CustomComponent implements View {
         });
 
 
-        Table marks = new Table();
+        genMarks();
+
+        Label label = new Label("", ContentMode.HTML);
+        label.setWidth(200, Unit.PIXELS);
+        StudentSettingsButton studenSettings = new StudentSettingsButton();
+        HorizontalLayout studentLine = new HorizontalLayout(label, studenSettings);
+        students.addValueChangeListener(event1 -> {
+            logger.debug("selection:{}", event1);
+            //logger.debug("stacktacer:{}",new Exception("stacktrace"));
+            if (event1.getProperty() == null || event1.getProperty().getValue() == null)
+                return;
+            Student student = storage.getStudentById((Integer) event1.getProperty().getValue(), true);
+            label.setValue("<b>" + student.surname + " " + student.initials + "</b>");
+
+            fillMarks(student);
+
+            studenSettings.setStudent(student);
+
+        });
+
+        GridLayout grid = new GridLayout(2, 3);
+        grid.setHeight(100, Unit.PERCENTAGE);
+        grid.setWidth(100, Unit.PERCENTAGE);
+        //grid.addComponent(upload, 0, 0);
+        grid.addComponent(searchForm, 0, 0);
+        grid.addComponent(students, 0, 1);
+        grid.addComponent(studentLine, 1, 0);
+        grid.addComponent(marks, 1, 1);
+        grid.setSpacing(true);
+        grid.setRowExpandRatio(0, 0);
+        grid.setRowExpandRatio(1, 1);
+        grid.setColumnExpandRatio(0, 1);
+        grid.setColumnExpandRatio(1, 1);
+
+        grid.setMargin(true);
+        return /*new Panel(*/grid/*)*/;
+    }
+
+    private Table genMarks() {
+        marks = new Table();
 
         marks.addContainerProperty("Предмет", String.class, null);
         marks.setColumnWidth("Предмет", 200);
@@ -183,53 +245,28 @@ public class MainView extends CustomComponent implements View {
 
         marks.setSizeFull();
         marks.setWidth(100, Unit.PERCENTAGE);
+        return marks;
+    }
 
-        Label label = new Label("", ContentMode.HTML);
-        students.addValueChangeListener(event1 -> {
-            logger.debug("selection:{}", event1);
-            //logger.debug("stacktacer:{}",new Exception("stacktrace"));
-            if (event1.getProperty() == null || event1.getProperty().getValue() == null)
-                return;
-            Student student = storage.getStudentById((Integer) event1.getProperty().getValue(), true);
-            label.setValue("<b>" + student.surname + " " + student.initials + "</b>");
+    private void fillMarks(Student student) {
+        marks.removeAllItems();
 
-            marks.removeAllItems();
+        int size = student.getModules().size();
+        logger.debug("student has:{} modules", size);
+        int i = 0;
+        Map<String, Map<String, Module>> modulesGrouped = student.getModulesGrouped();
+        logger.debug("modulesGrouped:{} ", modulesGrouped);
 
-            int size = student.getModules().size();
-            logger.debug("student has:{} modules", size);
-            int i = 0;
-            Map<String, Map<String, Module>> modulesGrouped = student.getModulesGrouped();
-            logger.debug("modulesGrouped:{} ", modulesGrouped);
-
-            for (Map.Entry<String, Map<String, Module>> subj : modulesGrouped.entrySet()) {
+        for (Map.Entry<String, Map<String, Module>> subj : modulesGrouped.entrySet()) {
 
 
-                String subject = subj.getKey();
-                Module m1 = subj.getValue().get("М1");
-                Module m2 = subj.getValue().get("М2");
-                Module m3 = subj.getValue().get("З");
-                Module m4 = subj.getValue().get("Э");
-                marks.addItem(new Object[]{subject, inNotNull(m1), inNotNull(m2), inNotNull(m3), inNotNull(m4)}, i++);
-            }
-
-        });
-
-        GridLayout grid = new GridLayout(2, 3);
-        grid.setHeight(100, Unit.PERCENTAGE);
-        grid.setWidth(100, Unit.PERCENTAGE);
-        //grid.addComponent(upload, 0, 0);
-        grid.addComponent(searchForm, 0, 0);
-        grid.addComponent(students, 0, 1);
-        grid.addComponent(label, 1, 0);
-        grid.addComponent(marks, 1, 1);
-        grid.setSpacing(true);
-        grid.setRowExpandRatio(0, 0);
-        grid.setRowExpandRatio(1, 1);
-        grid.setColumnExpandRatio(0, 1);
-        grid.setColumnExpandRatio(1, 1);
-
-        grid.setMargin(true);
-        return /*new Panel(*/grid/*)*/;
+            String subject = subj.getKey();
+            Module m1 = subj.getValue().get("М1");
+            Module m2 = subj.getValue().get("М2");
+            Module m3 = subj.getValue().get("З");
+            Module m4 = subj.getValue().get("Э");
+            marks.addItem(new Object[]{subject, inNotNull(m1), inNotNull(m2), inNotNull(m3), inNotNull(m4)}, i++);
+        }
     }
 
     private Component createEtalonUpload() {
@@ -326,5 +363,24 @@ public class MainView extends CustomComponent implements View {
                 + (module.getValue() != 0 ? module.getValue() + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
     }
 
+    private class StudentSettingsButton extends Button {
+
+        private Student student;
+
+        public StudentSettingsButton() {
+            super("Редактировать");
+            this.setEnabled(false);
+            this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao::saveUser)));
+        }
+
+        public Student getStudent() {
+            return student;
+        }
+
+        public void setStudent(Student student) {
+            this.setEnabled(student != null);
+            this.student = student;
+        }
+    }
 }
 

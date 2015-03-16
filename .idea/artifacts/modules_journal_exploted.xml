@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="exploded-war" name="modules-journal:exploted">
+  <artifact type="exploded-war" name="modules-journal exploted">
     <output-path>$PROJECT_DIR$/target/modules-journal</output-path>
     <root id="root">
       <element id="directory" name="WEB-INF">

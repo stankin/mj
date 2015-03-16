@@ -6,7 +6,9 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.Sizeable;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -91,16 +93,29 @@ public class MainView extends CustomComponent implements View {
         verticalLayout.addComponent(pael1);
 
         Component mainPanel;
-         if(user.isAdmin())
-             mainPanel = genUploadAndGrids();
-        else{
-             mainPanel = genMarks();
-             Student student = (Student) user.getUser();
-             fillMarks(storage.getStudentById(student.id, true));
-         }
+        if (user.isAdmin())
+            mainPanel = genUploadAndGrids();
+        else {
+            mainPanel = genMarks();
+            Student student = (Student) user.getUser();
+            fillMarks(storage.getStudentById(student.id, true));
+        }
 
         verticalLayout.addComponent(mainPanel);
         verticalLayout.setExpandRatio(mainPanel, 1);
+        Label bbref = new Label("<div align=\"right\" style=\"margin-right: 20px;\">ФГБОУ ВПО МГТУ СТАНКИН, факультет «Информационных технологий и систем управления»&nbsp;&nbsp;<a href=\"https://bitbucket.org/NicolayMitropolsky/stankin-mj\">Разработка</a></div>", ContentMode.HTML);
+        bbref.setWidth(100, Unit.PERCENTAGE);
+        //Button bbref = new Button("hhhh");
+        //Label spacer = new Label("66");
+        //spacer.setWidth(100, Unit.PERCENTAGE);;
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        //horizontalLayout.addComponent(spacer);
+        //horizontalLayout.setExpandRatio(spacer, 1);
+        horizontalLayout.addComponent(bbref);
+        //horizontalLayout.setExpandRatio(bbref, 0);
+        horizontalLayout.setComponentAlignment(bbref, Alignment.BOTTOM_RIGHT);
+        horizontalLayout.setWidth(100, Unit.PERCENTAGE);
+        verticalLayout.addComponent(horizontalLayout);
         verticalLayout.setSizeFull();
         setCompositionRoot(verticalLayout);
 
@@ -117,7 +132,7 @@ public class MainView extends CustomComponent implements View {
         uploads.addComponent(createMarksUpload());
         Label c1 = new Label();
         uploads.addComponent(c1);
-        uploads.setExpandRatio(c1,1);
+        uploads.setExpandRatio(c1, 1);
         Panel panel = new Panel(uploads);
         panel.setWidth(200, Unit.PIXELS);
         panel.setHeight(100, Unit.PERCENTAGE);
@@ -222,7 +237,7 @@ public class MainView extends CustomComponent implements View {
         grid.setSpacing(true);
         grid.setRowExpandRatio(0, 0);
         grid.setRowExpandRatio(1, 1);
-        grid.setColumnExpandRatio(0, 1);
+        grid.setColumnExpandRatio(0, 2);
         grid.setColumnExpandRatio(1, 1);
 
         grid.setMargin(true);
@@ -234,13 +249,15 @@ public class MainView extends CustomComponent implements View {
 
         marks.addContainerProperty("Предмет", String.class, null);
         marks.setColumnWidth("Предмет", 200);
-        marks.addContainerProperty("М1", Label.class, null);
+        marks.addContainerProperty("М1", AbstractComponent.class, null);
         marks.setColumnWidth("М1", 30);
-        marks.addContainerProperty("М2", Label.class, null);
+        marks.addContainerProperty("М2", AbstractComponent.class, null);
         marks.setColumnWidth("М2", 30);
-        marks.addContainerProperty("З", Label.class, null);
+        marks.addContainerProperty("К", AbstractComponent.class, null);
+        marks.setColumnWidth("К", 30);
+        marks.addContainerProperty("З", AbstractComponent.class, null);
         marks.setColumnWidth("З", 30);
-        marks.addContainerProperty("Э", Label.class, null);
+        marks.addContainerProperty("Э", AbstractComponent.class, null);
         marks.setColumnWidth("Э", 30);
 
         marks.setSizeFull();
@@ -263,9 +280,12 @@ public class MainView extends CustomComponent implements View {
             String subject = subj.getKey();
             Module m1 = subj.getValue().get("М1");
             Module m2 = subj.getValue().get("М2");
-            Module m3 = subj.getValue().get("З");
-            Module m4 = subj.getValue().get("Э");
-            marks.addItem(new Object[]{subject, inNotNull(m1), inNotNull(m2), inNotNull(m3), inNotNull(m4)}, i++);
+            Module m3 = subj.getValue().get("К");
+            Module m4 = subj.getValue().get("З");
+            Module m5 = subj.getValue().get("Э");
+            marks.addItem(
+                    new Object[]{subject, inNotNull(m1), inNotNull(m2), inNotNull(m3), inNotNull(m4), inNotNull(m5)},
+                    i++);
         }
     }
 
@@ -279,11 +299,11 @@ public class MainView extends CustomComponent implements View {
             public void valueChange(Property.ValueChangeEvent event) {
 
                 File file = (File) uploadField2.getValue();
-                if(file == null)
+                if (file == null)
                     return;
 
                 try {
-                    try(BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+                    try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
                         moduleJournalUploader.updateStudentsFromExcel(bufferedInputStream);
                     }
                 } catch (Exception e) {
@@ -352,7 +372,13 @@ public class MainView extends CustomComponent implements View {
 
     private Object inNotNull(Module m1) {
         if (m1 == null)
-            return new Label();
+        //return new Label("Не предусмотрено");
+        {
+            Image image = new Image("Не предусмотрено", new ThemeResource("images/cross_lines.png"));
+            image.setWidth(10, Unit.PIXELS);
+            image.setHeight(10, Unit.PIXELS);
+            return image;
+        }
         Module module = m1;
         String bgColorStyle = "";
         if (module.getColor() != 0)

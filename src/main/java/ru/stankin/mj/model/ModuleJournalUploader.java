@@ -26,7 +26,7 @@ public class ModuleJournalUploader {
     @Inject
     private Storage storage;
 
-    private static Set<String> markTypes = Arrays.asList("З", "Э").stream().collect(Collectors.toSet());
+    private static Set<String> markTypes = Arrays.asList("З", "Э", "К").stream().collect(Collectors.toSet());
 
     public List<String> updateMarksFromExcel(InputStream is) throws IOException, InvalidFormatException {
 
@@ -127,12 +127,17 @@ public class ModuleJournalUploader {
                                 moduleMap.put(j, new Module(subject, "М1"));
                                 moduleMap.put(j + 1, new Module(subject, "М2"));
 
+
+
                                 for (int k = 2; k < 5; k++) {
                                     String markType = modulesrow.getCell(j + k).getStringCellValue().trim();
+                                    logger.debug("markType {}", markType);
                                     if (markType.equals("М1"))
                                         break;
 
-                                    if (markTypes.contains(markType))
+                                    boolean contains = markTypes.contains(markType);
+                                    logger.debug("contains {}", contains);
+                                    if (contains)
                                         moduleMap.put(j + k, new Module(subject, markType));
                                 }
 

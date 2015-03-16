@@ -1,0 +1,11 @@
+@import "modules-journal";
+@import "addons.scss";
+
+// This file prefixes all rules with the theme name to avoid causing conflicts with other themes.
+// The actual styles should be defined in modules-journal.scss
+
+.modules-journal {
+  @include addons;
+  @include modules-journal-m;
+
+}

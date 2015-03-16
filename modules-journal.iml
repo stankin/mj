@@ -49,7 +49,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" scope="TEST">
       <library name="JUnit4">
         <CLASSES>
           <root url="jar://$APPLICATION_HOME_DIR$/lib/junit-4.11.jar!/" />

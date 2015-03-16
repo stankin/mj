@@ -19,7 +19,7 @@ import java.io.ObjectOutputStream;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-//@Theme("valo")
+@Theme("modules-journal")
 @CDIUI("")
 //@Push
 @SuppressWarnings("serial")

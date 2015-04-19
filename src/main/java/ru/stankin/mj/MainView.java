@@ -6,8 +6,6 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.server.Sizeable;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -284,7 +282,7 @@ public class MainView extends CustomComponent implements View {
             Module m4 = subj.getValue().get("З");
             Module m5 = subj.getValue().get("Э");
             marks.addItem(
-                    new Object[]{subject, inNotNull(m1), inNotNull(m2), inNotNull(m3), inNotNull(m4), inNotNull(m5)},
+                    new Object[]{subject, drawModuleMark(m1), drawModuleMark(m2), drawModuleMark(m3), drawModuleMark(m4), drawModuleMark(m5)},
                     i++);
         }
     }
@@ -370,7 +368,7 @@ public class MainView extends CustomComponent implements View {
         return upload;
     }
 
-    private Object inNotNull(Module m1) {
+    private Object drawModuleMark(Module m1) {
         if (m1 == null)
         //return new Label("Не предусмотрено");
         {
@@ -381,7 +379,7 @@ public class MainView extends CustomComponent implements View {
         }
         Module module = m1;
         String bgColorStyle = "";
-        if (module.getColor() != 0)
+        if (module.getColor() != -1)
             bgColorStyle = "background-color: " + String.format("#%06X", (0xFFFFFF & module.getColor())) + ";";
         String moduleHtml = "<div style='" + bgColorStyle + "width: 20px; padding: 2px 2px 2px 2px'>";
         logger.debug("moduleHtml:{}", moduleHtml);

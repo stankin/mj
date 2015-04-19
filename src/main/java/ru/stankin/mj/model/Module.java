@@ -46,6 +46,7 @@ public class Module implements Cloneable, Serializable {
                 "'" + getSubject() + '\'' +
                 ", " + getNum() +
                 ", " + getValue() +
+                ", color=" + getColor() +
                 '}';
     }
 

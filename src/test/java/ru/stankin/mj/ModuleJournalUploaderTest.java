@@ -11,6 +11,7 @@ import ru.stankin.mj.model.Student;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ModuleJournalUploaderTest {
@@ -41,7 +42,19 @@ public class ModuleJournalUploaderTest {
     @Test
     public void testProcessIncomingDate4() throws Exception {
         Collection<Student> students = getStudentMarks("/information_items_property_2445.xls");
+
         Assert.assertEquals(196, (long) students.size());
+
+        Student pletenev =
+                students.stream().filter((Student s) -> s.surname.equals("Плетенев")).findFirst().get();
+        System.out.println("pletenev=" + pletenev);
+
+
+        Assert.assertEquals(0, pletenev.getModules().stream()
+                .filter(m -> m.getSubject().equals("Управление роботами и робототехнич. системами"))
+                .count());
+
+        Assert.assertEquals(5588, (long) students.stream().mapToInt(s -> s.getModules().size()).sum());
     }
 
     private Collection<Student> getStudentMarks(String name) throws IOException, InvalidFormatException {

@@ -3,8 +3,6 @@ package ru.stankin.mj.model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.hssf.usermodel.HSSFPalette;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -114,38 +112,9 @@ public class ModuleJournalUploader {
 
                     Row modulesrow = sheet.getRow(2);
 
-                    Map<Integer, Module> moduleMap = new LinkedHashMap<>();
+                    Map<Integer, Module> modulePrototypesMap = buildModulePrototypesMap(subjRow, modulesrow);
 
-                    for (int j = 0; j < modulesrow.getLastCellNum(); j++) {
-
-                        Cell cell = modulesrow.getCell(j);
-                        if (cell != null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
-                            if (cell.getStringCellValue().trim().equals("М1")) {
-                                String subject = subjRow.getCell(j).getStringCellValue().trim();
-                                logger.debug(j + " " + subject);
-                                if (!modulesrow.getCell(j + 1).getStringCellValue().trim().equals("М2"))
-                                    throw new IllegalArgumentException("no m2");
-
-                                moduleMap.put(j, new Module(subject, "М1"));
-                                moduleMap.put(j + 1, new Module(subject, "М2"));
-
-
-                                for (int k = 2; k < 5; k++) {
-                                    String markType = modulesrow.getCell(j + k).getStringCellValue().trim();
-                                    //logger.debug("markType {}", markType);
-                                    if (markType.equals("М1"))
-                                        break;
-
-                                    boolean contains = markTypes.contains(markType);
-                                    //logger.debug("contains {}", contains);
-                                    if (contains)
-                                        moduleMap.put(j + k, new Module(subject, markType));
-                                }
-
-                            }
-                        }
-
-                    }
+                    logger.debug("modulePrototypesMap="+modulePrototypesMap);
 
                     sheet.iterator().forEachRemaining(row -> {
                         if (row.getCell(0) != null && !row.getCell(0).getStringCellValue().isEmpty()) {
@@ -166,7 +135,7 @@ public class ModuleJournalUploader {
                                     row.getCell(2).getStringCellValue()
                             ); */
 
-                                for (Map.Entry<Integer, Module> entry : moduleMap.entrySet()) {
+                                for (Map.Entry<Integer, Module> entry : modulePrototypesMap.entrySet()) {
                                     Module module = entry.getValue().clone();
                                     //logger.debug("module=" + module);
                                     Cell cell = row.getCell(entry.getKey());
@@ -201,6 +170,49 @@ public class ModuleJournalUploader {
 
             return messages;
 
+        }
+
+        private Map<Integer, Module> buildModulePrototypesMap(Row subjRow, Row modulesrow) {
+            Map<Integer, Module> moduleMap = new LinkedHashMap<>();
+
+            int rainingIndex = -1;
+
+            for (int j = 0; j < modulesrow.getLastCellNum(); j++) {
+                Cell cell = modulesrow.getCell(j);
+                if (cell != null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
+                    String header = cell.getStringCellValue().trim();
+                    if (header.equals("М1")) {
+                        String subject = subjRow.getCell(j).getStringCellValue().trim();
+                        logger.debug(j + " " + subject);
+                        if (!modulesrow.getCell(j + 1).getStringCellValue().trim().equals("М2"))
+                            throw new IllegalArgumentException("no m2");
+
+                        moduleMap.put(j, new Module(subject, "М1"));
+                        moduleMap.put(j + 1, new Module(subject, "М2"));
+
+
+                        for (int k = 2; k < 5; k++) {
+                            String markType = modulesrow.getCell(j + k).getStringCellValue().trim();
+                            //logger.debug("markType {}", markType);
+                            if (markType.equals("М1"))
+                                break;
+
+                            boolean contains = markTypes.contains(markType);
+                            //logger.debug("contains {}", contains);
+                            if (contains)
+                                moduleMap.put(j + k, new Module(subject, markType));
+                        }
+
+                    } else if (header.equals("Р")){
+                        rainingIndex = j;
+                    }
+                }
+            }
+
+            moduleMap.put(rainingIndex, new Module("Рейтинг", "М1"));
+
+
+            return moduleMap;
         }
 
 

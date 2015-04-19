@@ -23,9 +23,11 @@ import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 @CDIView("")
@@ -101,7 +103,9 @@ public class MainView extends CustomComponent implements View {
 
         verticalLayout.addComponent(mainPanel);
         verticalLayout.setExpandRatio(mainPanel, 1);
-        Label bbref = new Label("<div align=\"right\" style=\"margin-right: 20px;\">ФГБОУ ВПО МГТУ СТАНКИН, факультет «Информационных технологий и систем управления»&nbsp;&nbsp;<a href=\"https://bitbucket.org/NicolayMitropolsky/stankin-mj\">Разработка</a></div>", ContentMode.HTML);
+        Label bbref = new Label("" +
+                "<div align=\"right\" style=\"margin-right: 20px;\">ФГБОУ ВПО МГТУ СТАНКИН, факультет «Информационных технологий и систем управления»&nbsp;&nbsp;<a style=\"margin-right: 20px;\" href=\"https://bitbucket.org/NicolayMitropolsky/stankin-mj\">Разработка</a>" +
+                LoginView.YANDEX_METRIC + "</div>", ContentMode.HTML);
         bbref.setWidth(100, Unit.PERCENTAGE);
         //Button bbref = new Button("hhhh");
         //Label spacer = new Label("66");
@@ -245,7 +249,7 @@ public class MainView extends CustomComponent implements View {
     private Table genMarks() {
         marks = new Table();
 
-        marks.addContainerProperty("Предмет", String.class, null);
+        marks.addContainerProperty("Предмет", AbstractComponent.class, null);
         marks.setColumnWidth("Предмет", 200);
         marks.addContainerProperty("М1", AbstractComponent.class, null);
         marks.setColumnWidth("М1", 30);
@@ -268,23 +272,51 @@ public class MainView extends CustomComponent implements View {
 
         int size = student.getModules().size();
         logger.debug("student has:{} modules", size);
-        int i = 0;
+        AtomicInteger i = new AtomicInteger(0);
         Map<String, Map<String, Module>> modulesGrouped = student.getModulesGrouped();
         logger.debug("modulesGrouped:{} ", modulesGrouped);
 
-        for (Map.Entry<String, Map<String, Module>> subj : modulesGrouped.entrySet()) {
+        Map<String, Module> raiting = modulesGrouped.remove("Рейтинг");
 
+        modulesGrouped.entrySet().stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .forEach(subj -> {
+                    String subject = subj.getKey();
+                    Module m1 = subj.getValue().get("М1");
+                    Module m2 = subj.getValue().get("М2");
+                    Module m3 = subj.getValue().get("К");
+                    Module m4 = subj.getValue().get("З");
+                    Module m5 = subj.getValue().get("Э");
+                    marks.addItem(
+                            new Object[]{
+                                    new Label(subject),
+                                    drawModuleMark(m1),
+                                    drawModuleMark(m2),
+                                    drawModuleMark(m3),
+                                    drawModuleMark(m4),
+                                    drawModuleMark(m5)
+                            },
+                            i.incrementAndGet());
+                });
 
-            String subject = subj.getKey();
-            Module m1 = subj.getValue().get("М1");
-            Module m2 = subj.getValue().get("М2");
-            Module m3 = subj.getValue().get("К");
-            Module m4 = subj.getValue().get("З");
-            Module m5 = subj.getValue().get("Э");
+        if (raiting != null) {
+            Module m1 = raiting.get("М1");
+            Module m2 = raiting.get("М2");
+            Module m3 = raiting.get("К");
+            Module m4 = raiting.get("З");
+            Module m5 = raiting.get("Э");
             marks.addItem(
-                    new Object[]{subject, drawModuleMark(m1), drawModuleMark(m2), drawModuleMark(m3), drawModuleMark(m4), drawModuleMark(m5)},
-                    i++);
+                    new Object[]{
+                            new Label("<b>Рейтинг</b>", ContentMode.HTML),
+                            drawModuleMark(m1),
+                            drawModuleMark(m2),
+                            drawModuleMark(m3),
+                            drawModuleMark(m4),
+                            drawModuleMark(m5)
+                    },
+                    i.incrementAndGet());
         }
+
     }
 
     private Component createEtalonUpload() {
@@ -347,8 +379,6 @@ public class MainView extends CustomComponent implements View {
                     logger.error("error processing {}", file, e);
                     Notification.show(e.getMessage(), Notification.Type.ERROR_MESSAGE);
                 }
-
-
             }
 
 //            @Override

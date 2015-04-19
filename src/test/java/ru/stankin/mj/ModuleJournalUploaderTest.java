@@ -23,7 +23,7 @@ public class ModuleJournalUploaderTest {
 
         Assert.assertEquals(335, (long) students.size());
         Integer collect = students.stream().map(s -> s.getModules().size()).collect(Collectors.summingInt(i -> i));
-        Assert.assertEquals(10605, collect.intValue());
+        Assert.assertEquals(10922, collect.intValue());
 
     }
 
@@ -54,7 +54,7 @@ public class ModuleJournalUploaderTest {
                 .filter(m -> m.getSubject().equals("Управление роботами и робототехнич. системами"))
                 .count());
 
-        Assert.assertEquals(5588, (long) students.stream().mapToInt(s -> s.getModules().size()).sum());
+        Assert.assertEquals(5784, (long) students.stream().mapToInt(s -> s.getModules().size()).sum());
     }
 
     private Collection<Student> getStudentMarks(String name) throws IOException, InvalidFormatException {

@@ -13,8 +13,7 @@
 mvn clean install
 ```
 
-Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server	
-8.1.0.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/8.1.0.Final/wildfly-8.1.0.Final.zip).
+Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 8.1.0.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/8.1.0.Final/wildfly-8.1.0.Final.zip).
 
 ## Работа с приложением ##
 

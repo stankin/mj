@@ -72,8 +72,10 @@ public class MainView extends CustomComponent implements View {
         content.setExpandRatio(label, 1);
         //label.setHeight(30,Unit.PIXELS);
         Button settings = new Button("Аккаунт: " + user.getName(), event1 -> {
-            this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser));
+            this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser, true));
         });
+        if(AccountWindow.needChangePassword(user.getUser()))
+            settings.click();
         //settings.setEnabled(false);
         content.addComponent(settings);
         content.setComponentAlignment(settings, Alignment.TOP_RIGHT);

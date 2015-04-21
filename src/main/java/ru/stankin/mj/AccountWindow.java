@@ -2,6 +2,7 @@ package ru.stankin.mj;
 
 import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.util.BeanItem;
+import com.vaadin.data.validator.AbstractStringValidator;
 import com.vaadin.ui.*;
 import ru.stankin.mj.model.Student;
 
@@ -18,7 +19,11 @@ public class AccountWindow extends Window {
     Consumer<User> save;
 
     public AccountWindow(User user, Consumer<User> save) {
-        super("Аккаунт: "+user.getUsername());
+        this(user, save, false);
+    }
+
+    public AccountWindow(User user, Consumer<User> save, boolean warn) {
+        super("Аккаунт: " + user.getUsername());
         this.user = user;
         this.save = save;
         this.setModal(true);
@@ -26,12 +31,26 @@ public class AccountWindow extends Window {
         this.setResizable(false);
         VerticalLayout vertical = new VerticalLayout();
         vertical.setMargin(true);
+        boolean warnPassword = warn && needChangePassword(user);
+        if (warnPassword) {
+            vertical.addComponent(new Label("ВНИМАНИЕ!"));
+            vertical.addComponent(new Label("На вашем аккаунте используется пароль по умолчанию, пожалуйста, смените его!"));
+        }
         final FormLayout content = new FormLayout();
         final FieldGroup binder = new FieldGroup(new BeanItem<>(user));
         content.addComponent(readOnlyField("Логин:", user.getUsername()));
         //content.addComponent(new TextField("Пароль:", new ));
-        content.addComponent(binder.buildAndBind("Пароль:", "password"));
-        if(user instanceof Student){
+        Field<?> password = binder.buildAndBind("Пароль:", "password");
+        //password.setRequired(true);
+        if (warnPassword)
+            password.addValidator(new AbstractStringValidator("Неправильный пароль") {
+                @Override
+                protected boolean isValidValue(String value) {
+                    return !value.isEmpty() && !value.equals(user.getUsername());
+                }
+            });
+        content.addComponent(password);
+        if (user instanceof Student) {
             Student student = (Student) user;
             content.addComponent(readOnlyField("Группа:", student.stgroup));
             content.addComponent(readOnlyField("Фамилия:", student.surname));
@@ -43,19 +62,25 @@ public class AccountWindow extends Window {
         vertical.addComponent(
                 new HorizontalLayout(
                         new Button("Сохранить", e -> {
-                            try {
-                                binder.commit();
-                            } catch (FieldGroup.CommitException e1) {
-                                e1.printStackTrace();
+                            if (binder.isValid()) {
+                                try {
+                                    binder.commit();
+                                } catch (FieldGroup.CommitException e1) {
+                                    e1.printStackTrace();
+                                }
+                                this.save.accept(user);
+                                this.close();
                             }
-                            this.save.accept(user);
-                            this.close();
                         }),
                         new Button("Отменить", event -> this.close()))
         );
 
         this.setContent(vertical);
         this.center();
+    }
+
+    public static boolean needChangePassword(User user) {
+        return user instanceof Student && user.getUsername().equals(user.getPassword());
     }
 
     private TextField readOnlyField(String caption, String value) {

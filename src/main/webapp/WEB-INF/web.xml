@@ -1,0 +1,39 @@
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+    <servlet>
+        <servlet-name>vaadinServlet</servlet-name>
+        <servlet-class>
+            com.vaadin.cdi.server.VaadinCDIServlet
+        </servlet-class>
+
+        <init-param>
+            <param-name>UI</param-name>
+            <param-value>ru.stankin.mj.MyVaadinUI</param-value>
+        </init-param>
+
+        <!-- If not using the default widget set-->
+        <init-param>
+            <param-name>widgetset</param-name>
+            <param-value>com.optible.vaadin.widgetset.VaadinWidgetset</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>vaadinServlet</servlet-name>
+        <url-pattern>/vaadin/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>vaadinServlet</servlet-name>
+        <url-pattern>/VAADIN/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>vaadinServlet</servlet-name>
+        <url-pattern>/app/*</url-pattern>
+    </servlet-mapping>
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>vaadinServlet</servlet-name>-->
+        <!--<url-pattern>/*</url-pattern>-->
+    <!--</servlet-mapping>-->
+
+</web-app>

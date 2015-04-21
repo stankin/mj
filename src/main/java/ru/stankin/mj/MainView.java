@@ -103,21 +103,6 @@ public class MainView extends CustomComponent implements View {
 
         verticalLayout.addComponent(mainPanel);
         verticalLayout.setExpandRatio(mainPanel, 1);
-        Label bbref = new Label("" +
-                "<div align=\"right\" style=\"margin-right: 20px;\">ФГБОУ ВПО МГТУ СТАНКИН, факультет «Информационных технологий и систем управления»&nbsp;&nbsp;<a style=\"margin-right: 20px;\" href=\"https://bitbucket.org/NicolayMitropolsky/stankin-mj\">Разработка</a>" +
-                LoginView.YANDEX_METRIC + "</div>", ContentMode.HTML);
-        bbref.setWidth(100, Unit.PERCENTAGE);
-        //Button bbref = new Button("hhhh");
-        //Label spacer = new Label("66");
-        //spacer.setWidth(100, Unit.PERCENTAGE);;
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
-        //horizontalLayout.addComponent(spacer);
-        //horizontalLayout.setExpandRatio(spacer, 1);
-        horizontalLayout.addComponent(bbref);
-        //horizontalLayout.setExpandRatio(bbref, 0);
-        horizontalLayout.setComponentAlignment(bbref, Alignment.BOTTOM_RIGHT);
-        horizontalLayout.setWidth(100, Unit.PERCENTAGE);
-        verticalLayout.addComponent(horizontalLayout);
         verticalLayout.setSizeFull();
         setCompositionRoot(verticalLayout);
 

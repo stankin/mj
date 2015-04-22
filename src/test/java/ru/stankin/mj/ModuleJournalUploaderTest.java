@@ -40,7 +40,7 @@ public class ModuleJournalUploaderTest {
     }
 
     @Test
-    public void testProcessIncomingDate4() throws Exception {
+    public void testProcessIncomingDate4withBlack() throws Exception {
         Collection<Student> students = getStudentMarks("/information_items_property_2445.xls");
 
         Assert.assertEquals(196, (long) students.size());
@@ -54,7 +54,7 @@ public class ModuleJournalUploaderTest {
                 .filter(m -> m.getSubject().equals("Управление роботами и робототехнич. системами"))
                 .count());
 
-        Assert.assertEquals(5784, (long) students.stream().mapToInt(s -> s.getModules().size()).sum());
+        Assert.assertEquals(5980, (long) students.stream().mapToInt(s -> s.getModules().size()).sum());
     }
 
     private Collection<Student> getStudentMarks(String name) throws IOException, InvalidFormatException {

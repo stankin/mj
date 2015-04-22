@@ -114,7 +114,7 @@ public class ModuleJournalUploader {
 
                     Map<Integer, Module> modulePrototypesMap = buildModulePrototypesMap(subjRow, modulesrow);
 
-                    logger.debug("modulePrototypesMap="+modulePrototypesMap);
+                    logger.debug("modulePrototypesMap=" + modulePrototypesMap);
 
                     sheet.iterator().forEachRemaining(row -> {
                         if (row.getCell(0) != null && !row.getCell(0).getStringCellValue().isEmpty()) {
@@ -141,7 +141,12 @@ public class ModuleJournalUploader {
                                     Cell cell = row.getCell(entry.getKey());
                                     if (cell != null) {
                                         module.setColor(colorToInt(cell.getCellStyle()));
-                                        module.setValue((int) cell.getNumericCellValue());
+                                        try {
+                                            module.setValue((int) cell.getNumericCellValue());
+                                        } catch (Exception e) {
+                                            logger.debug("error reading numeric data: " + e.getMessage());
+                                            module.setValue(0);
+                                        }
                                     } else
                                         module.setValue(0);
                                     if (module.getColor() != 0)
@@ -176,6 +181,7 @@ public class ModuleJournalUploader {
             Map<Integer, Module> moduleMap = new LinkedHashMap<>();
 
             int rainingIndex = -1;
+            int accumulatedRainingIndex = -1;
 
             for (int j = 0; j < modulesrow.getLastCellNum(); j++) {
                 Cell cell = modulesrow.getCell(j);
@@ -203,14 +209,30 @@ public class ModuleJournalUploader {
                                 moduleMap.put(j + k, new Module(subject, markType));
                         }
 
-                    } else if (header.equals("Р")){
+                    } else if (header.equals("Р")) {
                         rainingIndex = j;
+                    } else if (header.equals("РН")) {
+                        accumulatedRainingIndex = j;
+                    }
+
+                }
+            }
+
+
+            for (int j = 0; j < subjRow.getLastCellNum(); j++) {
+                Cell cell = subjRow.getCell(j);
+                if (cell != null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
+                    String header = cell.getStringCellValue().trim();
+                    if (header.equals("Р")) {
+                        rainingIndex = j;
+                    } else if (header.equals("РН")) {
+                        accumulatedRainingIndex = j;
                     }
                 }
             }
 
             moduleMap.put(rainingIndex, new Module("Рейтинг", "М1"));
-
+            moduleMap.put(accumulatedRainingIndex, new Module("Накопленный Рейтинг", "М1"));
 
             return moduleMap;
         }
@@ -241,7 +263,7 @@ public class ModuleJournalUploader {
             }
             if (fillBackgroundColorColor instanceof XSSFColor) {
                 XSSFColor xssfColor = (XSSFColor) fillBackgroundColorColor;
-                if(xssfColor.isAuto())
+                if (xssfColor.isAuto())
                     return -1;
                 byte[] aRgb = xssfColor.getARgb();
                 logger.debug("XSSFColor {}", Arrays.toString(aRgb));

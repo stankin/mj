@@ -264,6 +264,7 @@ public class MainView extends CustomComponent implements View {
         logger.debug("modulesGrouped:{} ", modulesGrouped);
 
         Map<String, Module> raiting = modulesGrouped.remove("Рейтинг");
+        Map<String, Module> accumulatedRaiting = modulesGrouped.remove("Накопленный Рейтинг");
 
         modulesGrouped.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
@@ -286,6 +287,12 @@ public class MainView extends CustomComponent implements View {
                             i.incrementAndGet());
                 });
 
+        addSummary("Рейтинг", raiting, i);
+        addSummary("Накопленный Рейтинг", accumulatedRaiting, i);
+
+    }
+
+    private void addSummary(final String label, Map<String, Module> raiting, AtomicInteger i) {
         if (raiting != null) {
             Module m1 = raiting.get("М1");
             Module m2 = raiting.get("М2");
@@ -294,7 +301,7 @@ public class MainView extends CustomComponent implements View {
             Module m5 = raiting.get("Э");
             marks.addItem(
                     new Object[]{
-                            new Label("<b>Рейтинг</b>", ContentMode.HTML),
+                            new Label("<b>" + label + "</b>", ContentMode.HTML),
                             drawModuleMark(m1),
                             drawModuleMark(m2),
                             drawModuleMark(m3),
@@ -303,7 +310,6 @@ public class MainView extends CustomComponent implements View {
                     },
                     i.incrementAndGet());
         }
-
     }
 
     private Component createEtalonUpload() {

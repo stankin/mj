@@ -1,10 +1,12 @@
 package ru.stankin.mj;
 
+import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.cdi.CDIUI;
 import com.vaadin.cdi.CDIViewProvider;
+import com.vaadin.cdi.UIScoped;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.WrappedSession;
@@ -23,7 +25,9 @@ import java.util.stream.Collectors;
 @CDIUI("")
 //@Push
 @SuppressWarnings("serial")
-@SessionScoped
+//@SessionScoped
+//@PreserveOnRefresh
+//@UIScoped
 @Widgetset("ru.stankin.mj.WidgetSet")
 public class MyVaadinUI extends UI {
 

@@ -51,7 +51,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
         @Override
         public Property getItemProperty(Object id) {
-            logger.debug("getItemProperty {}", id);
+            //logger.debug("getItemProperty {}", id);
             return props.get(id);
         }
 
@@ -98,7 +98,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
     @Override
     public Collection<?> getItemIds() {
-        logger.debug("getItemIds called");
+        //logger.debug("getItemIds called");
         return idis;
     }
 
@@ -120,7 +120,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
     @Override
     public boolean containsId(Object itemId) {
         boolean result = idisSet.contains(itemId);
-        logger.debug("containsId {} = {}", itemId, result);
+        //logger.debug("containsId {} = {}", itemId, result);
         return result;
     }
 
@@ -142,13 +142,13 @@ public class StudentsContainer extends AbstractContainer implements Container, C
     @Override
     public boolean addContainerProperty(Object propertyId, Class<?> type, Object defaultValue) throws
             UnsupportedOperationException {
-        logger.debug("addContainerProperty {}", propertyId);
+        //logger.debug("addContainerProperty {}", propertyId);
         return false;
     }
 
     @Override
     public boolean removeContainerProperty(Object propertyId) throws UnsupportedOperationException {
-        logger.debug("removeContainerProperty {}", propertyId);
+        //logger.debug("removeContainerProperty {}", propertyId);
         return false;
     }
 
@@ -182,7 +182,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
     }
 
     public void setFilter(String filter) {
-        logger.debug("update Filters {}", filter);
+        //logger.debug("update Filters {}", filter);
         this.filter = filter;
         updateData();
     }

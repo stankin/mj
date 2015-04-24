@@ -1,6 +1,15 @@
 <web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
 
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+
+    <!--<context-param>-->
+        <!--<param-name>heartbeatInterval</param-name>-->
+        <!--<param-value>10</param-value>-->
+    <!--</context-param>-->
+
     <servlet>
         <servlet-name>vaadinServlet</servlet-name>
         <servlet-class>
@@ -32,8 +41,8 @@
         <url-pattern>/app/*</url-pattern>
     </servlet-mapping>
     <!--<servlet-mapping>-->
-        <!--<servlet-name>vaadinServlet</servlet-name>-->
-        <!--<url-pattern>/*</url-pattern>-->
+    <!--<servlet-name>vaadinServlet</servlet-name>-->
+    <!--<url-pattern>/*</url-pattern>-->
     <!--</servlet-mapping>-->
 
 </web-app>

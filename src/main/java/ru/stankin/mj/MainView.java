@@ -258,10 +258,10 @@ public class MainView extends CustomComponent implements View {
         marks.removeAllItems();
 
         int size = student.getModules().size();
-        logger.debug("student has:{} modules", size);
+        //logger.debug("student has:{} modules", size);
         AtomicInteger i = new AtomicInteger(0);
         Map<String, Map<String, Module>> modulesGrouped = student.getModulesGrouped();
-        logger.debug("modulesGrouped:{} ", modulesGrouped);
+        //logger.debug("modulesGrouped:{} ", modulesGrouped);
 
         Map<String, Module> raiting = modulesGrouped.remove("Рейтинг");
         Map<String, Module> accumulatedRaiting = modulesGrouped.remove("Накопленный Рейтинг");
@@ -405,7 +405,7 @@ public class MainView extends CustomComponent implements View {
         if (module.getColor() != -1)
             bgColorStyle = "background-color: " + String.format("#%06X", (0xFFFFFF & module.getColor())) + ";";
         String moduleHtml = "<div style='" + bgColorStyle + "width: 20px; padding: 2px 2px 2px 2px'>";
-        logger.debug("moduleHtml:{}", moduleHtml);
+        //logger.debug("moduleHtml:{}", moduleHtml);
         return new Label(moduleHtml
                 + (module.getValue() != 0 ? module.getValue() + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
     }

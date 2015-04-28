@@ -61,6 +61,11 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
+    public void deleteStudentModules(Student student) {
+        throw new UnsupportedOperationException("deleteStudentModules");
+    }
+
+    @Override
     public void saveStudent(Student student) {
 
     }

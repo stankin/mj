@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,8 @@ public class MainView extends CustomComponent implements View {
     private ExecutorService ecs;
 
     Table marks;
+    private List<StudentButton> studentButtons;
+    private Label studentLabel;
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -197,21 +200,26 @@ public class MainView extends CustomComponent implements View {
 
         genMarks();
 
-        Label label = new Label("", ContentMode.HTML);
-        label.setWidth(200, Unit.PIXELS);
-        StudentSettingsButton studenSettings = new StudentSettingsButton();
-        HorizontalLayout studentLine = new HorizontalLayout(label, studenSettings);
+        studentLabel = new Label("", ContentMode.HTML);
+        studentLabel.setWidth(200, Unit.PIXELS);
+        studentButtons = Arrays.asList(
+                new StudentSettingsButton(),
+                new StudentDeleteModulesButton()
+        );
+        HorizontalLayout studentLine = new HorizontalLayout(studentLabel);
+
+        for (StudentButton stbtn : studentButtons) {
+            studentLine.addComponent(stbtn);
+        }
+
+
         students.addValueChangeListener(event1 -> {
             logger.debug("selection:{}", event1);
             //logger.debug("stacktacer:{}",new Exception("stacktrace"));
             if (event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
-            Student student = storage.getStudentById((Integer) event1.getProperty().getValue(), true);
-            label.setValue("<b>" + student.surname + " " + student.initials + "</b>");
-
-            fillMarks(student);
-
-            studenSettings.setStudent(student);
+            Integer studentId = (Integer) event1.getProperty().getValue();
+            setWorkingStudent(studentId);
 
         });
 
@@ -231,6 +239,17 @@ public class MainView extends CustomComponent implements View {
 
         grid.setMargin(true);
         return /*new Panel(*/grid/*)*/;
+    }
+
+    private void setWorkingStudent(Integer studentId) {
+        Student student = storage.getStudentById(studentId, true);
+        studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
+
+        fillMarks(student);
+
+        for (StudentButton stbtn : studentButtons) {
+            stbtn.setStudent(student);
+        }
     }
 
     private Table genMarks() {
@@ -410,14 +429,12 @@ public class MainView extends CustomComponent implements View {
                 + (module.getValue() != 0 ? module.getValue() + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
     }
 
-    private class StudentSettingsButton extends Button {
+    private class StudentButton extends Button {
+        protected Student student;
 
-        private Student student;
-
-        public StudentSettingsButton() {
-            super("Редактировать");
+        public StudentButton(String caption) {
+            super(caption);
             this.setEnabled(false);
-            this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao::saveUser)));
         }
 
         public Student getStudent() {
@@ -429,5 +446,47 @@ public class MainView extends CustomComponent implements View {
             this.student = student;
         }
     }
+
+    private class StudentSettingsButton extends StudentButton {
+
+        public StudentSettingsButton() {
+            super("Редактировать");
+            this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao::saveUser)));
+        }
+
+    }
+
+    private class StudentDeleteModulesButton extends StudentButton {
+
+        private List<Module> oldModules = null;
+
+        public StudentDeleteModulesButton() {
+            super("Удалить Модули");
+            this.addClickListener(event -> {
+                int studentId = student.id;
+                if(oldModules == null) {
+                    storage.deleteStudentModules(student);
+                    oldModules = student.getModules();
+                    oldModules.forEach(m -> m.setId(0));
+                    setCaption("Восстановить Модули");
+                }else{
+                    storage.updateModules(student);
+                    student = null;
+                }
+                setWorkingStudent(studentId);
+            });
+        }
+
+        @Override
+        public void setStudent(Student student) {
+            if (student == null || this.student == null || this.student.id != student.id) {
+                setCaption("Удалить Модули");
+                oldModules = null;
+                super.setStudent(student);
+            }
+        }
+    }
+
+
 }
 

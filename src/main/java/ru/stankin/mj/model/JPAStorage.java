@@ -36,17 +36,13 @@ public class JPAStorage implements Storage {
     public void updateModules(Student student0) {
 
         Student student = /*em.merge(*/student0/*)*/;
+        //Student student = em.merge(student0);
         List<Module> studentModules = new ArrayList<>(student.getModules());
-        logger.debug("saving student {} modules: {}", student.name,studentModules.size());
+        logger.debug("saving student {} modules: {}", student.name, studentModules.size());
 
         //TODO: но вообще это какой-то ад
-        CriteriaBuilder b = em.getCriteriaBuilder();
-        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
-        Root<Module> from = query.from(Module.class);
-        query.where(b.equal(from.get("student"), student));
-        int deleted = em.createQuery(query).executeUpdate();
-        logger.debug("deleted {}", deleted);
-        em.flush();
+
+        deleteStudentModules(student);
 
         studentModules.forEach(m -> {
             m.setStudent(student);
@@ -60,6 +56,18 @@ public class JPAStorage implements Storage {
 //            em.refresh(m);
 //            logger.debug("refresing module {} {}", m.getStudent(), m);
 //        });
+    }
+
+    @Override
+    @javax.transaction.Transactional
+    public void deleteStudentModules(Student student) {
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
+        Root<Module> from = query.from(Module.class);
+        query.where(b.equal(from.get("student"), student));
+        int deleted = em.createQuery(query).executeUpdate();
+        logger.debug("deleted {}", deleted);
+        em.flush();
     }
 
     @Override

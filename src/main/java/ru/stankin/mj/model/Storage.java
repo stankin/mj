@@ -18,6 +18,8 @@ public interface Storage {
 
     Student getStudentByCardId(String cardid);
 
+    void deleteStudentModules(Student student);
+
     void saveStudent(Student student);
 
     Student getStudentByGroupSurnameInitials(String group, String surname, String initials);

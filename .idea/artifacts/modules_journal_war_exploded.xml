@@ -44,7 +44,7 @@
         </element>
       </element>
       <element id="directory" name="META-INF">
-        <element id="file-copy" path="$PROJECT_DIR$/target/MANIFEST.MF" />
+        <element id="file-copy" path="$PROJECT_DIR$/target/modules-journal/META-INF/MANIFEST.MF" />
       </element>
       <element id="javaee-facet-resources" facet="modules-journal/web/Web" />
       <element id="directory" name="VAADIN">

@@ -12,6 +12,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.MultiFileUpload;
 import org.vaadin.easyuploads.UploadField;
 import ru.stankin.mj.model.Module;
@@ -77,7 +78,7 @@ public class MainView extends CustomComponent implements View {
         Button settings = new Button("Аккаунт: " + user.getName(), event1 -> {
             this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser, true));
         });
-        if(AccountWindow.needChangePassword(user.getUser()))
+        if (AccountWindow.needChangePassword(user.getUser()))
             settings.click();
         //settings.setEnabled(false);
         content.addComponent(settings);
@@ -122,6 +123,16 @@ public class MainView extends CustomComponent implements View {
         uploads.setSpacing(true);
         uploads.addComponent(createEtalonUpload());
         uploads.addComponent(createMarksUpload());
+        uploads.addComponent(new Button("Удалить все модули", event -> {
+            ConfirmDialog.show(this.getUI(), "Удаление всех модулей", ("Вы уверены что хотите удалить все модули?" +
+                            " Вам придется перезалить журналы, чтобы модули опять стали доступны"),
+                    "Удалить", "Отмена", dialog -> {
+                        if (dialog.isConfirmed()) {
+                            storage.deleteAllModules();
+                            setWorkingStudent(null);
+                        }
+                    });
+        }));
         Label c1 = new Label();
         uploads.addComponent(c1);
         uploads.setExpandRatio(c1, 1);
@@ -218,8 +229,7 @@ public class MainView extends CustomComponent implements View {
             //logger.debug("stacktacer:{}",new Exception("stacktrace"));
             if (event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
-            Integer studentId = (Integer) event1.getProperty().getValue();
-            setWorkingStudent(studentId);
+            setWorkingStudent((Integer) event1.getProperty().getValue());
 
         });
 
@@ -242,8 +252,14 @@ public class MainView extends CustomComponent implements View {
     }
 
     private void setWorkingStudent(Integer studentId) {
-        Student student = storage.getStudentById(studentId, true);
-        studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
+        Student student = null;
+        if(studentId != null) {
+            student = storage.getStudentById(studentId, true);
+            studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
+        }else
+        {
+            studentLabel.setValue("");
+        }
 
         fillMarks(student);
 
@@ -276,6 +292,8 @@ public class MainView extends CustomComponent implements View {
     private void fillMarks(Student student) {
         marks.removeAllItems();
 
+        if (student == null)
+            return;
         int size = student.getModules().size();
         //logger.debug("student has:{} modules", size);
         AtomicInteger i = new AtomicInteger(0);
@@ -464,12 +482,12 @@ public class MainView extends CustomComponent implements View {
             super("Удалить Модули");
             this.addClickListener(event -> {
                 int studentId = student.id;
-                if(oldModules == null) {
+                if (oldModules == null) {
                     storage.deleteStudentModules(student);
                     oldModules = student.getModules();
                     oldModules.forEach(m -> m.setId(0));
                     setCaption("Восстановить Модули");
-                }else{
+                } else {
                     storage.updateModules(student);
                     student = null;
                 }

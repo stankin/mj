@@ -72,6 +72,18 @@ public class JPAStorage implements Storage {
 
     @Override
     @javax.transaction.Transactional
+    public void deleteAllModules() {
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
+        Root<Module> from = query.from(Module.class);
+        //query.where(b.equal(from.get("student"), student));
+        int deleted = em.createQuery(query).executeUpdate();
+        logger.debug("deleted {}", deleted);
+        em.flush();
+    }
+
+    @Override
+    @javax.transaction.Transactional
     public void saveStudent(Student student) {
         Student merge = em.merge(student);
         if(merge.password == null) {
@@ -147,6 +159,7 @@ public class JPAStorage implements Storage {
             return null;
         }
     }
+
 
     @Override
     public Student getStudentByCardId(String cardid) {

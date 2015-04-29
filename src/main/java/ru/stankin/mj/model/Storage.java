@@ -23,4 +23,6 @@ public interface Storage {
     void saveStudent(Student student);
 
     Student getStudentByGroupSurnameInitials(String group, String surname, String initials);
+
+    void deleteAllModules();
 }

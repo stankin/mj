@@ -74,4 +74,9 @@ public class MemoryStorage implements Storage {
     public Student getStudentByGroupSurnameInitials(String group, String surname, String initials) {
         return new Student(group, surname, initials);
     }
+
+    @Override
+    public void deleteAllModules() {
+        throw new UnsupportedOperationException("deleteAllModules");
+    }
 }

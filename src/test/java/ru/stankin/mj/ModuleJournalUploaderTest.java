@@ -57,6 +57,13 @@ public class ModuleJournalUploaderTest {
         Assert.assertEquals(5980, (long) students.stream().mapToInt(s -> s.getModules().size()).sum());
     }
 
+    @Test
+    public void testProcessIncomingWithRatings() throws Exception {
+        Collection<Student> students = getStudentMarks("/4 курс II семестр 2014-2015.xls");
+        System.out.println(students);
+        Assert.assertEquals(194, (long) students.size());
+    }
+
     private Collection<Student> getStudentMarks(String name) throws IOException, InvalidFormatException {
         ModuleJournalUploader mj = new ModuleJournalUploader();
 

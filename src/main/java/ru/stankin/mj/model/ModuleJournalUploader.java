@@ -283,7 +283,7 @@ public class ModuleJournalUploader {
             if (subjRow == null)
                 continue;
             //System.out.println("tabrow:" + rowTabsepareted(subjRow));
-            List<String> subjsList = getStringStream(subjRow).filter(str -> !str.matches("\\s*")).collect(Collectors
+            List<String> subjsList = getStringStream(subjRow).filter(str -> !str.matches("(\\s*|\\d+([\\.,]\\d*)?)")).collect(Collectors
                     .toList());
 
             logger.debug("subjsList: {} {}", subjsList, subjsList.size());

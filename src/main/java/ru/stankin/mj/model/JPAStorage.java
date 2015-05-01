@@ -8,12 +8,21 @@ import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.*;
+import javax.ejb.Timer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.transaction.Transactional;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -22,8 +31,12 @@ import static org.hibernate.criterion.Restrictions.ilike;
 /**
  * Created by nickl on 01.02.15.
  */
-@ApplicationScoped
+@javax.ejb.Singleton
+@javax.ejb.Startup
+//@ApplicationScoped
+//@javax.inject.Singleton
 @Default
+//@Lock(LockType.READ)
 public class JPAStorage implements Storage {
 
     private static final Logger logger = LogManager.getLogger(ModuleJournalUploader.class);
@@ -86,12 +99,11 @@ public class JPAStorage implements Storage {
     @javax.transaction.Transactional
     public void saveStudent(Student student) {
         Student merge = em.merge(student);
-        if(merge.password == null) {
+        if (merge.password == null) {
             merge.password = merge.cardid;
             em.merge(merge);
         }
     }
-
 
 
     @Override
@@ -100,6 +112,7 @@ public class JPAStorage implements Storage {
     }
 
     @Override
+    @TransactionAttribute(value = TransactionAttributeType.SUPPORTS)
     public Stream<Student> getStudentsFiltred(String text) {
         logger.debug("getStudentsFiltred {}", text);
         if (text == null)
@@ -123,6 +136,7 @@ public class JPAStorage implements Storage {
         ScrollableResults scroll = criteria.scroll(ScrollMode.FORWARD_ONLY);
 
         return toStream(scroll, Student.class);
+        //return toStream(scroll, Student.class).collect(Collectors.toList()).stream();
 
     }
 
@@ -154,8 +168,7 @@ public class JPAStorage implements Storage {
             Student singleResult = em.createQuery(query).getSingleResult();
             //singleResult.getModules().size();
             return singleResult;
-        }
-        catch (NoResultException e){
+        } catch (NoResultException e) {
             return null;
         }
     }
@@ -173,15 +186,13 @@ public class JPAStorage implements Storage {
             query1.setFlushMode(FlushModeType.COMMIT);
             query1.setMaxResults(1);
             return query1.getSingleResult();
-        }
-        catch (javax.persistence.NoResultException e){
+        } catch (javax.persistence.NoResultException e) {
             return null;
         }
     }
 
 
-
-    private <T> Spliterator<T> toSplitIterator(ScrollableResults scroll, Class<T> type){
+    private <T> Spliterator<T> toSplitIterator(ScrollableResults scroll, Class<T> type) {
         return Spliterators.spliteratorUnknownSize(
                 new ScrollableResultIterator<>(scroll, type),
                 Spliterator.DISTINCT | Spliterator.NONNULL |
@@ -189,8 +200,17 @@ public class JPAStorage implements Storage {
         );
     }
 
-    private <T> Stream<T> toStream(ScrollableResults scroll, Class<T> type){
-       return StreamSupport.stream(toSplitIterator(scroll, type), false);
+    private <T> Stream<T> toStream(ScrollableResults scroll, Class<T> type) {
+        return StreamSupport.stream(toSplitIterator(scroll, type), false);
+    }
+
+
+    @Schedule(second = "00", minute = "00", hour = "04")
+    public void executeBackup() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+        String backupFileName = "backups/backup-" + formatter.format(LocalDateTime.now()) + ".zip";
+        int i = em.createNativeQuery("BACKUP TO '" + backupFileName + "'").executeUpdate();
+        logger.info("backupped " + i + " to " + backupFileName);
     }
 
 }

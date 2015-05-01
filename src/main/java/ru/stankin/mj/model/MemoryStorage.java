@@ -5,6 +5,8 @@ import org.apache.logging.log4j.Logger;
 
 import javax.enterprise.inject.Alternative;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
@@ -68,6 +70,18 @@ public class MemoryStorage implements Storage {
     @Override
     public void saveStudent(Student student) {
 
+    }
+
+    private Map<String, Subject> stringSubjectMap = new HashMap<>();
+
+    @Override
+    public Subject getSubjectByName(String name) {
+        Subject subject = stringSubjectMap.get(name);
+        if(subject == null){
+            subject = new Subject(name);
+            stringSubjectMap.put(name, subject);
+        }
+        return subject;
     }
 
     @Override

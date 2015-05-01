@@ -13,7 +13,11 @@ public class Module implements Cloneable, Serializable {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private int id = 0;
 
-    private String subject = "";
+    @ManyToOne
+    @JoinColumn(name = "subject_id")
+    private Subject subject = null;
+
+    private double factor = 0;
     private String num = "";
     private int value = -1;
     private int color = 0;
@@ -32,7 +36,7 @@ public class Module implements Cloneable, Serializable {
         }
     }
 
-    public Module(String subject, String num) {
+    public Module(Subject subject, String num) {
         this.setSubject(subject);
         this.setNum(num);
     }
@@ -56,14 +60,6 @@ public class Module implements Cloneable, Serializable {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
     }
 
     public String getNum() {
@@ -96,5 +92,21 @@ public class Module implements Cloneable, Serializable {
 
     public void setStudent(Student student) {
         this.student = student;
+    }
+
+    public void setSubject(Subject subject) {
+        this.subject = subject;
+    }
+
+    public Subject getSubject() {
+        return subject;
+    }
+
+    public double getFactor() {
+        return factor;
+    }
+
+    public void setFactor(double factor) {
+        this.factor = factor;
     }
 }

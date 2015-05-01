@@ -147,6 +147,8 @@ public class JPAStorage implements Storage {
 
     }
 
+
+
     @Override
     @javax.transaction.Transactional
     public Student getStudentById(int value, boolean eager) {
@@ -158,6 +160,26 @@ public class JPAStorage implements Storage {
 //            student.setModules(modules);
         }
         return student;
+    }
+
+    @Override
+    @javax.transaction.Transactional
+    public Subject getSubjectByName(String name) {
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaQuery<Subject> query = b.createQuery(Subject.class);
+        Root<Subject> from = query.from(Subject.class);
+        query.where(b.and(
+                b.equal(from.get("title"), name)
+        ));
+        try {
+            Subject singleResult = em.createQuery(query).getSingleResult();
+            //singleResult.getModules().size();
+            return singleResult;
+        } catch (NoResultException e) {
+            Subject subject = em.merge(new Subject(name));
+            em.flush();
+            return subject;
+        }
     }
 
     @Override

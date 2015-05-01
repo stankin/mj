@@ -32,7 +32,7 @@ public class ModuleJournalUploader {
 
         Workbook workbook = WorkbookFactory.create(is);
 
-        List<String> strings = new WorkbookReader(workbook).writeTo(storage);
+        List<String> strings = new WorkbookReader(workbook, storage).writeToStorage();
 
 
         is.close();
@@ -106,11 +106,14 @@ public class ModuleJournalUploader {
 
         private Workbook workbook;
 
-        public WorkbookReader(Workbook workbook) {
+        Storage storage;
+
+        public WorkbookReader(Workbook workbook, Storage storage) {
             this.workbook = workbook;
+            this.storage = storage;
         }
 
-        List<String> writeTo(Storage storage) {
+        List<String> writeToStorage() {
 
             List<String> messages = new ArrayList<>();
 
@@ -198,7 +201,8 @@ public class ModuleJournalUploader {
                 if (cell != null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
                     String header = cell.getStringCellValue().trim();
                     if (header.equals("М1")) {
-                        String subject = subjRow.getCell(j).getStringCellValue().trim();
+                        String subjName = subjRow.getCell(j).getStringCellValue().trim();
+                        Subject subject = storage.getSubjectByName(subjName);
                         logger.debug(j + " " + subject);
                         if (!modulesrow.getCell(j + 1).getStringCellValue().trim().equals("М2"))
                             throw new IllegalArgumentException("no m2");
@@ -241,8 +245,8 @@ public class ModuleJournalUploader {
                 }
             }
 
-            moduleMap.put(rainingIndex, new Module("Рейтинг", "М1"));
-            moduleMap.put(accumulatedRainingIndex, new Module("Накопленный Рейтинг", "М1"));
+            moduleMap.put(rainingIndex, new Module(storage.getSubjectByName("Рейтинг"), "М1"));
+            moduleMap.put(accumulatedRainingIndex, new Module(storage.getSubjectByName("Накопленный Рейтинг"), "М1"));
 
             return moduleMap;
         }

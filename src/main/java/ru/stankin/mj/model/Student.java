@@ -115,7 +115,7 @@ public class Student implements Serializable, User, Comparable {
         return modules;
     }
 
-    public Map<String, Map<String, Module>> getModulesGrouped() {
+    public Map<Subject, Map<String, Module>> getModulesGrouped() {
         return getModules().stream().collect(
                 Collectors.groupingBy(Module::getSubject,
                         Collectors.groupingBy(Module::getNum,

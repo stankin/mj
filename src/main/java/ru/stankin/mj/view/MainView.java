@@ -6,7 +6,6 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -27,11 +26,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 @CDIView("")
@@ -54,7 +50,7 @@ public class MainView extends CustomComponent implements View {
     @Inject
     private ExecutorService ecs;
 
-    Table marks;
+    MarksTable marks;
     private List<StudentButton> studentButtons;
     private Label studentLabel;
 
@@ -108,7 +104,7 @@ public class MainView extends CustomComponent implements View {
         else {
             mainPanel = genMarks();
             Student student = (Student) user.getUser();
-            fillMarks(storage.getStudentById(student.id, true));
+            marks.fillMarks(storage.getStudentById(student.id, true));
         }
 
         verticalLayout.addComponent(mainPanel);
@@ -264,7 +260,7 @@ public class MainView extends CustomComponent implements View {
             studentLabel.setValue("");
         }
 
-        fillMarks(student);
+        marks.fillMarks(student);
 
         for (StudentButton stbtn : studentButtons) {
             stbtn.setStudent(student);
@@ -272,84 +268,10 @@ public class MainView extends CustomComponent implements View {
     }
 
     private Table genMarks() {
-        marks = new Table();
-
-        marks.addContainerProperty("Предмет", AbstractComponent.class, null);
-        marks.setColumnWidth("Предмет", 200);
-        marks.addContainerProperty("М1", AbstractComponent.class, null);
-        marks.setColumnWidth("М1", 30);
-        marks.addContainerProperty("М2", AbstractComponent.class, null);
-        marks.setColumnWidth("М2", 30);
-        marks.addContainerProperty("К", AbstractComponent.class, null);
-        marks.setColumnWidth("К", 30);
-        marks.addContainerProperty("З", AbstractComponent.class, null);
-        marks.setColumnWidth("З", 30);
-        marks.addContainerProperty("Э", AbstractComponent.class, null);
-        marks.setColumnWidth("Э", 30);
-
+        marks = new MarksTable();
         marks.setSizeFull();
         marks.setWidth(100, Unit.PERCENTAGE);
         return marks;
-    }
-
-    private void fillMarks(Student student) {
-        marks.removeAllItems();
-
-        if (student == null)
-            return;
-        int size = student.getModules().size();
-        //logger.debug("student has:{} modules", size);
-        AtomicInteger i = new AtomicInteger(0);
-        Map<String, Map<String, Module>> modulesGrouped = student.getModulesGrouped();
-        //logger.debug("modulesGrouped:{} ", modulesGrouped);
-
-        Map<String, Module> raiting = modulesGrouped.remove("Рейтинг");
-        Map<String, Module> accumulatedRaiting = modulesGrouped.remove("Накопленный Рейтинг");
-
-        modulesGrouped.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .forEach(subj -> {
-                    String subject = subj.getKey();
-                    Module m1 = subj.getValue().get("М1");
-                    Module m2 = subj.getValue().get("М2");
-                    Module m3 = subj.getValue().get("К");
-                    Module m4 = subj.getValue().get("З");
-                    Module m5 = subj.getValue().get("Э");
-                    marks.addItem(
-                            new Object[]{
-                                    new Label(subject),
-                                    drawModuleMark(m1),
-                                    drawModuleMark(m2),
-                                    drawModuleMark(m3),
-                                    drawModuleMark(m4),
-                                    drawModuleMark(m5)
-                            },
-                            i.incrementAndGet());
-                });
-
-        addSummary("Рейтинг", raiting, i);
-        addSummary("Накопленный Рейтинг", accumulatedRaiting, i);
-
-    }
-
-    private void addSummary(final String label, Map<String, Module> raiting, AtomicInteger i) {
-        if (raiting != null) {
-            Module m1 = raiting.get("М1");
-            Module m2 = raiting.get("М2");
-            Module m3 = raiting.get("К");
-            Module m4 = raiting.get("З");
-            Module m5 = raiting.get("Э");
-            marks.addItem(
-                    new Object[]{
-                            new Label("<b>" + label + "</b>", ContentMode.HTML),
-                            drawModuleMark(m1),
-                            drawModuleMark(m2),
-                            drawModuleMark(m3),
-                            drawModuleMark(m4),
-                            drawModuleMark(m5)
-                    },
-                    i.incrementAndGet());
-        }
     }
 
     private Component createEtalonUpload() {
@@ -417,7 +339,7 @@ public class MainView extends CustomComponent implements View {
                     alarmHolder.post(join);
                 } catch (Exception e) {
                     logger.error("error processing {}", file, e);
-                    alarmHolder.post(e.getMessage(), Notification.Type.ERROR_MESSAGE);
+                    alarmHolder.error(e);
                 }
             }
 
@@ -436,25 +358,6 @@ public class MainView extends CustomComponent implements View {
         upload.setUploadButtonCaption("Выбрать файлы");
         upload.setRootDirectory(Files.createTempDir().toString());
         return upload;
-    }
-
-    private Object drawModuleMark(Module m1) {
-        if (m1 == null)
-        //return new Label("Не предусмотрено");
-        {
-            Image image = new Image("Не предусмотрено", new ThemeResource("images/cross_lines.png"));
-            image.setWidth(10, Unit.PIXELS);
-            image.setHeight(10, Unit.PIXELS);
-            return image;
-        }
-        Module module = m1;
-        String bgColorStyle = "";
-        if (module.getColor() != -1)
-            bgColorStyle = "background-color: " + String.format("#%06X", (0xFFFFFF & module.getColor())) + ";";
-        String moduleHtml = "<div style='" + bgColorStyle + "width: 20px; padding: 2px 2px 2px 2px'>";
-        //logger.debug("moduleHtml:{}", moduleHtml);
-        return new Label(moduleHtml
-                + (module.getValue() != 0 ? module.getValue() + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
     }
 
     private class StudentButton extends Button {

@@ -1,4 +1,4 @@
-package ru.stankin.mj;
+package ru.stankin.mj.view;
 
 import com.google.gwt.thirdparty.guava.common.io.Files;
 import com.vaadin.cdi.CDIView;
@@ -15,6 +15,8 @@ import org.apache.logging.log4j.Logger;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.MultiFileUpload;
 import org.vaadin.easyuploads.UploadField;
+import ru.stankin.mj.UserDAO;
+import ru.stankin.mj.UserInfo;
 import ru.stankin.mj.model.Module;
 import ru.stankin.mj.model.ModuleJournalUploader;
 import ru.stankin.mj.model.Storage;
@@ -55,6 +57,8 @@ public class MainView extends CustomComponent implements View {
     Table marks;
     private List<StudentButton> studentButtons;
     private Label studentLabel;
+
+    private AlarmHolder alarmHolder = new AlarmHolder("Загрузка данных", this);
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -253,11 +257,10 @@ public class MainView extends CustomComponent implements View {
 
     private void setWorkingStudent(Integer studentId) {
         Student student = null;
-        if(studentId != null) {
+        if (studentId != null) {
             student = storage.getStudentById(studentId, true);
             studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
-        }else
-        {
+        } else {
             studentLabel.setValue("");
         }
 
@@ -350,10 +353,17 @@ public class MainView extends CustomComponent implements View {
     }
 
     private Component createEtalonUpload() {
-        final UploadField uploadField2 = new UploadField();
+        final UploadField uploadField2 = new UploadField() {
+            @Override
+            protected void updateDisplay() {
+                alarmHolder.post("Эталон загружен: " + this.getLastFileName());
+            }
+        };
         uploadField2.setFieldType(UploadField.FieldType.FILE);
         uploadField2.setCaption("Загрузить эталон");
         uploadField2.setButtonCaption("Выбрать файл");
+        uploadField2.setFileDeletesAllowed(false);
+
         uploadField2.addListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
@@ -364,10 +374,12 @@ public class MainView extends CustomComponent implements View {
 
                 try {
                     try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-                        moduleJournalUploader.updateStudentsFromExcel(bufferedInputStream);
+                        List<String> log = moduleJournalUploader.updateStudentsFromExcel(bufferedInputStream);
+                        alarmHolder.post(String.join("\n", log));
+                        uploadField2.setValue(null);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    alarmHolder.error(e);
                 }
 
             }
@@ -394,9 +406,7 @@ public class MainView extends CustomComponent implements View {
             @Override
             protected void handleFile(File file, String fileName,
                                       String mimeType, long length) {
-                String msg = fileName + " uploaded. Saved to file "
-                        + file.getAbsolutePath() + " (size " + length
-                        + " bytes)";
+                String msg = "Модульный журнал " + fileName + " загружен";
                 try {
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
                     List<String> messages = moduleJournalUploader.updateMarksFromExcel(is);
@@ -404,10 +414,10 @@ public class MainView extends CustomComponent implements View {
                     is.close();
                     String join = String.join("\n", messages);
                     logger.debug("uploadmesages:{}", join);
-                    Notification.show(join);
+                    alarmHolder.post(join);
                 } catch (Exception e) {
                     logger.error("error processing {}", file, e);
-                    Notification.show(e.getMessage(), Notification.Type.ERROR_MESSAGE);
+                    alarmHolder.post(e.getMessage(), Notification.Type.ERROR_MESSAGE);
                 }
             }
 

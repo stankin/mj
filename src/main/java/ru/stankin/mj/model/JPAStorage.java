@@ -96,6 +96,13 @@ public class JPAStorage implements Storage {
     }
 
     @Override
+    public void deleteStudent(Student s) {
+        em.remove(s);
+        logger.debug("deleted {}", s);
+        em.flush();
+    }
+
+    @Override
     @javax.transaction.Transactional
     public void saveStudent(Student student) {
         Student merge = em.merge(student);

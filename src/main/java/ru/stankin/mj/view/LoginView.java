@@ -1,4 +1,4 @@
-package ru.stankin.mj;
+package ru.stankin.mj.view;
 
 import com.vaadin.annotations.Push;
 import com.vaadin.cdi.CDIUI;
@@ -10,6 +10,9 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import ru.stankin.mj.User;
+import ru.stankin.mj.UserDAO;
+import ru.stankin.mj.UserInfo;
 
 import javax.inject.Inject;
 

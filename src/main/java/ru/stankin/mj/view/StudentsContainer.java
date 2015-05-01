@@ -1,4 +1,4 @@
-package ru.stankin.mj;
+package ru.stankin.mj.view;
 
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;

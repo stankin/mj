@@ -1,4 +1,4 @@
-package ru.stankin.mj;
+package ru.stankin.mj.view;
 
 import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Push;
@@ -12,6 +12,7 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.WrappedSession;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.UI;
+import ru.stankin.mj.UserInfo;
 
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;

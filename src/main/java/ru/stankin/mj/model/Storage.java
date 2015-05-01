@@ -25,4 +25,6 @@ public interface Storage {
     Student getStudentByGroupSurnameInitials(String group, String surname, String initials);
 
     void deleteAllModules();
+
+    void deleteStudent(Student s);
 }

@@ -18,7 +18,7 @@
 
         <init-param>
             <param-name>UI</param-name>
-            <param-value>ru.stankin.mj.MyVaadinUI</param-value>
+            <param-value>ru.stankin.mj.view.MyVaadinUI</param-value>
         </init-param>
 
         <!-- If not using the default widget set-->

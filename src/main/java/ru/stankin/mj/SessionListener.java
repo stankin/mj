@@ -2,6 +2,7 @@ package ru.stankin.mj;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import ru.stankin.mj.view.StudentsContainer;
 
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpSessionEvent;

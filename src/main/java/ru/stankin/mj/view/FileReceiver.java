@@ -1,4 +1,4 @@
-package ru.stankin.mj;
+package ru.stankin.mj.view;
 
 import com.vaadin.shared.Position;
 import com.vaadin.ui.Notification;

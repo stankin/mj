@@ -48,11 +48,13 @@ public class ModuleJournalUploader {
     }
 
     @javax.transaction.Transactional
-    public void updateStudentsFromExcel(InputStream inputStream) throws IOException, InvalidFormatException {
+    public List<String> updateStudentsFromExcel(InputStream inputStream) throws IOException, InvalidFormatException {
 
         Workbook workbook = WorkbookFactory.create(inputStream);
 
         Sheet sheet = workbook.getSheetAt(0);
+
+        Set<String> processedCards = new HashSet<>();
 
         for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
 
@@ -71,6 +73,7 @@ public class ModuleJournalUploader {
 
             Student student = null;
             student = storage.getStudentByCardId(cardid);
+            processedCards.add(cardid);
             if (student == null)
                 student = new Student();
 
@@ -87,9 +90,16 @@ public class ModuleJournalUploader {
 
         }
 
+        List<String> messages = new ArrayList<>();
+
+        storage.getStudents().filter(s -> !processedCards.contains(s.cardid)).forEach(s -> {
+            storage.deleteStudent(s);
+            messages.add("Удяляем студента:" + s.cardid + " " + s.stgroup + " " + s.surname + " " + s.initials);
+        });
+
 
         inputStream.close();
-
+        return messages;
     }
 
     static class WorkbookReader {

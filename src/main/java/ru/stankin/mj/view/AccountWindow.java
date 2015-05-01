@@ -1,9 +1,10 @@
-package ru.stankin.mj;
+package ru.stankin.mj.view;
 
 import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractStringValidator;
 import com.vaadin.ui.*;
+import ru.stankin.mj.User;
 import ru.stankin.mj.model.Student;
 
 import java.util.function.Consumer;

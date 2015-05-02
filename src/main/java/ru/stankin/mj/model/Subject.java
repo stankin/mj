@@ -15,8 +15,9 @@ public class Subject implements Serializable {
     private String title = "";
     private double factor = 0;
 
-    public Subject(String name) {
-        this.title = name;
+    public Subject(String title, double factor) {
+        this.title = title;
+        this.factor = factor;
     }
 
     public Subject() {
@@ -37,6 +38,15 @@ public class Subject implements Serializable {
 
     public void setTitle(String name) {
         this.title = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Subject{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", factor=" + factor +
+                '}';
     }
 
     //public static final Subject RAITING = new Subject("Рейтинг");

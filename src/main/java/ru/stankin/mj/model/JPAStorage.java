@@ -164,19 +164,21 @@ public class JPAStorage implements Storage {
 
     @Override
     @javax.transaction.Transactional
-    public Subject getSubjectByName(String name) {
+    public Subject getSubject(String name, double factor) {
         CriteriaBuilder b = em.getCriteriaBuilder();
         CriteriaQuery<Subject> query = b.createQuery(Subject.class);
         Root<Subject> from = query.from(Subject.class);
         query.where(b.and(
-                b.equal(from.get("title"), name)
+                b.equal(from.get("title"), name),
+                b.equal(from.get("factor"), factor)
         ));
         try {
             Subject singleResult = em.createQuery(query).getSingleResult();
             //singleResult.getModules().size();
             return singleResult;
         } catch (NoResultException e) {
-            Subject subject = em.merge(new Subject(name));
+            //TODO: при таком подходе нужна очищалка неиспользуемых предметов
+            Subject subject = em.merge(new Subject(name, factor));
             em.flush();
             return subject;
         }

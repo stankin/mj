@@ -4,15 +4,14 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import ru.stankin.mj.model.MemoryStorage;
-import ru.stankin.mj.model.ModuleJournalUploader;
-import ru.stankin.mj.model.Storage;
-import ru.stankin.mj.model.Student;
+import ru.stankin.mj.model.*;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ModuleJournalUploaderTest {
 
@@ -62,6 +61,13 @@ public class ModuleJournalUploaderTest {
         Collection<Student> students = getStudentMarks("/4 курс II семестр 2014-2015.xls");
         System.out.println(students);
         Assert.assertEquals(194, (long) students.size());
+
+        List<Subject> subjectList = students.stream().flatMap(s -> s.getModules().stream())
+                .map(m -> m.getSubject()).distinct().collect(Collectors.toList());
+
+        subjectList.stream().forEach(System.out::println);
+
+
     }
 
     private Collection<Student> getStudentMarks(String name) throws IOException, InvalidFormatException {
@@ -72,7 +78,8 @@ public class ModuleJournalUploaderTest {
 
         mj.updateMarksFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream(name));
 
-        return storage.getStudents().collect(Collectors.toList());
+        Stream<Student> students = storage.getStudents();
+        return students.collect(Collectors.toList());
     }
 
     @Test

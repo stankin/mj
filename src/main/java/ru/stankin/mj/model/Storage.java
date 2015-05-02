@@ -22,8 +22,7 @@ public interface Storage {
 
     void saveStudent(Student student);
 
-    @javax.transaction.Transactional
-    Subject getSubjectByName(String name);
+    Subject getSubject(String name, double factor);
 
     Student getStudentByGroupSurnameInitials(String group, String surname, String initials);
 

@@ -75,10 +75,10 @@ public class MemoryStorage implements Storage {
     private Map<String, Subject> stringSubjectMap = new HashMap<>();
 
     @Override
-    public Subject getSubjectByName(String name) {
+    public Subject getSubject(String name, double factor) {
         Subject subject = stringSubjectMap.get(name);
         if(subject == null){
-            subject = new Subject(name);
+            subject = new Subject(name, factor);
             stringSubjectMap.put(name, subject);
         }
         return subject;

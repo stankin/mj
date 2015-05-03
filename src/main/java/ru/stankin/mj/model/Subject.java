@@ -58,7 +58,5 @@ public class Subject implements Serializable {
     public void setStgroup(String group) {
         this.stgroup = group;
     }
-
-    //public static final Subject RAITING = new Subject("Рейтинг");
-    //public static final Subject ACCUMULATED_RAITING = new Subject("Накопленный Рейтинг");
+    
 }

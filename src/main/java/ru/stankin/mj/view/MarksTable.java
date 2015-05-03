@@ -21,6 +21,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MarksTable extends Table {
 
 
+    protected Map<String, Module> rating;
+    protected Map<String, Module> accumulatedRating;
+    protected Map<Subject, Map<String, Module>> modulesGrouped;
+
     public MarksTable() {
         this.addContainerProperty("Предмет", AbstractComponent.class, null);
         this.setColumnWidth("Предмет", 200);
@@ -40,17 +44,21 @@ public class MarksTable extends Table {
 
     public void fillMarks(Student student) {
         removeAllItems();
+        modulesGrouped = null;
+        rating = null;
+        accumulatedRating = null;
 
-        if (student == null)
+        if (student == null){
             return;
+        }
         int size = student.getModules().size();
         //logger.debug("student has:{} modules", size);
         AtomicInteger i = new AtomicInteger(0);
-        Map<Subject, Map<String, Module>> modulesGrouped = student.getModulesGrouped();
+        modulesGrouped = student.getModulesGrouped();
         //logger.debug("modulesGrouped:{} ", modulesGrouped);
 
-        Map<String, Module> raiting = removeByTitle(modulesGrouped, "Рейтинг");
-        Map<String, Module> accumulatedRaiting = removeByTitle(modulesGrouped, "Накопленный Рейтинг");
+        rating = removeByTitle(modulesGrouped, ModuleJournalUploader.RATING);
+        accumulatedRating = removeByTitle(modulesGrouped, ModuleJournalUploader.ACCOUMULATED_RATING);
 
         modulesGrouped.entrySet().stream()
                 .sorted(Comparator.comparing(e -> e.getKey().getTitle()))
@@ -69,13 +77,13 @@ public class MarksTable extends Table {
                                     drawModuleMark(m3),
                                     drawModuleMark(m4),
                                     drawModuleMark(m5),
-                                    orNoValue((subject.getFactor() != 0 ? new Label("<i>"+subject.getFactor() + "</i>", ContentMode.HTML) : null))
+                                    orNoValue((subject.getFactor() != 0 ? new Label("<i>" + subject.getFactor() + "</i>", ContentMode.HTML) : null))
                             },
                             i.incrementAndGet());
                 });
 
-        addSummary(ModuleJournalUploader.RAITING, raiting, i);
-        addSummary(ModuleJournalUploader.ACCOUMULATED_RAINTNG, accumulatedRaiting, i);
+        addSummary(ModuleJournalUploader.RATING, rating, i);
+        addSummary(ModuleJournalUploader.ACCOUMULATED_RATING, accumulatedRating, i);
 
     }
 
@@ -84,13 +92,11 @@ public class MarksTable extends Table {
                 .map((Subject s) -> modulesGrouped.remove(s)).orElse(null);
     }
 
-    protected Object drawModuleMark(Module m1) {
-        if (m1 == null)
-        //return new Label("Не предусмотрено");
+    protected Object drawModuleMark(Module module) {
+        if (module == null)
         {
             return orNoValue(null);
         }
-        Module module = m1;
         String bgColorStyle = "";
         if (module.getColor() != -1)
             bgColorStyle = "background-color: " + String.format("#%06X", (0xFFFFFF & module.getColor())) + ";";

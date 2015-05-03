@@ -20,8 +20,8 @@ import java.util.stream.StreamSupport;
 @Singleton
 public class ModuleJournalUploader {
 
-    public static final String RAITING = "Рейтинг";
-    public static final String ACCOUMULATED_RAINTNG = "Накопленный Рейтинг";
+    public static final String RATING = "Рейтинг";
+    public static final String ACCOUMULATED_RATING = "Накопленный Рейтинг";
     private static final Logger logger = LogManager.getLogger(ModuleJournalUploader.class);
 
 
@@ -290,7 +290,9 @@ public class ModuleJournalUploader {
             double factor = 0.0;
             if (factorsrow != null) {
                 try {
-                    factor = factorsrow.getCell(j).getNumericCellValue();
+                    Cell cell = factorsrow.getCell(j);
+                    if (cell != null)
+                        factor = cell.getNumericCellValue();
                 } catch (IllegalStateException ignored) {
                 }
             }
@@ -347,8 +349,8 @@ public class ModuleJournalUploader {
             }
         }
 
-        private final SubjectColumnInfo rating = new SubjectColumnInfo(RAITING, 0.0);
-        private final SubjectColumnInfo accumulatedRaiting = new SubjectColumnInfo(ACCOUMULATED_RAINTNG, 0.0);
+        private final SubjectColumnInfo rating = new SubjectColumnInfo(RATING, 0.0);
+        private final SubjectColumnInfo accumulatedRaiting = new SubjectColumnInfo(ACCOUMULATED_RATING, 0.0);
 
         private class SubjectColumnInfo {
 

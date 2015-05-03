@@ -78,17 +78,13 @@ public class MainView extends CustomComponent implements View {
         //content.setExpandRatio(label, 0.5f);
         //label.setHeight(30,Unit.PIXELS);
 
-        Button raitingrules = new Button("Правила расчёта рейтинга", event1 -> {
-            Window window = new Window("Правила расчёта рейтинга");
-            BrowserFrame content1 = new BrowserFrame("Правила расчёта рейтинга", new ExternalResource("rating.html"));
-            window.setContent(content1);
-            content1.setSizeFull();
-            window.setHeight(this.getUI().getHeight() / 2, this.getUI().getHeightUnits());
-            window.setWidth(this.getUI().getWidth() / 2, this.getUI().getWidthUnits());
-            window.center();
-            this.getUI().addWindow(window);
-        });
-        content.addComponent(raitingrules);
+        content.addComponent(ratingRulesButton());
+        if (!user.isAdmin()) {
+            StudentRatingButton studentRatingButton = new StudentRatingButton();
+            content.addComponent(studentRatingButton);
+            Student student = (Student) user.getUser();
+            studentRatingButton.setStudent(storage.getStudentById(student.id, true));
+        }
 
         Label blonk = new Label("");
         content.addComponent(blonk);
@@ -132,6 +128,16 @@ public class MainView extends CustomComponent implements View {
         verticalLayout.setSizeFull();
         setCompositionRoot(verticalLayout);
 
+    }
+
+    private Button ratingRulesButton() {
+        return new Button("Правила расчёта рейтинга", event1 -> {
+            Window window = new Window("Правила расчёта рейтинга");
+            BrowserFrame content1 = new BrowserFrame("Правила расчёта рейтинга", new ExternalResource("rating.html"));
+            window.setContent(content1);
+            content1.setSizeFull();
+            Utils.showCentralWindow(this.getUI(), window);
+        });
     }
 
     private HorizontalLayout genUploadAndGrids() {
@@ -235,6 +241,7 @@ public class MainView extends CustomComponent implements View {
         studentLabel.setWidth(200, Unit.PIXELS);
         studentButtons = Arrays.asList(
                 new StudentSettingsButton(),
+                new StudentRatingButton(),
                 new StudentDeleteModulesButton()
         );
         HorizontalLayout studentLine = new HorizontalLayout(studentLabel);
@@ -245,7 +252,7 @@ public class MainView extends CustomComponent implements View {
 
 
         students.addValueChangeListener(event1 -> {
-            logger.debug("selection:{}", event1);
+            //logger.debug("selection:{}", event1);
             //logger.debug("stacktacer:{}",new Exception("stacktrace"));
             if (event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
@@ -403,6 +410,21 @@ public class MainView extends CustomComponent implements View {
         public StudentSettingsButton() {
             super("Редактировать");
             this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao::saveUser)));
+        }
+
+    }
+
+    private class StudentRatingButton extends StudentButton {
+
+        public StudentRatingButton() {
+            super("Расcчитать рейтинг");
+            this.addClickListener(event -> {
+                RatingCalculationTable ratingCalculationTable = new RatingCalculationTable(student);
+                ratingCalculationTable.setSizeFull();
+                Window window = new Window("Расчет рейтинга", ratingCalculationTable);
+
+                Utils.showCentralWindow(this.getUI(), window);
+            } );
         }
 
     }

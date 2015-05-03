@@ -6,6 +6,7 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -71,10 +72,29 @@ public class MainView extends CustomComponent implements View {
         content.setWidth("100%");
         //content.setHeight(30, Unit.PIXELS);
         Label label = new Label("<b>&nbsp;МОДУЛЬНЫЙ ЖУРНАЛ</b>", ContentMode.HTML);
+        label.setWidth(200, Unit.PIXELS);
         content.addComponent(label);
         //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
-        content.setExpandRatio(label, 1);
+        //content.setExpandRatio(label, 0.5f);
         //label.setHeight(30,Unit.PIXELS);
+
+        Button raitingrules = new Button("Правила расчёта рейтинга", event1 -> {
+            Window window = new Window("Правила расчёта рейтинга");
+            BrowserFrame content1 = new BrowserFrame("Правила расчёта рейтинга", new ExternalResource("rating.html"));
+            window.setContent(content1);
+            content1.setSizeFull();
+            window.setHeight(this.getUI().getHeight() / 2, this.getUI().getHeightUnits());
+            window.setWidth(this.getUI().getWidth() / 2, this.getUI().getWidthUnits());
+            window.center();
+            this.getUI().addWindow(window);
+        });
+        content.addComponent(raitingrules);
+
+        Label blonk = new Label("");
+        content.addComponent(blonk);
+        //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
+        content.setExpandRatio(blonk, 1);
+
         Button settings = new Button("Аккаунт: " + user.getName(), event1 -> {
             this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser, true));
         });

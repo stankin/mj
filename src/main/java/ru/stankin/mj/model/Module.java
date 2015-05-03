@@ -17,7 +17,6 @@ public class Module implements Cloneable, Serializable {
     @JoinColumn(name = "subject_id")
     private Subject subject = null;
 
-    private double factor = 0;
     private String num = "";
     private int value = -1;
     private int color = 0;
@@ -102,11 +101,4 @@ public class Module implements Cloneable, Serializable {
         return subject;
     }
 
-    public double getFactor() {
-        return factor;
-    }
-
-    public void setFactor(double factor) {
-        this.factor = factor;
-    }
 }

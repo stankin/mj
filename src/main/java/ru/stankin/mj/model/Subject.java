@@ -5,24 +5,25 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "Subjects", indexes = {@Index(name = "title_index", columnList = "title")})
+@Table(name = "Subjects", indexes = {@Index(name = "title_index", columnList = "stgroup,title")})
 public class Subject implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id = 0;
 
+    private String stgroup = "";
     private String title = "";
     private double factor = 0;
 
-    public Subject(String title, double factor) {
+    public Subject(String stgroup, String title, double factor) {
+        this.stgroup = stgroup;
         this.title = title;
         this.factor = factor;
     }
 
     public Subject() {
     }
-
 
     public double getFactor() {
         return factor;
@@ -44,9 +45,18 @@ public class Subject implements Serializable {
     public String toString() {
         return "Subject{" +
                 "id=" + id +
+                ", group='" + stgroup + '\'' +
                 ", title='" + title + '\'' +
                 ", factor=" + factor +
                 '}';
+    }
+
+    public String getStgroup() {
+        return stgroup;
+    }
+
+    public void setStgroup(String group) {
+        this.stgroup = group;
     }
 
     //public static final Subject RAITING = new Subject("Рейтинг");

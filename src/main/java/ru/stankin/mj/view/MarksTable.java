@@ -7,6 +7,7 @@ import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import ru.stankin.mj.model.Module;
+import ru.stankin.mj.model.ModuleJournalUploader;
 import ru.stankin.mj.model.Student;
 import ru.stankin.mj.model.Subject;
 
@@ -33,6 +34,8 @@ public class MarksTable extends Table {
         this.setColumnWidth("З", 30);
         this.addContainerProperty("Э", AbstractComponent.class, null);
         this.setColumnWidth("Э", 30);
+        this.addContainerProperty("к", AbstractComponent.class, null);
+        this.setColumnWidth("к", 30);
     }
 
     public void fillMarks(Student student) {
@@ -65,13 +68,14 @@ public class MarksTable extends Table {
                                     drawModuleMark(m2),
                                     drawModuleMark(m3),
                                     drawModuleMark(m4),
-                                    drawModuleMark(m5)
+                                    drawModuleMark(m5),
+                                    orNoValue((subject.getFactor() != 0 ? new Label("<i>"+subject.getFactor() + "</i>", ContentMode.HTML) : null))
                             },
                             i.incrementAndGet());
                 });
 
-        addSummary("Рейтинг", raiting, i);
-        addSummary("Накопленный Рейтинг", accumulatedRaiting, i);
+        addSummary(ModuleJournalUploader.RAITING, raiting, i);
+        addSummary(ModuleJournalUploader.ACCOUMULATED_RAINTNG, accumulatedRaiting, i);
 
     }
 
@@ -84,10 +88,7 @@ public class MarksTable extends Table {
         if (m1 == null)
         //return new Label("Не предусмотрено");
         {
-            Image image = new Image("Не предусмотрено", new ThemeResource("images/cross_lines.png"));
-            image.setWidth(10, Unit.PIXELS);
-            image.setHeight(10, Unit.PIXELS);
-            return image;
+            return orNoValue(null);
         }
         Module module = m1;
         String bgColorStyle = "";
@@ -97,6 +98,15 @@ public class MarksTable extends Table {
         //logger.debug("moduleHtml:{}", moduleHtml);
         return new Label(moduleHtml
                 + (module.getValue() != 0 ? module.getValue() + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
+    }
+
+    protected Object orNoValue(Object v) {
+        if (v != null)
+            return v;
+        Image image = new Image("Не предусмотрено", new ThemeResource("images/cross_lines.png"));
+        image.setWidth(10, Unit.PIXELS);
+        image.setHeight(10, Unit.PIXELS);
+        return image;
     }
 
     protected void addSummary(final String label, Map<String, Module> raiting, AtomicInteger i) {
@@ -113,7 +123,8 @@ public class MarksTable extends Table {
                             drawModuleMark(m2),
                             drawModuleMark(m3),
                             drawModuleMark(m4),
-                            drawModuleMark(m5)
+                            drawModuleMark(m5),
+                            orNoValue(null)
                     },
                     i.incrementAndGet());
         }

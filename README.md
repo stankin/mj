@@ -2,7 +2,7 @@
 
 Веб-интерфейс для просмотра оценок студентами, разрабатываемый для МГТУ Станкин.
 
-Сообщения об ошибках и пожелания вы можете оставить [здесь](https://bitbucket.org/NicolayMitropolsky/stankin-mj/issues?status=new&status=open).
+Сообщения об ошибках и пожелания вы можете оставить [здесь](https://bitbucket.org/NicolayMitropolsky/stankin-mj/issues?sort=status).
 
 ## Установка ##
 

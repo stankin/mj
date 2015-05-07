@@ -421,7 +421,13 @@ public class MainView extends CustomComponent implements View {
             this.addClickListener(event -> {
                 RatingCalculationTable ratingCalculationTable = new RatingCalculationTable(student);
                 ratingCalculationTable.setSizeFull();
-                Window window = new Window("Расчет рейтинга", ratingCalculationTable);
+                VerticalLayout verticalLayout = new VerticalLayout();
+                verticalLayout.addComponent(ratingCalculationTable);
+                verticalLayout.setExpandRatio(ratingCalculationTable, 1);
+                verticalLayout.addComponent(new Label("Если вы хотите спрогнозировать свой рейтинг," +
+                        " вы можете ввести недостающие модули в этой форме"));
+                verticalLayout.setSizeFull();
+                Window window = new Window("Расчет рейтинга", verticalLayout);
 
                 Utils.showCentralWindow(this.getUI(), window);
             } );

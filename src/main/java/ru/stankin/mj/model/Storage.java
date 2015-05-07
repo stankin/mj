@@ -22,6 +22,8 @@ public interface Storage {
 
     void saveStudent(Student student);
 
+    Subject getOrCreateSubject(String group, String name, double factor);
+
     Student getStudentByGroupSurnameInitials(String group, String surname, String initials);
 
     void deleteAllModules();

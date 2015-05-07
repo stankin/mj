@@ -35,10 +35,7 @@ public class AlarmHolder {
                     reportWindow = null;
                 }
             });
-            uI.getUI().addWindow(reportWindow);
-            reportWindow.setHeight(uI.getUI().getHeight() / 2, uI.getUI().getHeightUnits());
-            reportWindow.setWidth(uI.getUI().getWidth() / 2, uI.getUI().getWidthUnits());
-            reportWindow.center();
+            Utils.showCentralWindow(uI.getUI(), reportWindow);
         }
 
         reportWindow.body.setValue(reportWindow.body.getValue() + "\n" + text);

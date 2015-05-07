@@ -6,7 +6,7 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.ThemeResource;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -27,11 +27,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 @CDIView("")
@@ -54,7 +51,7 @@ public class MainView extends CustomComponent implements View {
     @Inject
     private ExecutorService ecs;
 
-    Table marks;
+    MarksTable marks;
     private List<StudentButton> studentButtons;
     private Label studentLabel;
 
@@ -75,10 +72,25 @@ public class MainView extends CustomComponent implements View {
         content.setWidth("100%");
         //content.setHeight(30, Unit.PIXELS);
         Label label = new Label("<b>&nbsp;МОДУЛЬНЫЙ ЖУРНАЛ</b>", ContentMode.HTML);
+        label.setWidth(200, Unit.PIXELS);
         content.addComponent(label);
         //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
-        content.setExpandRatio(label, 1);
+        //content.setExpandRatio(label, 0.5f);
         //label.setHeight(30,Unit.PIXELS);
+
+        content.addComponent(ratingRulesButton());
+        if (!user.isAdmin()) {
+            StudentRatingButton studentRatingButton = new StudentRatingButton();
+            content.addComponent(studentRatingButton);
+            Student student = (Student) user.getUser();
+            studentRatingButton.setStudent(storage.getStudentById(student.id, true));
+        }
+
+        Label blonk = new Label("");
+        content.addComponent(blonk);
+        //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
+        content.setExpandRatio(blonk, 1);
+
         Button settings = new Button("Аккаунт: " + user.getName(), event1 -> {
             this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser, true));
         });
@@ -108,7 +120,7 @@ public class MainView extends CustomComponent implements View {
         else {
             mainPanel = genMarks();
             Student student = (Student) user.getUser();
-            fillMarks(storage.getStudentById(student.id, true));
+            marks.fillMarks(storage.getStudentById(student.id, true));
         }
 
         verticalLayout.addComponent(mainPanel);
@@ -116,6 +128,16 @@ public class MainView extends CustomComponent implements View {
         verticalLayout.setSizeFull();
         setCompositionRoot(verticalLayout);
 
+    }
+
+    private Button ratingRulesButton() {
+        return new Button("Правила расчёта рейтинга", event1 -> {
+            Window window = new Window("Правила расчёта рейтинга");
+            BrowserFrame content1 = new BrowserFrame("Правила расчёта рейтинга", new ExternalResource("rating.html"));
+            window.setContent(content1);
+            content1.setSizeFull();
+            Utils.showCentralWindow(this.getUI(), window);
+        });
     }
 
     private HorizontalLayout genUploadAndGrids() {
@@ -219,6 +241,7 @@ public class MainView extends CustomComponent implements View {
         studentLabel.setWidth(200, Unit.PIXELS);
         studentButtons = Arrays.asList(
                 new StudentSettingsButton(),
+                new StudentRatingButton(),
                 new StudentDeleteModulesButton()
         );
         HorizontalLayout studentLine = new HorizontalLayout(studentLabel);
@@ -229,7 +252,7 @@ public class MainView extends CustomComponent implements View {
 
 
         students.addValueChangeListener(event1 -> {
-            logger.debug("selection:{}", event1);
+            //logger.debug("selection:{}", event1);
             //logger.debug("stacktacer:{}",new Exception("stacktrace"));
             if (event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
@@ -264,7 +287,7 @@ public class MainView extends CustomComponent implements View {
             studentLabel.setValue("");
         }
 
-        fillMarks(student);
+        marks.fillMarks(student);
 
         for (StudentButton stbtn : studentButtons) {
             stbtn.setStudent(student);
@@ -272,84 +295,10 @@ public class MainView extends CustomComponent implements View {
     }
 
     private Table genMarks() {
-        marks = new Table();
-
-        marks.addContainerProperty("Предмет", AbstractComponent.class, null);
-        marks.setColumnWidth("Предмет", 200);
-        marks.addContainerProperty("М1", AbstractComponent.class, null);
-        marks.setColumnWidth("М1", 30);
-        marks.addContainerProperty("М2", AbstractComponent.class, null);
-        marks.setColumnWidth("М2", 30);
-        marks.addContainerProperty("К", AbstractComponent.class, null);
-        marks.setColumnWidth("К", 30);
-        marks.addContainerProperty("З", AbstractComponent.class, null);
-        marks.setColumnWidth("З", 30);
-        marks.addContainerProperty("Э", AbstractComponent.class, null);
-        marks.setColumnWidth("Э", 30);
-
+        marks = new MarksTable();
         marks.setSizeFull();
         marks.setWidth(100, Unit.PERCENTAGE);
         return marks;
-    }
-
-    private void fillMarks(Student student) {
-        marks.removeAllItems();
-
-        if (student == null)
-            return;
-        int size = student.getModules().size();
-        //logger.debug("student has:{} modules", size);
-        AtomicInteger i = new AtomicInteger(0);
-        Map<String, Map<String, Module>> modulesGrouped = student.getModulesGrouped();
-        //logger.debug("modulesGrouped:{} ", modulesGrouped);
-
-        Map<String, Module> raiting = modulesGrouped.remove("Рейтинг");
-        Map<String, Module> accumulatedRaiting = modulesGrouped.remove("Накопленный Рейтинг");
-
-        modulesGrouped.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .forEach(subj -> {
-                    String subject = subj.getKey();
-                    Module m1 = subj.getValue().get("М1");
-                    Module m2 = subj.getValue().get("М2");
-                    Module m3 = subj.getValue().get("К");
-                    Module m4 = subj.getValue().get("З");
-                    Module m5 = subj.getValue().get("Э");
-                    marks.addItem(
-                            new Object[]{
-                                    new Label(subject),
-                                    drawModuleMark(m1),
-                                    drawModuleMark(m2),
-                                    drawModuleMark(m3),
-                                    drawModuleMark(m4),
-                                    drawModuleMark(m5)
-                            },
-                            i.incrementAndGet());
-                });
-
-        addSummary("Рейтинг", raiting, i);
-        addSummary("Накопленный Рейтинг", accumulatedRaiting, i);
-
-    }
-
-    private void addSummary(final String label, Map<String, Module> raiting, AtomicInteger i) {
-        if (raiting != null) {
-            Module m1 = raiting.get("М1");
-            Module m2 = raiting.get("М2");
-            Module m3 = raiting.get("К");
-            Module m4 = raiting.get("З");
-            Module m5 = raiting.get("Э");
-            marks.addItem(
-                    new Object[]{
-                            new Label("<b>" + label + "</b>", ContentMode.HTML),
-                            drawModuleMark(m1),
-                            drawModuleMark(m2),
-                            drawModuleMark(m3),
-                            drawModuleMark(m4),
-                            drawModuleMark(m5)
-                    },
-                    i.incrementAndGet());
-        }
     }
 
     private Component createEtalonUpload() {
@@ -417,7 +366,7 @@ public class MainView extends CustomComponent implements View {
                     alarmHolder.post(join);
                 } catch (Exception e) {
                     logger.error("error processing {}", file, e);
-                    alarmHolder.post(e.getMessage(), Notification.Type.ERROR_MESSAGE);
+                    alarmHolder.error(e);
                 }
             }
 
@@ -436,25 +385,6 @@ public class MainView extends CustomComponent implements View {
         upload.setUploadButtonCaption("Выбрать файлы");
         upload.setRootDirectory(Files.createTempDir().toString());
         return upload;
-    }
-
-    private Object drawModuleMark(Module m1) {
-        if (m1 == null)
-        //return new Label("Не предусмотрено");
-        {
-            Image image = new Image("Не предусмотрено", new ThemeResource("images/cross_lines.png"));
-            image.setWidth(10, Unit.PIXELS);
-            image.setHeight(10, Unit.PIXELS);
-            return image;
-        }
-        Module module = m1;
-        String bgColorStyle = "";
-        if (module.getColor() != -1)
-            bgColorStyle = "background-color: " + String.format("#%06X", (0xFFFFFF & module.getColor())) + ";";
-        String moduleHtml = "<div style='" + bgColorStyle + "width: 20px; padding: 2px 2px 2px 2px'>";
-        //logger.debug("moduleHtml:{}", moduleHtml);
-        return new Label(moduleHtml
-                + (module.getValue() != 0 ? module.getValue() + "" : "&nbsp;&nbsp;") + "</div>", ContentMode.HTML);
     }
 
     private class StudentButton extends Button {
@@ -480,6 +410,27 @@ public class MainView extends CustomComponent implements View {
         public StudentSettingsButton() {
             super("Редактировать");
             this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao::saveUser)));
+        }
+
+    }
+
+    private class StudentRatingButton extends StudentButton {
+
+        public StudentRatingButton() {
+            super("Расcчитать рейтинг");
+            this.addClickListener(event -> {
+                RatingCalculationTable ratingCalculationTable = new RatingCalculationTable(student);
+                ratingCalculationTable.setSizeFull();
+                VerticalLayout verticalLayout = new VerticalLayout();
+                verticalLayout.addComponent(ratingCalculationTable);
+                verticalLayout.setExpandRatio(ratingCalculationTable, 1);
+                verticalLayout.addComponent(new Label("Если вы хотите спрогнозировать свой рейтинг," +
+                        " вы можете ввести недостающие модули в этой форме"));
+                verticalLayout.setSizeFull();
+                Window window = new Window("Расчет рейтинга", verticalLayout);
+
+                Utils.showCentralWindow(this.getUI(), window);
+            } );
         }
 
     }

@@ -147,6 +147,7 @@ public class JPAStorage implements Storage {
 
     }
 
+
     @Override
     @javax.transaction.Transactional
     public Student getStudentById(int value, boolean eager) {
@@ -158,6 +159,33 @@ public class JPAStorage implements Storage {
 //            student.setModules(modules);
         }
         return student;
+    }
+
+    @Override
+    @javax.transaction.Transactional
+    public Subject getOrCreateSubject(String group, String name, double factor) {
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaQuery<Subject> query = b.createQuery(Subject.class);
+        Root<Subject> from = query.from(Subject.class);
+        query.where(b.and(
+                b.equal(from.get("stgroup"), group),
+                b.equal(from.get("title"), name)
+        ));
+        try {
+            Subject storedSubject = em.createQuery(query).getSingleResult();
+            if (storedSubject.getFactor() != factor) {
+                storedSubject.setFactor(factor);
+                em.merge(storedSubject);
+                em.flush();
+            }
+            //storedSubject.getModules().size();
+            return storedSubject;
+        } catch (NoResultException e) {
+            //TODO: при таком подходе нужна очищалка неиспользуемых предметов
+            Subject subject = em.merge(new Subject(group, name, factor));
+            em.flush();
+            return subject;
+        }
     }
 
     @Override

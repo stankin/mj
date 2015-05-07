@@ -20,6 +20,8 @@ import java.util.stream.StreamSupport;
 @Singleton
 public class ModuleJournalUploader {
 
+    public static final String RATING = "Рейтинг";
+    public static final String ACCOUMULATED_RATING = "Накопленный Рейтинг";
     private static final Logger logger = LogManager.getLogger(ModuleJournalUploader.class);
 
 
@@ -32,7 +34,7 @@ public class ModuleJournalUploader {
 
         Workbook workbook = WorkbookFactory.create(is);
 
-        List<String> strings = new WorkbookReader(workbook).writeTo(storage);
+        List<String> strings = new WorkbookReader(workbook, storage).writeToStorage();
 
 
         is.close();
@@ -106,11 +108,18 @@ public class ModuleJournalUploader {
 
         private Workbook workbook;
 
-        public WorkbookReader(Workbook workbook) {
+        Storage storage;
+
+        private Row subjRow;
+        private Row modulesrow;
+        private Row factorsrow;
+
+        public WorkbookReader(Workbook workbook, Storage storage) {
             this.workbook = workbook;
+            this.storage = storage;
         }
 
-        List<String> writeTo(Storage storage) {
+        List<String> writeToStorage() {
 
             List<String> messages = new ArrayList<>();
 
@@ -118,11 +127,12 @@ public class ModuleJournalUploader {
                 Sheet sheet = workbook.getSheetAt(i);
                 if (sheet.getPhysicalNumberOfRows() > 4) {
 
-                    Row subjRow = detectSubjsRow(sheet);
+                    detectSubjsRow(sheet);
 
-                    Row modulesrow = sheet.getRow(2);
+                    modulesrow = sheet.getRow(2);
 
-                    Map<Integer, Module> modulePrototypesMap = buildModulePrototypesMap(subjRow, modulesrow);
+
+                    Map<Integer, ModulePrototype> modulePrototypesMap = buildModulePrototypesMap();
 
                     logger.debug("modulePrototypesMap=" + modulePrototypesMap);
 
@@ -145,8 +155,8 @@ public class ModuleJournalUploader {
                                     row.getCell(2).getStringCellValue()
                             ); */
 
-                                for (Map.Entry<Integer, Module> entry : modulePrototypesMap.entrySet()) {
-                                    Module module = entry.getValue().clone();
+                                for (Map.Entry<Integer, ModulePrototype> entry : modulePrototypesMap.entrySet()) {
+                                    Module module = entry.getValue().buildModule(group);
                                     //logger.debug("module=" + module);
                                     Cell cell = row.getCell(entry.getKey());
                                     if (cell != null) {
@@ -187,24 +197,53 @@ public class ModuleJournalUploader {
 
         }
 
-        private Map<Integer, Module> buildModulePrototypesMap(Row subjRow, Row modulesrow) {
-            Map<Integer, Module> moduleMap = new LinkedHashMap<>();
+        private Row detectSubjsRow(Sheet sheet) {
+            for (int i = 0; i < sheet.getLastRowNum(); i++) {
+                Row currentRow = sheet.getRow(i);
+                if (currentRow == null)
+                    continue;
+                List<String> subjsList = getStringStream(currentRow)
+                        .filter(str -> !str.matches("(\\s*|\\d+([\\.,]\\d*)?)"))
+                        .collect(Collectors.toList());
+                logger.debug("subjsList: {} {}", subjsList, subjsList.size());
+                if (!subjsList.isEmpty()) {
+                    Row prevRow = sheet.getRow(i - 1);
+                    if (prevRow != null) {
+                        List<String> factorsList = getStringStream(prevRow)
+                                .filter(str -> str.matches("\\d+([\\.,]\\d*)?"))
+                                .collect(Collectors.toList());
+                        logger.debug("factorsList = {}", factorsList);
+                        if (!factorsList.isEmpty()) {
+                            this.factorsrow = prevRow;
+                        }
+                    }
+                    return this.subjRow = currentRow;
+                }
+            }
+            throw new IllegalArgumentException("no SubjsRow found");
+        }
+
+        private Map<Integer, ModulePrototype> buildModulePrototypesMap() {
+            Map<Integer, ModulePrototype> moduleMap = new LinkedHashMap<>();
 
             int rainingIndex = -1;
             int accumulatedRainingIndex = -1;
+
 
             for (int j = 0; j < modulesrow.getLastCellNum(); j++) {
                 Cell cell = modulesrow.getCell(j);
                 if (cell != null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
                     String header = cell.getStringCellValue().trim();
                     if (header.equals("М1")) {
-                        String subject = subjRow.getCell(j).getStringCellValue().trim();
-                        logger.debug(j + " " + subject);
+                        String subjName = subjRow.getCell(j).getStringCellValue().trim();
+
+                        SubjectColumnInfo subjectInfo = new SubjectColumnInfo(subjName, getFactor(j));
+
                         if (!modulesrow.getCell(j + 1).getStringCellValue().trim().equals("М2"))
                             throw new IllegalArgumentException("no m2");
 
-                        moduleMap.put(j, new Module(subject, "М1"));
-                        moduleMap.put(j + 1, new Module(subject, "М2"));
+                        moduleMap.put(j, new ModulePrototype(subjectInfo, "М1"));
+                        moduleMap.put(j + 1, new ModulePrototype(subjectInfo, "М2"));
 
 
                         for (int k = 2; k < 5; k++) {
@@ -216,7 +255,7 @@ public class ModuleJournalUploader {
                             boolean contains = markTypes.contains(markType);
                             //logger.debug("contains {}", contains);
                             if (contains)
-                                moduleMap.put(j + k, new Module(subject, markType));
+                                moduleMap.put(j + k, new ModulePrototype(subjectInfo, markType));
                         }
 
                     } else if (header.equals("Р")) {
@@ -241,10 +280,23 @@ public class ModuleJournalUploader {
                 }
             }
 
-            moduleMap.put(rainingIndex, new Module("Рейтинг", "М1"));
-            moduleMap.put(accumulatedRainingIndex, new Module("Накопленный Рейтинг", "М1"));
+            moduleMap.put(rainingIndex, new ModulePrototype(rating, "М1"));
+            moduleMap.put(accumulatedRainingIndex, new ModulePrototype(accumulatedRaiting, "М1"));
 
             return moduleMap;
+        }
+
+        private double getFactor(int j) {
+            double factor = 0.0;
+            if (factorsrow != null) {
+                try {
+                    Cell cell = factorsrow.getCell(j);
+                    if (cell != null)
+                        factor = cell.getNumericCellValue();
+                } catch (IllegalStateException ignored) {
+                }
+            }
+            return factor;
         }
 
 
@@ -282,30 +334,34 @@ public class ModuleJournalUploader {
 
             return -1;
         }
-    }
 
-    private static Row detectSubjsRow(Sheet sheet) {
+        private class ModulePrototype {
+            final SubjectColumnInfo subjColumnInfo;
+            final String moduleName;
 
-        for (int i = 0; i < sheet.getLastRowNum(); i++) {
+            public ModulePrototype(SubjectColumnInfo subjColumnInfo, String moduleName) {
+                this.subjColumnInfo = subjColumnInfo;
+                this.moduleName = moduleName;
+            }
 
-
-            Row subjRow = sheet.getRow(i);
-            if (subjRow == null)
-                continue;
-            //System.out.println("tabrow:" + rowTabsepareted(subjRow));
-            List<String> subjsList = getStringStream(subjRow).filter(str -> !str.matches("(\\s*|\\d+([\\.,]\\d*)?)")).collect(Collectors
-                    .toList());
-
-            logger.debug("subjsList: {} {}", subjsList, subjsList.size());
-            if (!subjsList.isEmpty())
-                return subjRow;
+            public Module buildModule(String group) {
+                return new Module(storage.getOrCreateSubject(group, subjColumnInfo.subjName, subjColumnInfo.factor), moduleName);
+            }
         }
-        throw new IllegalArgumentException("no SubjsRow found");
-    }
 
+        private final SubjectColumnInfo rating = new SubjectColumnInfo(RATING, 0.0);
+        private final SubjectColumnInfo accumulatedRaiting = new SubjectColumnInfo(ACCOUMULATED_RATING, 0.0);
 
-    private static String rowTabsepareted(Row row) {
-        return getStringStream(row).collect(Collectors.joining("\t"));
+        private class SubjectColumnInfo {
+
+            final String subjName;
+            final double factor;
+
+            public SubjectColumnInfo(String subjName, double factor) {
+                this.subjName = subjName;
+                this.factor = factor;
+            }
+        }
     }
 
     private static Stream<String> getStringStream(Row row) {

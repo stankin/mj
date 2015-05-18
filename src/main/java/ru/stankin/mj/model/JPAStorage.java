@@ -39,7 +39,7 @@ import static org.hibernate.criterion.Restrictions.ilike;
 //@Lock(LockType.READ)
 public class JPAStorage implements Storage {
 
-    private static final Logger logger = LogManager.getLogger(ModuleJournalUploader.class);
+    private static final Logger logger = LogManager.getLogger(JPAStorage.class);
 
     @PersistenceContext
     private EntityManager em;
@@ -51,7 +51,7 @@ public class JPAStorage implements Storage {
         Student student = /*em.merge(*/student0/*)*/;
         //Student student = em.merge(student0);
         List<Module> studentModules = new ArrayList<>(student.getModules());
-        logger.debug("saving student {} modules: {}", student.name, studentModules.size());
+        //logger.debug("saving student {} modules: {}", student.name, studentModules.size());
 
         //TODO: но вообще это какой-то ад
 
@@ -79,7 +79,7 @@ public class JPAStorage implements Storage {
         Root<Module> from = query.from(Module.class);
         query.where(b.equal(from.get("student"), student));
         int deleted = em.createQuery(query).executeUpdate();
-        logger.debug("deleted {}", deleted);
+        //logger.debug("deleted {}", deleted);
         em.flush();
     }
 
@@ -91,14 +91,14 @@ public class JPAStorage implements Storage {
         Root<Module> from = query.from(Module.class);
         //query.where(b.equal(from.get("student"), student));
         int deleted = em.createQuery(query).executeUpdate();
-        logger.debug("deleted {}", deleted);
+        //logger.debug("deleted {}", deleted);
         em.flush();
     }
 
     @Override
     public void deleteStudent(Student s) {
         em.remove(s);
-        logger.debug("deleted {}", s);
+        //logger.debug("deleted {}", s);
         em.flush();
     }
 

@@ -241,8 +241,8 @@ public class MainView extends CustomComponent implements View {
         studentLabel.setWidth(200, Unit.PIXELS);
         studentButtons = Arrays.asList(
                 new StudentSettingsButton(),
-                new StudentRatingButton(),
-                new StudentDeleteModulesButton()
+                new StudentRatingButton()
+                //new StudentDeleteModulesButton()
         );
         HorizontalLayout studentLine = new HorizontalLayout(studentLabel);
 

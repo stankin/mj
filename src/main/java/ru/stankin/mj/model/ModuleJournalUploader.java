@@ -34,7 +34,7 @@ public class ModuleJournalUploader {
 
         Workbook workbook = WorkbookFactory.create(is);
 
-        List<String> strings = new WorkbookReader(workbook, storage).writeToStorage();
+        List<String> strings = new MarksWorkbookReader(workbook, storage).writeToStorage();
 
 
         is.close();
@@ -85,9 +85,9 @@ public class ModuleJournalUploader {
             student.cardid = cardid;
             student.stgroup = group;
             student.initials = null;
-            logger.debug("initi student {}", student);
+            //logger.debug("initi student {}", student);
             student.initialsFromNP();
-            logger.debug("Saving student {}", student);
+            //logger.debug("Saving student {}", student);
             storage.saveStudent(student);
 
         }
@@ -104,8 +104,9 @@ public class ModuleJournalUploader {
         return messages;
     }
 
-    static class WorkbookReader {
+    static class MarksWorkbookReader {
 
+        public static final int YELLOW_MODULE = 16776960;
         private Workbook workbook;
 
         Storage storage;
@@ -114,7 +115,7 @@ public class ModuleJournalUploader {
         private Row modulesrow;
         private Row factorsrow;
 
-        public WorkbookReader(Workbook workbook, Storage storage) {
+        public MarksWorkbookReader(Workbook workbook, Storage storage) {
             this.workbook = workbook;
             this.storage = storage;
         }
@@ -162,15 +163,25 @@ public class ModuleJournalUploader {
                                     if (cell != null) {
                                         module.setColor(colorToInt(cell.getCellStyle()));
                                         try {
-                                            module.setValue((int) cell.getNumericCellValue());
+                                            module.setValue((int) Math.round(cell.getNumericCellValue()));
                                         } catch (Exception e) {
-                                            logger.debug("error reading numeric data: " + e.getMessage());
+                                            //logger.debug("error reading numeric data: " + e.getMessage());
                                             module.setValue(0);
                                         }
                                     } else
                                         module.setValue(0);
-                                    if (module.getColor() != 0)
+                                    if (module.getColor() != 0) {
                                         student.getModules().add(module);
+                                        if (module.getColor() == YELLOW_MODULE && module.getValue() > 25) {
+                                            messages.add("Просроченный модуль > 25 :"
+                                                            + student.stgroup + " "
+                                                            + student.surname + " "
+                                                            + student.initials + " "
+                                                            + module.getSubject().getTitle() + ": "
+                                                            + module.getValue()
+                                            );
+                                        }
+                                    }
                                 }
 
                                 storage.updateModules(student);

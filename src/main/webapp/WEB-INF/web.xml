@@ -10,6 +10,12 @@
         <!--<param-value>10</param-value>-->
     <!--</context-param>-->
 
+    <context-param>
+        <description>Vaadin production mode</description>
+        <param-name>productionMode</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
     <servlet>
         <servlet-name>vaadinServlet</servlet-name>
         <servlet-class>

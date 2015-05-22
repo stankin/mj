@@ -3,9 +3,11 @@ package ru.stankin.mj.view;
 import com.vaadin.annotations.Push;
 import com.vaadin.cdi.CDIUI;
 import com.vaadin.cdi.CDIView;
+import com.vaadin.event.FieldEvents;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.UserError;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
@@ -27,6 +29,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
     private UserDAO userDAO;
 
     private TextField usernameField;
+    private Label errorLabel;
     private PasswordField passwordField;
     private Button loginButton;
 
@@ -34,7 +37,13 @@ public class LoginView extends CustomComponent implements View, ClickListener {
     public void enter(ViewChangeEvent event) {
 
         usernameField = new TextField("Логин");
+        usernameField.addFocusListener(event1 -> errorLabel.setVisible(false));
+        errorLabel = new Label();
+        errorLabel.addStyleName("err-label");
+        errorLabel.setVisible(false);
+        errorLabel.setWidth(146,Unit.PIXELS);
         passwordField = new PasswordField("Пароль");
+        passwordField.addFocusListener(event1 -> {errorLabel.setVisible(false); passwordField.focus();});
         loginButton = new Button("Вход");
         loginButton.addClickListener(this);
         loginButton.setClickShortcut(KeyCode.ENTER);
@@ -52,6 +61,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         Label label = new Label("<b>Вход</b>",  ContentMode.HTML);
         layout.addComponent(label);
         layout.addComponent(usernameField);
+        layout.addComponent(errorLabel);
         layout.addComponent(passwordField);
         layout.addComponent(loginButton);
 
@@ -85,8 +95,11 @@ public class LoginView extends CustomComponent implements View, ClickListener {
 
         User loginUser = userDAO.getUserBy(username, password);
         if (loginUser == null) {
-            new Notification("Неверный пароль", Notification.TYPE_ERROR_MESSAGE)
-                    .show(getUI().getPage());
+            errorLabel.setValue("Неверный пароль.\nОбратитесь в деканат, если не знаете пароль.");
+            errorLabel.setVisible(true);
+//            passwordField.setComponentError(new UserError("Неверный пароль"));
+//            new Notification("Неверный пароль", Notification.TYPE_ERROR_MESSAGE)
+//                    .show(getUI().getPage());
             return;
         }
 

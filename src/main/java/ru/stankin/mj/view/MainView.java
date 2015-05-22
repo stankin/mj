@@ -7,6 +7,7 @@ import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -59,6 +60,8 @@ public class MainView extends CustomComponent implements View {
 
     @Override
     public void enter(ViewChangeEvent event) {
+
+        addStyleName("main");
 
         logger.debug("entered");
 
@@ -430,6 +433,7 @@ public class MainView extends CustomComponent implements View {
                 Window window = new Window("Расчет рейтинга", verticalLayout);
 
                 Utils.showCentralWindow(this.getUI(), window);
+                Page.getCurrent().getJavaScript().execute("yaCounter29801259.hit('#calc');");
             } );
         }
 

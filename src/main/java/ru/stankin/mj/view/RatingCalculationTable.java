@@ -1,5 +1,6 @@
 package ru.stankin.mj.view;
 
+import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.event.FieldEvents;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -14,6 +15,7 @@ import ru.stankin.mj.model.Subject;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -44,27 +46,9 @@ public class RatingCalculationTable extends MarksTable {
             return ratingLabel;
         } else {
 
-            TextField textField = new TextField("", module.getValue() + "");
-            textField.setImmediate(true);
-            textField.setBuffered(false);
-            textField.setConverter(new StringToIntegerConverter());
-            textField.addTextChangeListener(new FieldEvents.TextChangeListener() {
-                @Override
-                public void textChange(FieldEvents.TextChangeEvent event) {
-                    String text = event.getText();
-                    try {
-                        module.setValue(new Integer(text));
-                        //logger.debug("valuechanged:" + event + " " + module.getValue());
-                        updateRating();
-                    } catch (NumberFormatException e) {
-                        textField.setValue(module.getValue() + "");
-                    }
-                }
-            });
-            return textField;
+            return new ModuleField(module, event -> updateRating());
         }
     }
-
 
     private static Map<String, Double> marksFactor = new HashMap<>();
 
@@ -104,6 +88,65 @@ public class RatingCalculationTable extends MarksTable {
 
     }
 
+}
+
+class ModuleField extends TextField{
+
+    private static final Logger logger = LogManager.getLogger(ModuleField.class);
+
+
+    Module module;
+
+    FieldEvents.TextChangeListener textChangeListener;
+
+    public ModuleField(Module module, FieldEvents.TextChangeListener textChangeListener) {
+        super("", module.getValue()+"");
+        this.module = module;
+        this.textChangeListener = textChangeListener;
+
+        styleModule();
+        this.setImmediate(true);
+        this.setBuffered(false);
+        this.setConverter(new BlanckAwareToIntegerConverter());
+        this.addTextChangeListener(new FieldEvents.TextChangeListener() {
+            @Override
+            public void textChange(FieldEvents.TextChangeEvent event) {
+                String text = event.getText();
+                if (text.isEmpty()) {
+                    module.setValue(0);
+                    textChangeListener.textChange(event);
+                } else
+                    try {
+                        module.setValue(new Integer(text));
+                        //logger.debug("valuechanged:" + event + " " + module.getValue());
+                        textChangeListener.textChange(event);
+                    } catch (NumberFormatException e) {
+                        logger.debug("returning value:" + module.getValue());
+                        ((TextField) ModuleField.this).setValue(module.getValue() + "");
+                    }
+
+                styleModule();
+
+            }
+        });
+
+
+    }
+
+    private void styleModule() {
+        if(module.getValue() < 25)
+            this.addStyleName("missingmodule");
+        else
+            this.removeStyleName("missingmodule");
+    }
+
+    private static class BlanckAwareToIntegerConverter extends StringToIntegerConverter {
+        @Override
+        protected Number convertToNumber(String value, Class<? extends Number> targetType, Locale locale) throws ConversionException {
+            Number number = super.convertToNumber(value, targetType, locale);
+            return number != null ? number : 0;
+        }
+    }
 }
 
 

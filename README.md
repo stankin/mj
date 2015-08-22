@@ -13,7 +13,15 @@
 mvn clean install
 ```
 
-Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 8.1.0.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/8.1.0.Final/wildfly-8.1.0.Final.zip).
+Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.1.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.1.Final/wildfly-9.0.1.Final.zip).
+
+### H2 fix ###
+
+Wildfly использует встроенную базу данных **H2** версии `1.3.173`, которая подвержена багу c логированием `isWrapperFor` значительно снижащим производетельность. 
+
+Следует либо обновить **H2** до версии к примеру `1.4.188` заменив jar-файл в Wildfly по адресу: `modules/system/layers/base/com/h2database/h2/main` и обновивив версию в соответствующем `module.xml`.
+
+Либо отключить логирование как советуют [здесь](https://github.com/rundeck/rundeck/issues/1175)
 
 ## Работа с приложением ##
 

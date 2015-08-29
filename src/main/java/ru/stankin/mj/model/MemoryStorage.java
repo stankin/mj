@@ -53,8 +53,8 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public Student getStudentById(int value, boolean eager) {
-        return studentsList.get(value);
+    public Student getStudentById(int id, String semester) {
+        return studentsList.get(id);
     }
 
     @Override
@@ -75,10 +75,10 @@ public class MemoryStorage implements Storage {
     private Map<String, Subject> stringSubjectMap = new HashMap<>();
 
     @Override
-    public Subject getOrCreateSubject(String group, String name, double factor) {
+    public Subject getOrCreateSubject(String semester, String group, String name, double factor) {
         Subject subject = stringSubjectMap.get(name);
         if(subject == null){
-            subject = new Subject(group, name, factor);
+            subject = new Subject(semester, group, name, factor);
             stringSubjectMap.put(name, subject);
         }
         return subject;

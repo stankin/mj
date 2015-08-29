@@ -8,21 +8,14 @@ import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.*;
-import javax.ejb.Timer;
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.persistence.*;
 import javax.persistence.criteria.*;
-import javax.transaction.Transactional;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -150,10 +143,18 @@ public class JPAStorage implements Storage {
 
     @Override
     @javax.transaction.Transactional
-    public Student getStudentById(int value, boolean eager) {
-        Student student = em.find(Student.class, value);
-        if (eager) {
-            student.getModules().size();
+    public Student getStudentById(int id, String semester) {
+        Student student = em.find(Student.class, id);
+        if (semester != null) {
+            CriteriaBuilder b = em.getCriteriaBuilder();
+            CriteriaQuery<Module> query = b.createQuery(Module.class);
+            Root<Module> from = query.from(Module.class);
+            query.where(b.and(
+                    b.equal(from.get("student"), student),
+                    b.equal(from.get("subject").get("semester"), semester)
+            ));
+            student.setModules(em.createQuery(query).getResultList());
+            //student.getModules().size();
 //            ArrayList<Module> modules = new ArrayList<>(student.getModules());
 //            //logger.debug("modules:{}", modules);
 //            student.setModules(modules);
@@ -163,11 +164,12 @@ public class JPAStorage implements Storage {
 
     @Override
     @javax.transaction.Transactional
-    public Subject getOrCreateSubject(String group, String name, double factor) {
+    public Subject getOrCreateSubject(String semester, String group, String name, double factor) {
         CriteriaBuilder b = em.getCriteriaBuilder();
         CriteriaQuery<Subject> query = b.createQuery(Subject.class);
         Root<Subject> from = query.from(Subject.class);
         query.where(b.and(
+                b.equal(from.get("semester"), semester),
                 b.equal(from.get("stgroup"), group),
                 b.equal(from.get("title"), name)
         ));
@@ -182,7 +184,7 @@ public class JPAStorage implements Storage {
             return storedSubject;
         } catch (NoResultException e) {
             //TODO: при таком подходе нужна очищалка неиспользуемых предметов
-            Subject subject = em.merge(new Subject(group, name, factor));
+            Subject subject = em.merge(new Subject(semester, group, name, factor));
             em.flush();
             return subject;
         }

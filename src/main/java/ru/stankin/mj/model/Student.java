@@ -35,8 +35,8 @@ public class Student implements Serializable, User, Comparable {
     public String password;
 
     //@ElementCollection
-    //@Transient
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, mappedBy = "student")
+    @Transient
+    //@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, mappedBy = "student")
     private List<Module> modules = new ArrayList<>();
     public String name;
     public String patronym;

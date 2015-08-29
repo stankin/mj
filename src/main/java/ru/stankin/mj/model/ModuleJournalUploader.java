@@ -30,13 +30,9 @@ public class ModuleJournalUploader {
 
     private static Set<String> markTypes = Arrays.asList("З", "Э", "К").stream().collect(Collectors.toSet());
 
-    public List<String> updateMarksFromExcel(InputStream is) throws IOException, InvalidFormatException {
-
+    public List<String> updateMarksFromExcel(String semester, InputStream is) throws IOException, InvalidFormatException {
         Workbook workbook = WorkbookFactory.create(is);
-
-        List<String> strings = new MarksWorkbookReader(workbook, storage).writeToStorage();
-
-
+        List<String> strings = new MarksWorkbookReader(semester, workbook, storage).writeToStorage();
         is.close();
 
 //        ObjectOutputStream outputStream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream
@@ -115,7 +111,10 @@ public class ModuleJournalUploader {
         private Row modulesrow;
         private Row factorsrow;
 
-        public MarksWorkbookReader(Workbook workbook, Storage storage) {
+        private String semester;
+
+        public MarksWorkbookReader(String semester, Workbook workbook, Storage storage) {
+            this.semester = semester;
             this.workbook = workbook;
             this.storage = storage;
         }
@@ -356,7 +355,7 @@ public class ModuleJournalUploader {
             }
 
             public Module buildModule(String group) {
-                return new Module(storage.getOrCreateSubject(group, subjColumnInfo.subjName, subjColumnInfo.factor), moduleName);
+                return new Module(storage.getOrCreateSubject(semester, group, subjColumnInfo.subjName, subjColumnInfo.factor), moduleName);
             }
         }
 

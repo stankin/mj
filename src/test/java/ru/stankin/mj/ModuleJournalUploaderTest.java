@@ -9,7 +9,6 @@ import ru.stankin.mj.model.*;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -76,7 +75,7 @@ public class ModuleJournalUploaderTest {
         Storage storage = new MemoryStorage();
         mj.setStorage(storage);
 
-        mj.updateMarksFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream(name));
+        mj.updateMarksFromExcel("", ModuleJournalUploaderTest.class.getResourceAsStream(name));
 
         Stream<Student> students = storage.getStudents();
         return students.collect(Collectors.toList());

@@ -14,7 +14,7 @@ public interface Storage {
 
     Stream<Student> getStudentsFiltred(String text);
 
-    Student getStudentById(int value, boolean eager);
+    Student getStudentById(int id, String semester);
 
     Student getStudentByCardId(String cardid);
 
@@ -22,7 +22,7 @@ public interface Storage {
 
     void saveStudent(Student student);
 
-    Subject getOrCreateSubject(String group, String name, double factor);
+    Subject getOrCreateSubject(String semester, String group, String name, double factor);
 
     Student getStudentByGroupSurnameInitials(String group, String surname, String initials);
 

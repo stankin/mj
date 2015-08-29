@@ -4,6 +4,7 @@ import com.google.gwt.thirdparty.guava.common.io.Files;
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
@@ -57,6 +58,7 @@ public class MainView extends CustomComponent implements View {
     private Label studentLabel;
 
     private AlarmHolder alarmHolder = new AlarmHolder("Загрузка данных", this);
+    private ComboBox semestrCbx;
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -81,12 +83,14 @@ public class MainView extends CustomComponent implements View {
         //content.setExpandRatio(label, 0.5f);
         //label.setHeight(30,Unit.PIXELS);
 
+
+        content.addComponent(createSemestrCbx());
         content.addComponent(ratingRulesButton());
         if (!user.isAdmin()) {
             StudentRatingButton studentRatingButton = new StudentRatingButton();
             content.addComponent(studentRatingButton);
             Student student = (Student) user.getUser();
-            studentRatingButton.setStudent(storage.getStudentById(student.id, true));
+            studentRatingButton.setStudent(storage.getStudentById(student.id, getCurrentSemester()));
         }
 
         Label blonk = new Label("");
@@ -123,7 +127,7 @@ public class MainView extends CustomComponent implements View {
         else {
             mainPanel = genMarks();
             Student student = (Student) user.getUser();
-            marks.fillMarks(storage.getStudentById(student.id, true));
+            marks.fillMarks(storage.getStudentById(student.id, getCurrentSemester()));
         }
 
         verticalLayout.addComponent(mainPanel);
@@ -131,6 +135,15 @@ public class MainView extends CustomComponent implements View {
         verticalLayout.setSizeFull();
         setCompositionRoot(verticalLayout);
 
+    }
+
+    private ComboBox createSemestrCbx() {
+        semestrCbx = new ComboBox();
+        semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
+        semestrCbx.select(semestrCbx.getItemIds().iterator().next());
+        semestrCbx.setTextInputAllowed(false);
+        semestrCbx.setNullSelectionAllowed(false);
+        return semestrCbx;
     }
 
     private Button ratingRulesButton() {
@@ -284,7 +297,7 @@ public class MainView extends CustomComponent implements View {
     private void setWorkingStudent(Integer studentId) {
         Student student = null;
         if (studentId != null) {
-            student = storage.getStudentById(studentId, true);
+            student = storage.getStudentById(studentId, getCurrentSemester());
             studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
         } else {
             studentLabel.setValue("");
@@ -361,7 +374,7 @@ public class MainView extends CustomComponent implements View {
                 String msg = "Модульный журнал " + fileName + " загружен";
                 try {
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
-                    List<String> messages = moduleJournalUploader.updateMarksFromExcel(is);
+                    List<String> messages = moduleJournalUploader.updateMarksFromExcel(getCurrentSemester(), is);
                     messages.add(0, msg);
                     is.close();
                     String join = String.join("\n", messages);
@@ -388,6 +401,10 @@ public class MainView extends CustomComponent implements View {
         upload.setUploadButtonCaption("Выбрать файлы");
         upload.setRootDirectory(Files.createTempDir().toString());
         return upload;
+    }
+
+    public String getCurrentSemester() {
+        return (String) semestrCbx.getValue();
     }
 
     private class StudentButton extends Button {
@@ -422,6 +439,7 @@ public class MainView extends CustomComponent implements View {
         public StudentRatingButton() {
             super("Расcчитать рейтинг");
             this.addClickListener(event -> {
+                this.setStudent(storage.getStudentById(this.student.id, getCurrentSemester()));
                 RatingCalculationTable ratingCalculationTable = new RatingCalculationTable(student);
                 ratingCalculationTable.setSizeFull();
                 VerticalLayout verticalLayout = new VerticalLayout();

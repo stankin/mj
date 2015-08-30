@@ -27,6 +27,10 @@ import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
@@ -310,32 +314,38 @@ public class MainView extends CustomComponent implements View {
             protected void updateDisplay() {
                 alarmHolder.post("Эталон загружен: " + this.getLastFileName());
             }
+
+            {
+                addListener(new Property.ValueChangeListener() {
+                    @Override
+                    public void valueChange(Property.ValueChangeEvent event) {
+
+                        File file = (File) getValue();
+                        if (file == null)
+                            return;
+                        try {
+                            logger.debug("event:{}", event);
+                            backupUpload(file, getLastFileName());
+
+                            try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+                                List<String> log = moduleJournalUploader.updateStudentsFromExcel(bufferedInputStream);
+                                alarmHolder.post(String.join("\n", log));
+                                setValue(null);
+                            }
+                        } catch (Exception e) {
+                            alarmHolder.error(e);
+                        }
+
+                    }
+                });
+            }
+
         };
+
         uploadField2.setFieldType(UploadField.FieldType.FILE);
         uploadField2.setCaption("Загрузить эталон");
         uploadField2.setButtonCaption("Выбрать файл");
         uploadField2.setFileDeletesAllowed(false);
-
-        uploadField2.addListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-
-                File file = (File) uploadField2.getValue();
-                if (file == null)
-                    return;
-
-                try {
-                    try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-                        List<String> log = moduleJournalUploader.updateStudentsFromExcel(bufferedInputStream);
-                        alarmHolder.post(String.join("\n", log));
-                        uploadField2.setValue(null);
-                    }
-                } catch (Exception e) {
-                    alarmHolder.error(e);
-                }
-
-            }
-        });
 
         return uploadField2;
     }
@@ -359,7 +369,9 @@ public class MainView extends CustomComponent implements View {
             protected void handleFile(File file, String fileName,
                                       String mimeType, long length) {
                 String msg = "Модульный журнал " + fileName + " загружен";
+
                 try {
+                    backupUpload(file, fileName);
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
                     List<String> messages = moduleJournalUploader.updateMarksFromExcel(is);
                     messages.add(0, msg);
@@ -388,6 +400,36 @@ public class MainView extends CustomComponent implements View {
         upload.setUploadButtonCaption("Выбрать файлы");
         upload.setRootDirectory(Files.createTempDir().toString());
         return upload;
+    }
+
+    private Path uploadsHistoryDir = Paths.get(System.getProperty("user.home"), "mjuploads");
+
+
+    private void backupUpload(File f, String fileName0) {
+        try {
+            //TODO: на самом деле это не правильный способ, по-хорошему нужно заставить это делать MultiFileUpload и UploadField
+            if (!java.nio.file.Files.exists(uploadsHistoryDir))
+                java.nio.file.Files.createDirectories(uploadsHistoryDir);
+
+
+            Path origPath = f.toPath();
+            String fileName = fileName0 != null ? fileName0 : origPath.getFileName().toString();
+
+            int dotIndex = fileName.lastIndexOf('.');
+            String extension = (dotIndex == -1) ? "" : fileName.substring(dotIndex);
+            String name = (dotIndex == -1) ? fileName : fileName.substring(0, dotIndex);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("-yyyy-MM-dd-HH-mm-ss-SSS");
+
+            java.nio.file.Files.copy(origPath,
+                    uploadsHistoryDir.resolve(name + formatter.format(LocalDateTime.now()) + extension)
+            );
+
+
+        } catch (Exception e) {
+            logger.warn("backup error:", e);
+            e.printStackTrace();
+        }
+
     }
 
     private class StudentButton extends Button {

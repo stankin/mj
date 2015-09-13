@@ -59,10 +59,14 @@ public class Student implements Serializable, User, Comparable {
         if (name == null || surname == null)
             return;
 
+        initials = initialsFromNames(name, patronym);
+    }
+
+    public static String initialsFromNames(String name, String patronym) {
         String sp = "";
         if (patronym.length() > 0)
             sp = Character.toUpperCase(patronym.charAt(0)) + ".";
-        initials = Character.toUpperCase(name.charAt(0)) + "." + sp;
+        return Character.toUpperCase(name.charAt(0)) + "." + sp;
     }
 
     @Override

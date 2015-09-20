@@ -381,7 +381,7 @@ public class ModuleJournalUploader {
 
     private static DataFormatter dataFormatter = new DataFormatter();
 
-    private static String stringValue(Cell cell) {
+    public static String stringValue(Cell cell) {
         if (cell == null)
             return null;
         switch (cell.getCellType()) {

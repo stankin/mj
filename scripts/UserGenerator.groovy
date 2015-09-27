@@ -1,4 +1,5 @@
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.json.JsonBuilder
 import groovy.json.JsonOutput
@@ -21,6 +22,10 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+@Field String randusLoadedFileName = "usersFromRanduss1.json"
+
+@Field String outFileName = "additionalUsers.json"
 
 public class RandusEntry {
 
@@ -77,6 +82,7 @@ mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker
         .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
         .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
         .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 
 String phone(Random random) {
@@ -112,7 +118,7 @@ String birth(Random random) {
 
 
 Stream<RandusEntry> savedRanduses() throws FileNotFoundException {
-    BufferedReader reader = new BufferedReader(new FileReader("usersFromRanduss.json"));
+    BufferedReader reader = new BufferedReader(new FileReader(randusLoadedFileName));
     return reader.lines().onClose {
         try {
             reader.close();
@@ -129,7 +135,7 @@ Stream<RandusEntry> savedRanduses() throws FileNotFoundException {
 }
 
 private void genUsers() throws IOException {
-    PrintWriter out = new PrintWriter("usersFromRanduss.json")
+    PrintWriter out = new PrintWriter(randusLoadedFileName)
     out.withCloseable {
 
         for (int i = 0; i < 3000; i++) {
@@ -147,14 +153,14 @@ private void genUsers() throws IOException {
     }
 }
 
+//genUsers()
 
 Random random = new Random(1);
 
-AtomicInteger studnum = new AtomicInteger(114000);
+AtomicInteger studnum = new AtomicInteger(500000);
 
 Stream<RandusEntry> randuss = savedRanduses()//.limit(1754).limit(50)
 
-def outFileName = "users.json"
 PrintWriter out = new PrintWriter(outFileName)
 out.withCloseable {
     randuss.forEach { randus ->

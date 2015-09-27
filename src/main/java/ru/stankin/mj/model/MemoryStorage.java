@@ -69,7 +69,7 @@ public class MemoryStorage implements Storage {
 
     @Override
     public void saveStudent(Student student) {
-
+        students.add(student);
     }
 
     private Map<String, Subject> stringSubjectMap = new HashMap<>();

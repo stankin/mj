@@ -18,6 +18,20 @@ public class ModuleJournalUploaderTest {
     public void testProcessIncomingDate1() throws Exception {
 
         Collection<Student> students = getStudentMarks("/information_items_property_2349.xls");
+        // Collection<Student> studentso = getStudentMarks("/Модули/information_items_property_2349.xls");
+
+//        System.out.println(students.stream().collect(Collectors.groupingBy(s -> s.stgroup,
+//                Collectors.counting()
+//        )));
+//        System.out.println(studentso.stream().collect(Collectors.groupingBy(s -> s.stgroup,
+//                Collectors.counting()
+//        )));
+//
+//        System.out.println(students.stream()
+//                .filter(s -> s.stgroup.equals("ИДБ-13-04"))
+//                .map(s -> s.surname)//.sorted()
+//                .collect(Collectors.joining("\n"))
+//        );
 
         Assert.assertEquals(335, (long) students.size());
         Integer collect = students.stream().map(s -> s.getModules().size()).collect(Collectors.summingInt(i -> i));
@@ -44,7 +58,7 @@ public class ModuleJournalUploaderTest {
         Assert.assertEquals(196, (long) students.size());
 
         Student pletenev =
-                students.stream().filter((Student s) -> s.surname.equals("Плетенев")).findFirst().get();
+                students.stream().filter((Student s) -> s.surname.equals("Воронин")).findFirst().get();
         System.out.println("pletenev=" + pletenev);
 
 
@@ -82,14 +96,16 @@ public class ModuleJournalUploaderTest {
     }
 
     @Test
-    @Ignore
     public void testLoadStudentsList() throws Exception {
         ModuleJournalUploader mj = new ModuleJournalUploader();
 
         Storage storage = new MemoryStorage();
         mj.setStorage(storage);
 
-        mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
+        mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/newEtalon.xls"));
+        //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
+
+        Assert.assertEquals(1753, storage.getStudents().count());
 
 
     }

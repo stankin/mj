@@ -11,12 +11,12 @@ import org.hibernate.criterion.Restrictions;
 import javax.ejb.*;
 import javax.enterprise.inject.Default;
 import javax.persistence.*;
+import javax.persistence.Query;
 import javax.persistence.criteria.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -45,11 +45,12 @@ public class JPAStorage implements Storage {
         Student student = /*em.merge(*/student0/*)*/;
         //Student student = em.merge(student0);
         List<Module> studentModules = new ArrayList<>(student.getModules());
+        String semester = studentModules.get(0).getSubject().getSemester();
         //logger.debug("saving student {} modules: {}", student.name, studentModules.size());
 
         //TODO: но вообще это какой-то ад
 
-        deleteStudentModules(student);
+        deleteStudentModules(student, semester);
 
         studentModules.forEach(m -> {
             m.setStudent(student);
@@ -67,12 +68,30 @@ public class JPAStorage implements Storage {
 
     @Override
     @javax.transaction.Transactional
-    public void deleteStudentModules(Student student) {
-        CriteriaBuilder b = em.getCriteriaBuilder();
-        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
-        Root<Module> from = query.from(Module.class);
-        query.where(b.equal(from.get("student"), student));
-        int deleted = em.createQuery(query).executeUpdate();
+    public void deleteStudentModules(Student student, String semester) {
+
+        Query query = em.createQuery(
+                "DELETE from Module m where m in (select sm from Module sm where sm.student = :student and sm.subject.semester = :semester)"
+        );
+        query.setParameter("student", student);
+        query.setParameter("semester", semester);
+        query.executeUpdate();
+
+//        CriteriaBuilder b = em.getCriteriaBuilder();
+//        Metamodel m = em.getMetamodel();
+//        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
+//        Root<Module> from = query.from(Module.class);
+//        EntityType<Module> Module_ = m.entity(Module.class);
+//
+//
+//        CriteriaQuery<Subject> subj = b.createQuery(Subject.class);
+//        Root<Subject> subjectRoot = subj.from(Subject.class);
+//
+//        query.where(b.and(
+//                b.equal(from.get("student"), student),
+//                b.equal(from.get("subject").get("semester"), semester)
+//                ));
+//        int deleted = em.createQuery(query).executeUpdate();
         //logger.debug("deleted {}", deleted);
         em.flush();
     }
@@ -176,7 +195,9 @@ public class JPAStorage implements Storage {
                 b.equal(from.get("title"), name)
         ));
         try {
-            Subject storedSubject = em.createQuery(query).getSingleResult();
+            TypedQuery<Subject> query1 = em.createQuery(query);
+            query1.setFlushMode(FlushModeType.COMMIT);
+            Subject storedSubject = query1.getSingleResult();
             if (storedSubject.getFactor() != factor) {
                 storedSubject.setFactor(factor);
                 em.merge(storedSubject);

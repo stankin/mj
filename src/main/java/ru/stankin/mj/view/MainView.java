@@ -466,7 +466,7 @@ public class MainView extends CustomComponent implements View {
             this.addClickListener(event -> {
                 int studentId = student.id;
                 if (oldModules == null) {
-                    storage.deleteStudentModules(student);
+                    storage.deleteStudentModules(student, getCurrentSemester());
                     oldModules = student.getModules();
                     oldModules.forEach(m -> m.setId(0));
                     setCaption("Восстановить Модули");

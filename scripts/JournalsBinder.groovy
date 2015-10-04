@@ -24,7 +24,7 @@ new File("conversion.jsons").eachLine {
     studentMap[student] = readStudent(conv.new)
 }
 
-new File("src/test/resources/Модули").eachFileMatch(FileType.FILES, ~/information_items_property_\d+.xls/, { file ->
+new File("src/test/resources/Модули").eachFileMatch(FileType.FILES, ~/.*.xls/, { file ->
     println("file: " + file)
 
     InputStream inputStream = new FileInputStream(file)

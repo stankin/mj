@@ -1,3 +1,5 @@
 syntax: glob
 target/**
 src/main/webapp/VAADIN/widgetsets/**
+.idea/libraries/**
+src/test/resources/Модули/**

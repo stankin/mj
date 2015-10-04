@@ -14,12 +14,15 @@ import org.junit.runner.RunWith;
 import ru.stankin.mj.model.*;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.transaction.UserTransaction;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 @RunWith(Arquillian.class)
 public class ArquillianTest {
@@ -67,27 +70,66 @@ public class ArquillianTest {
     @Inject
     UserTransaction utx;
 
+    @PersistenceContext
+    private EntityManager em;
+
     @Test
-    public void testLoadStudentsList() throws Exception {
+    public void testUploadNewSemesterModules() throws Exception {
 
         utx.begin();
+//        em.joinTransaction();
 
         mj.updateStudentsFromExcel(loadResource("/newEtalon.xls"));
 
         utx.commit();
         utx.begin();
+//        em.joinTransaction();
         //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
 
         Assert.assertEquals(1753, storage.getStudents().count());
         utx.commit();
-        utx.begin();
-        mj.updateMarksFromExcel("2014-1", loadResource("/information_items_property_2349.xls"));
-//        utx.commit();
-//
-//        utx.begin();
-        Student s1 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Недашковская", "Н.Я.");
 
-        Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+        utx.begin();
+//        em.joinTransaction();
+        mj.updateMarksFromExcel("2014-1", loadResource("/information_items_property_2349.xls"));
+        Assert.assertEquals(10922, em.createQuery("select count(m) from Module m", Long.class).getSingleResult().intValue());
+        {
+            Student s1 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
+            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+        }
+        utx.commit();
+        utx.begin();
+//        em.joinTransaction();
+        mj.updateMarksFromExcel("2014-1", loadResource("/information_items_property_2349.xls"));
+        Assert.assertEquals(10922, em.createQuery("select count(m) from Module m", Long.class).getSingleResult().intValue());
+        //storage.
+        utx.commit();
+        utx.begin();
+//        em.joinTransaction();
+        {
+            Student s0 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
+            Student s1 = storage.getStudentById(s0.id, "2014-1");
+            List<Module> allModules = em.createQuery("select m from Module m", Module.class).getResultList();
+            Assert.assertEquals(10922, allModules.size());
+            Assert.assertEquals(30, allModules.stream().filter(m -> m.getStudent().equals(s1)).count());
+            em.refresh(s1);
+            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+        }
+        utx.commit();
+
+        utx.begin();
+//        em.joinTransaction();
+        mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls"));
+        {
+            Student s0 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
+            Student s1 = storage.getStudentById(s0.id, "2014-2");
+            Assert.assertEquals(33, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-2")).count());
+        }
+        {
+            Student s0 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
+            Student s1 = storage.getStudentById(s0.id, "2014-1");
+            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+        }
 
         utx.commit();
 

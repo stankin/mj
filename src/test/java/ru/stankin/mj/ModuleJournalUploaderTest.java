@@ -2,7 +2,6 @@ package ru.stankin.mj;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import ru.stankin.mj.model.*;
 

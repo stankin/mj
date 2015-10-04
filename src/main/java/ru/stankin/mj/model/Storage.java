@@ -18,7 +18,7 @@ public interface Storage {
 
     Student getStudentByCardId(String cardid);
 
-    void deleteStudentModules(Student student);
+    void deleteStudentModules(Student student, String semester);
 
     void saveStudent(Student student);
 

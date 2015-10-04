@@ -63,7 +63,7 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public void deleteStudentModules(Student student) {
+    public void deleteStudentModules(Student student, String semester) {
         throw new UnsupportedOperationException("deleteStudentModules");
     }
 

@@ -16,6 +16,7 @@ import javax.persistence.criteria.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -107,6 +108,7 @@ public class JPAStorage implements Storage {
 
 
     @Override
+    //@javax.transaction.Transactional
     public Stream<Student> getStudents() {
         return getStudentsFiltred("");
     }
@@ -114,7 +116,7 @@ public class JPAStorage implements Storage {
     @Override
     @TransactionAttribute(value = TransactionAttributeType.SUPPORTS)
     public Stream<Student> getStudentsFiltred(String text) {
-        logger.debug("getStudentsFiltred {}", text);
+        logger.debug("getStudentsFiltred '{}'", text);
         if (text == null)
             return getStudents();
 

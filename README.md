@@ -4,14 +4,16 @@
 
 Сообщения об ошибках и пожелания вы можете оставить [здесь](https://bitbucket.org/NicolayMitropolsky/stankin-mj/issues?sort=status).
 
-## Установка ##
+## Сборка ##
 
 Для сборки из исходников необходим [maven](http://maven.apache.org/) и [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
 
 Сборку можно осуществить командой:
 ```text
-mvn clean install
+mvn clean install -DskipTests
 ```
+
+Для выполнения тестов необходимо указать в переменной окружения `JBOSS_HOME` путь к установленному серверу Wildfly.
 
 Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.1.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.1.Final/wildfly-9.0.1.Final.zip).
 

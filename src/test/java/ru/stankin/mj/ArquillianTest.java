@@ -2,6 +2,8 @@ package ru.stankin.mj;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit.InSequence;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
@@ -9,9 +11,11 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import ru.stankin.mj.model.*;
+import ru.stankin.mj.view.AccountWindow;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -20,6 +24,9 @@ import javax.transaction.UserTransaction;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -39,10 +46,12 @@ public class ArquillianTest {
                 .addAsLibraries(files)
                 .addPackage(Package.getPackage("ru.stankin.mj"))
                 .addPackage(Package.getPackage("ru.stankin.mj.model"))
-                //.addPackage(Package.getPackage("ru.stankin.mj.view"))
+                .addPackage(AccountWindow.class.getPackage())
                 .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
                 .addAsResource("log4j2-test.xml")
                 .addAsWebInfResource("jbossas-ds.xml")
+                .addAsWebInfResource(new File("src/main/webapp/WEB-INF/web.xml"))
+                .addAsWebResource(new File("src/main/webapp/index.html"))
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 
         Files.list(Paths.get("src/test/resources"))
@@ -74,13 +83,11 @@ public class ArquillianTest {
     private EntityManager em;
 
     @Test
-    public void testUploadNewSemesterModules() throws Exception {
-
+    @InSequence(1)
+    public void uploadEtalon() throws Exception {
         utx.begin();
 //        em.joinTransaction();
-
         mj.updateStudentsFromExcel(loadResource("/newEtalon.xls"));
-
         utx.commit();
         utx.begin();
 //        em.joinTransaction();
@@ -88,7 +95,11 @@ public class ArquillianTest {
 
         Assert.assertEquals(1753, storage.getStudents().count());
         utx.commit();
+    }
 
+    @Test
+    @InSequence(2)
+    public void uploadSemesterModules() throws Exception {
         utx.begin();
 //        em.joinTransaction();
         mj.updateMarksFromExcel("2014-1", loadResource("/information_items_property_2349.xls"));
@@ -98,12 +109,17 @@ public class ArquillianTest {
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
         }
         utx.commit();
-        utx.begin();
-//        em.joinTransaction();
-        mj.updateMarksFromExcel("2014-1", loadResource("/information_items_property_2349.xls"));
-        Assert.assertEquals(10922, em.createQuery("select count(m) from Module m", Long.class).getSingleResult().intValue());
-        //storage.
-        utx.commit();
+    }
+
+    @Test
+    @InSequence(3)
+    public void uploadSemesterModulesAgain() throws Exception {
+        uploadSemesterModules();
+    }
+
+    @Test
+    @InSequence(4)
+    public void testUploadNewSemesterModules() throws Exception {
         utx.begin();
 //        em.joinTransaction();
         {
@@ -132,6 +148,31 @@ public class ArquillianTest {
         }
 
         utx.commit();
+
+    }
+
+    @ArquillianResource
+    URL url;
+
+    @Test
+    @InSequence(5)
+    public void VaadinSmokeTest() throws Exception {
+        //System.out.println(url);
+        {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            Assert.assertEquals(3885, connection.getContentLength());
+            connection.disconnect();
+        }
+        {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url + "/VAADIN/vaadinBootstrap.js").openConnection();
+            Assert.assertEquals(1671, connection.getContentLength());
+            connection.disconnect();
+        }
+        {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url + "/VAADIN/widgetsets/ru.stankin.mj.WidgetSet/ru.stankin.mj.WidgetSet.nocache.js").openConnection();
+            Assert.assertEquals(1707, connection.getContentLength());
+            connection.disconnect();
+        }
 
     }
 

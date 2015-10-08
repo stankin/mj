@@ -13,9 +13,9 @@
 mvn clean install -DskipTests
 ```
 
-Для выполнения тестов необходимо указать в переменной окружения `JBOSS_HOME` путь к установленному серверу Wildfly.
-
 Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.1.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.1.Final/wildfly-9.0.1.Final.zip).
+
+Для выполнения тестов (`mvn test`) необходимо указать в переменной окружения `JBOSS_HOME` путь к установленному серверу Wildfly.
 
 ### H2 fix ###
 

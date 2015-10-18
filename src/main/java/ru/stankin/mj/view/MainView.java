@@ -28,6 +28,7 @@ import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
@@ -37,6 +38,7 @@ import java.util.concurrent.*;
 public class MainView extends CustomComponent implements View {
 
     private static final Logger logger = LogManager.getLogger(MainView.class);
+    private static final String ADD_SEMESTER_LABEL = "Добавить семестр";
 
     @Inject
     private UserInfo user;
@@ -139,7 +141,36 @@ public class MainView extends CustomComponent implements View {
 
     private ComboBox createSemestrCbx() {
         semestrCbx = new ComboBox();
-        semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
+        //semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
+
+        if (user.isAdmin()) {
+            ArrayList<String> semesters = new ArrayList<>(storage.getKnownSemesters());
+            semesters.add(ADD_SEMESTER_LABEL);
+            IndexedContainer indexedContainer = new IndexedContainer(semesters);
+            semestrCbx.setContainerDataSource(indexedContainer);
+            semestrCbx.addValueChangeListener(new Property.ValueChangeListener() {
+                @Override
+                public void valueChange(Property.ValueChangeEvent event) {
+                    if (ADD_SEMESTER_LABEL.equals(event.getProperty().getValue())) {
+                        PromptDialog.prompt(MainView.this.getUI(), "Новый семестр", "Название", (text) -> {
+                            if (text != null) {
+                                indexedContainer.addItemAt(indexedContainer.size() - 1, text);
+                                semestrCbx.select(text);
+                            } else {
+                                int size = semestrCbx.getItemIds().size();
+                                if (size > 1)
+                                    semestrCbx.select(indexedContainer.getItemIds().get(size - 2));
+                            }
+                        });
+                    }
+                }
+            });
+        } else {
+            Student student = (Student) user.getUser();
+            semestrCbx.setContainerDataSource(new IndexedContainer(storage.getStudentSemesters(student.id)));
+        }
+
+        //semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
         semestrCbx.select(semestrCbx.getItemIds().iterator().next());
         semestrCbx.setTextInputAllowed(false);
         semestrCbx.setNullSelectionAllowed(false);
@@ -166,11 +197,12 @@ public class MainView extends CustomComponent implements View {
         uploads.addComponent(createEtalonUpload());
         uploads.addComponent(createMarksUpload());
         uploads.addComponent(new Button("Удалить все модули", event -> {
-            ConfirmDialog.show(this.getUI(), "Удаление всех модулей", ("Вы уверены что хотите удалить все модули?" +
+            ConfirmDialog.show(this.getUI(), "Удаление всех модулей", ("Вы уверены что хотите удалить все модули за "
+                            + getCurrentSemester() + "-семестр ?" +
                             " Вам придется перезалить журналы, чтобы модули опять стали доступны"),
                     "Удалить", "Отмена", dialog -> {
                         if (dialog.isConfirmed()) {
-                            storage.deleteAllModules();
+                            storage.deleteAllModules(getCurrentSemester());
                             setWorkingStudent(null);
                         }
                     });
@@ -371,6 +403,10 @@ public class MainView extends CustomComponent implements View {
             @Override
             protected void handleFile(File file, String fileName,
                                       String mimeType, long length) {
+                if (getCurrentSemester().equals(ADD_SEMESTER_LABEL)) {
+                    alarmHolder.post("Указано неверное название семестра");
+                    return;
+                }
                 String msg = "Модульный журнал " + fileName + " загружен";
                 try {
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));

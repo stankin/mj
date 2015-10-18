@@ -32,9 +32,9 @@ public class ModuleJournalUploaderTest {
 //                .collect(Collectors.joining("\n"))
 //        );
 
-        Assert.assertEquals(335, (long) students.size());
+        Assert.assertEquals(133, (long) students.size());
         Integer collect = students.stream().map(s -> s.getModules().size()).collect(Collectors.summingInt(i -> i));
-        Assert.assertEquals(10922, collect.intValue());
+        Assert.assertEquals(4067, collect.intValue());
 
     }
 

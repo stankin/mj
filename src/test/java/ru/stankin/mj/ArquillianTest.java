@@ -29,7 +29,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 @RunWith(Arquillian.class)
 public class ArquillianTest {
@@ -103,9 +106,10 @@ public class ArquillianTest {
         utx.begin();
 //        em.joinTransaction();
         mj.updateMarksFromExcel("2014-1", loadResource("/information_items_property_2349.xls"));
-        Assert.assertEquals(10922, em.createQuery("select count(m) from Module m", Long.class).getSingleResult().intValue());
+        Assert.assertEquals(4067, em.createQuery("select count(m) from Module m", Long.class).getSingleResult().intValue());
         {
             Student s1 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
+            Assert.assertEquals(new TreeSet<>(Arrays.asList("2014-1")), storage.getStudentSemesters(s1.id));
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
         }
         utx.commit();
@@ -126,7 +130,7 @@ public class ArquillianTest {
             Student s0 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
             Student s1 = storage.getStudentById(s0.id, "2014-1");
             List<Module> allModules = em.createQuery("select m from Module m", Module.class).getResultList();
-            Assert.assertEquals(10922, allModules.size());
+            Assert.assertEquals(4067, allModules.size());
             Assert.assertEquals(30, allModules.stream().filter(m -> m.getStudent().equals(s1)).count());
             em.refresh(s1);
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
@@ -138,12 +142,22 @@ public class ArquillianTest {
         mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls"));
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
+            Student s2 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Новикова", "Х.Ф.");
             Student s1 = storage.getStudentById(s0.id, "2014-2");
+            Assert.assertEquals(new TreeSet<>(Arrays.asList("2014-1", "2014-2")), storage.getStudentSemesters(s1.id));
+            Assert.assertEquals(new TreeSet<>(Arrays.asList("2014-1")), storage.getStudentSemesters(s2.id));
             Assert.assertEquals(33, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-2")).count());
         }
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
             Student s1 = storage.getStudentById(s0.id, "2014-1");
+            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+        }
+        storage.deleteAllModules("2014-2");
+        {
+            Student s0 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
+            Student s1 = storage.getStudentById(s0.id, "2014-1");
+            Assert.assertEquals(new TreeSet<>(Arrays.asList("2014-1")), storage.getStudentSemesters(s1.id));
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
         }
 

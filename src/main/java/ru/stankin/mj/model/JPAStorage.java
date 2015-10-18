@@ -17,6 +17,7 @@ import javax.persistence.criteria.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -77,34 +78,23 @@ public class JPAStorage implements Storage {
         query.setParameter("semester", semester);
         query.executeUpdate();
 
-//        CriteriaBuilder b = em.getCriteriaBuilder();
-//        Metamodel m = em.getMetamodel();
-//        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
-//        Root<Module> from = query.from(Module.class);
-//        EntityType<Module> Module_ = m.entity(Module.class);
-//
-//
-//        CriteriaQuery<Subject> subj = b.createQuery(Subject.class);
-//        Root<Subject> subjectRoot = subj.from(Subject.class);
-//
-//        query.where(b.and(
-//                b.equal(from.get("student"), student),
-//                b.equal(from.get("subject").get("semester"), semester)
-//                ));
-//        int deleted = em.createQuery(query).executeUpdate();
-        //logger.debug("deleted {}", deleted);
         em.flush();
     }
 
     @Override
     @javax.transaction.Transactional
-    public void deleteAllModules() {
-        CriteriaBuilder b = em.getCriteriaBuilder();
-        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
-        Root<Module> from = query.from(Module.class);
-        //query.where(b.equal(from.get("student"), student));
-        int deleted = em.createQuery(query).executeUpdate();
-        //logger.debug("deleted {}", deleted);
+    public void deleteAllModules(String semester) {
+        Query query = em.createQuery(
+                "DELETE from Module m where m in (select sm from Module sm where sm.subject.semester = :semester)"
+        );
+        query.setParameter("semester", semester);
+        query.executeUpdate();
+//        CriteriaBuilder b = em.getCriteriaBuilder();
+//        CriteriaDelete<Module> query = b.createCriteriaDelete(Module.class);
+//        Root<Module> from = query.from(Module.class);
+//        //query.where(b.equal(from.get("student"), student));
+//        int deleted = em.createQuery(query).executeUpdate();
+//        //logger.debug("deleted {}", deleted);
         em.flush();
     }
 
@@ -181,6 +171,25 @@ public class JPAStorage implements Storage {
 //            student.setModules(modules);
         }
         return student;
+    }
+
+    @Override
+    public Set<String> getStudentSemesters(int student) {
+        TypedQuery<String> query = em.createQuery(
+                "select distinct sm.subject.semester from Module sm where sm.student.id = :student",
+                String.class
+        );
+        query.setParameter("student", student);
+        return query.getResultList().stream().collect(Collectors.toCollection(TreeSet<String>::new));
+    }
+
+    @Override
+    public Set<String> getKnownSemesters() {
+        TypedQuery<String> query = em.createQuery(
+                "select distinct sm.subject.semester from Module sm",
+                String.class
+        );
+        return query.getResultList().stream().collect(Collectors.toCollection(TreeSet<String>::new));
     }
 
     @Override

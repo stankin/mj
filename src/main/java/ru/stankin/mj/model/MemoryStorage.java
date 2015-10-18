@@ -4,10 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.enterprise.inject.Alternative;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -58,6 +55,16 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
+    public Set<String> getStudentSemesters(int student) {
+        throw new UnsupportedOperationException("getStudentSemesters");
+    }
+
+    @Override
+    public Set<String> getKnownSemesters() {
+        throw new UnsupportedOperationException("getKnownSemesters");
+    }
+
+    @Override
     public Student getStudentByCardId(String cardid) {
         return null;
     }
@@ -90,7 +97,7 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public void deleteAllModules() {
+    public void deleteAllModules(String semestr) {
         throw new UnsupportedOperationException("deleteAllModules");
     }
 

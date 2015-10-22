@@ -121,8 +121,73 @@ public class ArquillianTest {
         uploadSemesterModules();
     }
 
+    @Inject
+    UserDAO userDAO;
+
     @Test
     @InSequence(4)
+    public void testPasswordChange() throws Exception {
+
+        utx.begin();
+        User idb1316Student = userDAO.getUserBy("114513", "114513");
+        idb1316Student.setPassword("nonDefaultPassword");
+        userDAO.saveUser(idb1316Student);
+        utx.commit();
+
+        utx.begin();
+        User idb1316StudentWithNewPassword = userDAO.getUserBy("114513", "nonDefaultPassword");
+        Assert.assertEquals(((Student) idb1316Student).id, ((Student) idb1316StudentWithNewPassword).id);
+        Assert.assertNull(userDAO.getUserBy("114513", "114513"));
+
+        mj.updateStudentsFromExcel(loadResource("/newEtalon.xls"));
+        utx.commit();
+
+        utx.begin();
+        User idb1316StudentWithNewPasswordAfterEtalonUpdate = userDAO.getUserBy("114513", "nonDefaultPassword");
+        Assert.assertEquals(((Student) idb1316Student).id, ((Student) idb1316StudentWithNewPasswordAfterEtalonUpdate).id);
+        utx.commit();
+
+
+    }
+
+    @Test
+    @InSequence(5)
+    public void testNewEtalon() throws Exception {
+
+
+        utx.begin();
+        Student studentWithOldGroup = (Student) userDAO.getUserBy("114513");
+        Assert.assertEquals("ИДБ-13-16", studentWithOldGroup.stgroup);
+
+        Assert.assertEquals(1, storage.getStudentSemesters(studentWithOldGroup.id).size());
+        Student oldSemestrStudent = storage.getStudentById(studentWithOldGroup.id, "2014-1");
+        int EXPECTED_MODULES_IN_2014_1 = 31;
+        Assert.assertEquals(EXPECTED_MODULES_IN_2014_1, oldSemestrStudent.getModules().size());
+
+
+
+        // Student switches group
+        mj.updateStudentsFromExcel(loadResource("/newEtalon-joinedGroups.xls"));
+        utx.commit();
+
+        utx.begin();
+        Student studentWithNewGroup = (Student) userDAO.getUserBy("114513");
+        Assert.assertEquals("ИДБ-13-15", studentWithNewGroup.stgroup);
+
+        Assert.assertEquals("Students have the same id", studentWithNewGroup.id, studentWithOldGroup.id);
+        Assert.assertEquals("Students have the same password", studentWithNewGroup.password, studentWithOldGroup.password);
+        Assert.assertEquals("And it is", "nonDefaultPassword", studentWithNewGroup.password);
+
+        Assert.assertEquals(1, storage.getStudentSemesters(studentWithNewGroup.id).size());
+        Student oldSemestrNewStudent = storage.getStudentById(studentWithNewGroup.id, "2014-1");
+        Assert.assertEquals(EXPECTED_MODULES_IN_2014_1, oldSemestrNewStudent.getModules().size());
+
+        utx.commit();
+
+    }
+
+    @Test
+    @InSequence(6)
     public void testUploadNewSemesterModules() throws Exception {
         utx.begin();
 //        em.joinTransaction();
@@ -130,7 +195,7 @@ public class ArquillianTest {
             Student s0 = storage.getStudentByGroupSurnameInitials("ИДБ-13-14", "Наумова", "Р.В.");
             Student s1 = storage.getStudentById(s0.id, "2014-1");
             List<Module> allModules = em.createQuery("select m from Module m", Module.class).getResultList();
-            Assert.assertEquals(4067, allModules.size());
+            Assert.assertEquals(3977, allModules.size());
             Assert.assertEquals(30, allModules.stream().filter(m -> m.getStudent().equals(s1)).count());
             em.refresh(s1);
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
@@ -169,7 +234,7 @@ public class ArquillianTest {
     URL url;
 
     @Test
-    @InSequence(5)
+    @InSequence(1000)
     public void VaadinSmokeTest() throws Exception {
         //System.out.println(url);
         {

@@ -100,6 +100,11 @@ public class JPAStorage implements Storage {
 
     @Override
     public void deleteStudent(Student s) {
+//        Query query = em.createQuery(
+//                "DELETE from Module m  where m.student = :student"
+//        );
+//        query.setParameter("student", s);
+//        query.executeUpdate();
         em.remove(s);
         //logger.debug("deleted {}", s);
         em.flush();

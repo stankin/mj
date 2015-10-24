@@ -167,7 +167,7 @@ public class MainView extends CustomComponent implements View {
             });
         } else {
             Student student = (Student) user.getUser();
-            semestrCbx.setContainerDataSource(new IndexedContainer(storage.getStudentSemesters(student.id)));
+            semestrCbx.setContainerDataSource(new IndexedContainer(storage.getStudentSemestersWithMarks(student.id)));
         }
 
         //semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
@@ -369,9 +369,11 @@ public class MainView extends CustomComponent implements View {
                 if (file == null)
                     return;
 
+                if (checkWrongSemestr()) return;
+
                 try {
                     try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-                        List<String> log = moduleJournalUploader.updateStudentsFromExcel(bufferedInputStream);
+                        List<String> log = moduleJournalUploader.updateStudentsFromExcel(getCurrentSemester(), bufferedInputStream);
                         alarmHolder.post(String.join("\n", log));
                         uploadField2.setValue(null);
                     }
@@ -403,10 +405,7 @@ public class MainView extends CustomComponent implements View {
             @Override
             protected void handleFile(File file, String fileName,
                                       String mimeType, long length) {
-                if (getCurrentSemester().equals(ADD_SEMESTER_LABEL)) {
-                    alarmHolder.post("Указано неверное название семестра");
-                    return;
-                }
+                if (checkWrongSemestr()) return;
                 String msg = "Модульный журнал " + fileName + " загружен";
                 try {
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
@@ -437,6 +436,14 @@ public class MainView extends CustomComponent implements View {
         upload.setUploadButtonCaption("Выбрать файлы");
         upload.setRootDirectory(Files.createTempDir().toString());
         return upload;
+    }
+
+    private boolean checkWrongSemestr() {
+        if (getCurrentSemester().equals(ADD_SEMESTER_LABEL)) {
+            alarmHolder.post("Указано неверное название семестра");
+            return true;
+        }
+        return false;
     }
 
     public String getCurrentSemester() {

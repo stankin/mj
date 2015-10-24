@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static java.util.stream.Collectors.joining;
+
 //@ApplicationScoped
 @Singleton
 public class ModuleJournalUploader {
@@ -46,7 +48,7 @@ public class ModuleJournalUploader {
     }
 
     @javax.transaction.Transactional
-    public List<String> updateStudentsFromExcel(InputStream inputStream) throws IOException, InvalidFormatException {
+    public List<String> updateStudentsFromExcel(String semestr, InputStream inputStream) throws IOException, InvalidFormatException {
 
         Workbook workbook = WorkbookFactory.create(inputStream);
 
@@ -84,7 +86,7 @@ public class ModuleJournalUploader {
             //logger.debug("initi student {}", student);
             student.initialsFromNP();
             //logger.debug("Saving student {}", student);
-            storage.saveStudent(student);
+            storage.saveStudent(student, semestr);
 
         }
 
@@ -92,7 +94,7 @@ public class ModuleJournalUploader {
 
         storage.getStudents().filter(s -> !processedCards.contains(s.cardid)).forEach(s -> {
             storage.deleteStudent(s);
-            messages.add("Удяляем студента:" + s.cardid + " " + s.stgroup + " " + s.surname + " " + s.initials);
+            messages.add("Удяляем студента:" + s.cardid + " " + s.getGroups().stream().map(g -> g.groupName).collect(joining(", ")) + " " + s.surname + " " + s.initials);
         });
 
 
@@ -142,10 +144,11 @@ public class ModuleJournalUploader {
                             String group = row.getCell(0).getStringCellValue().trim();
                             String surname = row.getCell(1).getStringCellValue().trim();
                             String initials = row.getCell(2).getStringCellValue().trim();
-                            Student student = storage.getStudentByGroupSurnameInitials(group, surname, initials);
+                            Student student = storage.getStudentByGroupSurnameInitials(semester, group, surname, initials);
 
                             if (student == null) {
-                                messages.add("Не найден студент " + group + " " + surname + " " + initials);
+                                logger.debug("Не найден студент " + group + " " + surname + " " + initials + " в " + semester);
+                                messages.add("Не найден студент " + group + " " + surname + " " + initials + " в " + semester);
                             } else {
 
                                 student.setModules(new ArrayList<>());

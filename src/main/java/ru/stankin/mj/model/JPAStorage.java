@@ -112,7 +112,24 @@ public class JPAStorage implements Storage {
 
     @Override
     @javax.transaction.Transactional
-    public void saveStudent(Student student) {
+    public void saveStudent(Student student, String semestr) {
+
+        if(semestr != null) {
+            Optional<StudentHistoricalGroup> historicalGroup = student.getHistoricalGroup(semestr);
+            if (!historicalGroup.filter(g -> g.groupName.equals(student.stgroup)).isPresent()) {
+                StudentHistoricalGroup semg = historicalGroup.orElse(new StudentHistoricalGroup(student, semestr, student.stgroup));
+                semg.semestr = semestr;
+                semg.groupName = student.stgroup;
+                em.persist(semg);
+                //semg = em.merge(semg);
+                if (!historicalGroup.isPresent()) {
+                    student.getGroups().add(semg);
+                }
+
+            }
+
+        }
+
         Student merge = em.merge(student);
         if (merge.password == null) {
             merge.password = merge.cardid;
@@ -179,7 +196,7 @@ public class JPAStorage implements Storage {
     }
 
     @Override
-    public Set<String> getStudentSemesters(int student) {
+    public Set<String> getStudentSemestersWithMarks(int student) {
         TypedQuery<String> query = em.createQuery(
                 "select distinct sm.subject.semester from Module sm where sm.student.id = :student",
                 String.class
@@ -229,7 +246,7 @@ public class JPAStorage implements Storage {
 
     @Override
     @javax.transaction.Transactional
-    public Student getStudentByGroupSurnameInitials(String group, String surname, String initials) {
+    public Student getStudentByGroupSurnameInitials(String semestr, String group, String surname, String initials) {
         CriteriaBuilder b = em.getCriteriaBuilder();
         CriteriaQuery<Student> query = b.createQuery(Student.class);
         Root<Student> from = query.from(Student.class);
@@ -243,7 +260,19 @@ public class JPAStorage implements Storage {
             //singleResult.getModules().size();
             return singleResult;
         } catch (NoResultException e) {
-            return null;
+
+            try {
+                TypedQuery<Student> query2 = em.createQuery("Select s from Student s where s.surname = :surname and s.initials = :initials" +
+                        " and  :stgroup in (Select g.groupName from s.groups g where g.semestr = :semestr)", Student.class);
+                query2.setParameter("surname", surname);
+                query2.setParameter("initials", initials);
+                query2.setParameter("stgroup", group);
+                query2.setParameter("semestr", semestr);
+
+                return query2.getSingleResult();
+            } catch (NoResultException e2) {
+                return null;
+            }
         }
     }
 

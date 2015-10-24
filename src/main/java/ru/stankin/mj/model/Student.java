@@ -1,7 +1,5 @@
 package ru.stankin.mj.model;
 
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import ru.stankin.mj.User;
 
 import javax.persistence.*;
@@ -47,10 +45,17 @@ public class Student implements Serializable, User, Comparable {
     public Student() {
     }
 
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "student")
+    private List<StudentHistoricalGroup> groups = new ArrayList<>();
+
     public Student(String group, String surname, String initials) {
         this.stgroup = group;
         this.surname = surname;
         this.initials = initials;
+    }
+
+    public Optional<StudentHistoricalGroup> getHistoricalGroup(String semester) {
+        return getGroups().stream().filter(g -> g.semestr.equals(semester)).findAny();
     }
 
     public void initialsFromNP() {
@@ -149,5 +154,14 @@ public class Student implements Serializable, User, Comparable {
     @Override
     public boolean isAdmin() {
         return false;
+    }
+
+
+    public List<StudentHistoricalGroup> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(List<StudentHistoricalGroup> groups) {
+        this.groups = groups;
     }
 }

@@ -18,7 +18,7 @@ public interface Storage {
 
     Student getStudentById(int id, String semester);
 
-    Set<String> getStudentSemesters(int student);
+    Set<String> getStudentSemestersWithMarks(int student);
 
     Set<String> getKnownSemesters();
 
@@ -26,11 +26,11 @@ public interface Storage {
 
     void deleteStudentModules(Student student, String semester);
 
-    void saveStudent(Student student);
+    void saveStudent(Student student, String semestr);
 
     Subject getOrCreateSubject(String semester, String group, String name, double factor);
 
-    Student getStudentByGroupSurnameInitials(String group, String surname, String initials);
+    Student getStudentByGroupSurnameInitials(String semestr, String group, String surname, String initials);
 
     void deleteAllModules(String semestr);
 

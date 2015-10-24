@@ -101,7 +101,7 @@ public class ModuleJournalUploaderTest {
         Storage storage = new MemoryStorage();
         mj.setStorage(storage);
 
-        mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/newEtalon.xls"));
+        mj.updateStudentsFromExcel("2014-1", ModuleJournalUploaderTest.class.getResourceAsStream("/newEtalon.xls"));
         //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
 
         Assert.assertEquals(1753, storage.getStudents().count());

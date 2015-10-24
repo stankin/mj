@@ -90,7 +90,7 @@ public class UserResolver implements UserDAO {
     public boolean saveUser(User user) {
         logger.debug("saving user {}", user);
         if(user instanceof Student)
-            storage.saveStudent((Student) user);
+            storage.saveStudent((Student) user, null);
         else{
             em.merge(user);
         }

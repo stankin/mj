@@ -55,8 +55,8 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public Set<String> getStudentSemesters(int student) {
-        throw new UnsupportedOperationException("getStudentSemesters");
+    public Set<String> getStudentSemestersWithMarks(int student) {
+        throw new UnsupportedOperationException("getStudentSemestersWithMarks");
     }
 
     @Override
@@ -75,7 +75,7 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public void saveStudent(Student student) {
+    public void saveStudent(Student student, String semestr) {
         students.add(student);
     }
 
@@ -92,7 +92,7 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public Student getStudentByGroupSurnameInitials(String group, String surname, String initials) {
+    public Student getStudentByGroupSurnameInitials(String semestr, String group, String surname, String initials) {
         return new Student(group, surname, initials);
     }
 

@@ -135,6 +135,7 @@ public class JPAStorage implements Storage {
             merge.password = merge.cardid;
             em.merge(merge);
         }
+        em.flush();
     }
 
 
@@ -202,7 +203,7 @@ public class JPAStorage implements Storage {
                 String.class
         );
         query.setParameter("student", student);
-        return query.getResultList().stream().collect(Collectors.toCollection(TreeSet<String>::new));
+        return query.getResultList().stream().filter(e -> e != null).collect(Collectors.toCollection(TreeSet<String>::new));
     }
 
     @Override
@@ -211,7 +212,7 @@ public class JPAStorage implements Storage {
                 "select distinct sm.subject.semester from Module sm",
                 String.class
         );
-        return query.getResultList().stream().collect(Collectors.toCollection(TreeSet<String>::new));
+        return query.getResultList().stream().filter(e -> null != e).collect(Collectors.toCollection(TreeSet<String>::new));
     }
 
     @Override

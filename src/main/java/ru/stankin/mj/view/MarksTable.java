@@ -6,6 +6,8 @@ import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.stankin.mj.model.Module;
 import ru.stankin.mj.model.ModuleJournalUploader;
 import ru.stankin.mj.model.Student;
@@ -20,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MarksTable extends Table {
 
+    private static final Logger logger = LogManager.getLogger(MarksTable.class);
 
     protected Map<String, Module> rating;
     protected Map<String, Module> accumulatedRating;

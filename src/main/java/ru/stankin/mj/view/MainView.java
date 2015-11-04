@@ -129,7 +129,8 @@ public class MainView extends CustomComponent implements View {
         else {
             mainPanel = genMarks();
             Student student = (Student) user.getUser();
-            marks.fillMarks(storage.getStudentById(student.id, getCurrentSemester()));
+            setWorkingStudent(student.id, getCurrentSemester());
+            //marks.fillMarks(storage.getStudentById(student.id, getCurrentSemester()));
         }
 
         verticalLayout.addComponent(mainPanel);
@@ -148,30 +149,36 @@ public class MainView extends CustomComponent implements View {
             semesters.add(ADD_SEMESTER_LABEL);
             IndexedContainer indexedContainer = new IndexedContainer(semesters);
             semestrCbx.setContainerDataSource(indexedContainer);
-            semestrCbx.addValueChangeListener(new Property.ValueChangeListener() {
-                @Override
-                public void valueChange(Property.ValueChangeEvent event) {
-                    if (ADD_SEMESTER_LABEL.equals(event.getProperty().getValue())) {
-                        PromptDialog.prompt(MainView.this.getUI(), "Новый семестр", "Название", (text) -> {
-                            if (text != null) {
-                                indexedContainer.addItemAt(indexedContainer.size() - 1, text);
-                                semestrCbx.select(text);
-                            } else {
-                                int size = semestrCbx.getItemIds().size();
-                                if (size > 1)
-                                    semestrCbx.select(indexedContainer.getItemIds().get(size - 2));
-                            }
-                        });
-                    }
+            semestrCbx.addValueChangeListener(event -> {
+                if (ADD_SEMESTER_LABEL.equals(event.getProperty().getValue())) {
+                    PromptDialog.prompt(MainView.this.getUI(), "Новый семестр", "Название", (text) -> {
+                        if (text != null) {
+                            indexedContainer.addItemAt(indexedContainer.size() - 1, text);
+                            semestrCbx.select(text);
+                        } else {
+                            int size = semestrCbx.getItemIds().size();
+                            if (size > 1)
+                                semestrCbx.select(indexedContainer.getItemIds().get(size - 2));
+                        }
+                    });
+                } else {
+                    setWorkingStudent(lastWorkingStudent, (String) event.getProperty().getValue());
                 }
             });
+            int size = semestrCbx.getItemIds().size();
+            if(size > 1)
+                semestrCbx.select(indexedContainer.getItemIds().get(size - 2));
         } else {
             Student student = (Student) user.getUser();
             semestrCbx.setContainerDataSource(new IndexedContainer(storage.getStudentSemestersWithMarks(student.id)));
+            semestrCbx.addValueChangeListener(event -> setWorkingStudent(lastWorkingStudent, (String) event.getProperty().getValue()));
+            int size = semestrCbx.getItemIds().size();
+            if(size > 0)
+                semestrCbx.select(((List<Object>) semestrCbx.getItemIds()).get(size - 1));
         }
 
         //semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
-        semestrCbx.select(semestrCbx.getItemIds().iterator().next());
+
         semestrCbx.setTextInputAllowed(false);
         semestrCbx.setNullSelectionAllowed(false);
         return semestrCbx;
@@ -203,7 +210,7 @@ public class MainView extends CustomComponent implements View {
                     "Удалить", "Отмена", dialog -> {
                         if (dialog.isConfirmed()) {
                             storage.deleteAllModules(getCurrentSemester());
-                            setWorkingStudent(null);
+                            setWorkingStudent(null, getCurrentSemester());
                         }
                     });
         }));
@@ -304,7 +311,7 @@ public class MainView extends CustomComponent implements View {
             //logger.debug("stacktacer:{}",new Exception("stacktrace"));
             if (event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
-            setWorkingStudent((Integer) event1.getProperty().getValue());
+            setWorkingStudent((Integer) event1.getProperty().getValue(), getCurrentSemester());
 
         });
 
@@ -326,20 +333,27 @@ public class MainView extends CustomComponent implements View {
         return /*new Panel(*/grid/*)*/;
     }
 
-    private void setWorkingStudent(Integer studentId) {
+    private Integer lastWorkingStudent = null;
+
+    private void setWorkingStudent(Integer studentId, String currentSemester) {
         Student student = null;
         if (studentId != null) {
-            student = storage.getStudentById(studentId, getCurrentSemester());
-            studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
+            student = storage.getStudentById(studentId, currentSemester);
+            if (studentLabel != null)
+                studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
         } else {
-            studentLabel.setValue("");
+            if (studentLabel != null)
+                studentLabel.setValue("");
         }
 
-        marks.fillMarks(student);
+        if (marks != null)
+            marks.fillMarks(student);
 
-        for (StudentButton stbtn : studentButtons) {
-            stbtn.setStudent(student);
-        }
+        if (studentButtons != null)
+            for (StudentButton stbtn : studentButtons) {
+                stbtn.setStudent(student);
+            }
+        lastWorkingStudent = studentId;
     }
 
     private Table genMarks() {
@@ -495,7 +509,7 @@ public class MainView extends CustomComponent implements View {
 
                 Utils.showCentralWindow(this.getUI(), window);
                 Page.getCurrent().getJavaScript().execute("yaCounter29801259.hit('#calc');");
-            } );
+            });
         }
 
     }
@@ -517,7 +531,7 @@ public class MainView extends CustomComponent implements View {
                     storage.updateModules(student);
                     student = null;
                 }
-                setWorkingStudent(studentId);
+                setWorkingStudent(studentId, MainView.this.getCurrentSemester());
             });
         }
 

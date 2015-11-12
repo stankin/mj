@@ -4,6 +4,7 @@ import com.google.gwt.thirdparty.guava.common.io.Files;
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
@@ -31,6 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
@@ -40,6 +42,7 @@ import java.util.concurrent.*;
 public class MainView extends CustomComponent implements View {
 
     private static final Logger logger = LogManager.getLogger(MainView.class);
+    private static final String ADD_SEMESTER_LABEL = "Добавить семестр";
 
     @Inject
     private UserInfo user;
@@ -61,6 +64,7 @@ public class MainView extends CustomComponent implements View {
     private Label studentLabel;
 
     private AlarmHolder alarmHolder = new AlarmHolder("Загрузка данных", this);
+    private ComboBox semestrCbx;
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -85,12 +89,14 @@ public class MainView extends CustomComponent implements View {
         //content.setExpandRatio(label, 0.5f);
         //label.setHeight(30,Unit.PIXELS);
 
+
+        content.addComponent(createSemestrCbx());
         content.addComponent(ratingRulesButton());
         if (!user.isAdmin()) {
             StudentRatingButton studentRatingButton = new StudentRatingButton();
             content.addComponent(studentRatingButton);
             Student student = (Student) user.getUser();
-            studentRatingButton.setStudent(storage.getStudentById(student.id, true));
+            studentRatingButton.setStudent(storage.getStudentById(student.id, getCurrentSemester()));
         }
 
         Label blonk = new Label("");
@@ -127,7 +133,8 @@ public class MainView extends CustomComponent implements View {
         else {
             mainPanel = genMarks();
             Student student = (Student) user.getUser();
-            marks.fillMarks(storage.getStudentById(student.id, true));
+            setWorkingStudent(student.id, getCurrentSemester());
+            //marks.fillMarks(storage.getStudentById(student.id, getCurrentSemester()));
         }
 
         verticalLayout.addComponent(mainPanel);
@@ -135,6 +142,50 @@ public class MainView extends CustomComponent implements View {
         verticalLayout.setSizeFull();
         setCompositionRoot(verticalLayout);
 
+    }
+
+    private ComboBox createSemestrCbx() {
+        semestrCbx = new ComboBox();
+        //semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
+
+        if (user.isAdmin()) {
+            ArrayList<String> semesters = new ArrayList<>(storage.getKnownSemesters());
+            semesters.add(ADD_SEMESTER_LABEL);
+            IndexedContainer indexedContainer = new IndexedContainer(semesters);
+            semestrCbx.setContainerDataSource(indexedContainer);
+            semestrCbx.addValueChangeListener(event -> {
+                if (ADD_SEMESTER_LABEL.equals(event.getProperty().getValue())) {
+                    PromptDialog.prompt(MainView.this.getUI(), "Новый семестр", "Название", (text) -> {
+                        if (text != null) {
+                            indexedContainer.addItemAt(indexedContainer.size() - 1, text);
+                            semestrCbx.select(text);
+                        } else {
+                            int size = semestrCbx.getItemIds().size();
+                            if (size > 1)
+                                semestrCbx.select(indexedContainer.getItemIds().get(size - 2));
+                        }
+                    });
+                } else {
+                    setWorkingStudent(lastWorkingStudent, (String) event.getProperty().getValue());
+                }
+            });
+            int size = semestrCbx.getItemIds().size();
+            if (size > 1)
+                semestrCbx.select(indexedContainer.getItemIds().get(size - 2));
+        } else {
+            Student student = (Student) user.getUser();
+            semestrCbx.setContainerDataSource(new IndexedContainer(storage.getStudentSemestersWithMarks(student.id)));
+            semestrCbx.addValueChangeListener(event -> setWorkingStudent(lastWorkingStudent, (String) event.getProperty().getValue()));
+            int size = semestrCbx.getItemIds().size();
+            if (size > 0)
+                semestrCbx.select(((List<Object>) semestrCbx.getItemIds()).get(size - 1));
+        }
+
+        //semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
+
+        semestrCbx.setTextInputAllowed(false);
+        semestrCbx.setNullSelectionAllowed(false);
+        return semestrCbx;
     }
 
     private Button ratingRulesButton() {
@@ -157,12 +208,13 @@ public class MainView extends CustomComponent implements View {
         uploads.addComponent(createEtalonUpload());
         uploads.addComponent(createMarksUpload());
         uploads.addComponent(new Button("Удалить все модули", event -> {
-            ConfirmDialog.show(this.getUI(), "Удаление всех модулей", ("Вы уверены что хотите удалить все модули?" +
+            ConfirmDialog.show(this.getUI(), "Удаление всех модулей", ("Вы уверены что хотите удалить все модули за "
+                            + getCurrentSemester() + "-семестр ?" +
                             " Вам придется перезалить журналы, чтобы модули опять стали доступны"),
                     "Удалить", "Отмена", dialog -> {
                         if (dialog.isConfirmed()) {
-                            storage.deleteAllModules();
-                            setWorkingStudent(null);
+                            storage.deleteAllModules(getCurrentSemester());
+                            setWorkingStudent(null, getCurrentSemester());
                         }
                     });
         }));
@@ -263,7 +315,7 @@ public class MainView extends CustomComponent implements View {
             //logger.debug("stacktacer:{}",new Exception("stacktrace"));
             if (event1.getProperty() == null || event1.getProperty().getValue() == null)
                 return;
-            setWorkingStudent((Integer) event1.getProperty().getValue());
+            setWorkingStudent((Integer) event1.getProperty().getValue(), getCurrentSemester());
 
         });
 
@@ -285,20 +337,27 @@ public class MainView extends CustomComponent implements View {
         return /*new Panel(*/grid/*)*/;
     }
 
-    private void setWorkingStudent(Integer studentId) {
+    private Integer lastWorkingStudent = null;
+
+    private void setWorkingStudent(Integer studentId, String currentSemester) {
         Student student = null;
         if (studentId != null) {
-            student = storage.getStudentById(studentId, true);
-            studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
+            student = storage.getStudentById(studentId, currentSemester);
+            if (studentLabel != null)
+                studentLabel.setValue("<b>" + student.surname + " " + student.initials + "</b>");
         } else {
-            studentLabel.setValue("");
+            if (studentLabel != null)
+                studentLabel.setValue("");
         }
 
-        marks.fillMarks(student);
+        if (marks != null)
+            marks.fillMarks(student);
 
-        for (StudentButton stbtn : studentButtons) {
-            stbtn.setStudent(student);
-        }
+        if (studentButtons != null)
+            for (StudentButton stbtn : studentButtons) {
+                stbtn.setStudent(student);
+            }
+        lastWorkingStudent = studentId;
     }
 
     private Table genMarks() {
@@ -328,7 +387,7 @@ public class MainView extends CustomComponent implements View {
                             backupUpload(file, getLastFileName());
 
                             try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-                                List<String> log = moduleJournalUploader.updateStudentsFromExcel(bufferedInputStream);
+                                List<String> log = moduleJournalUploader.updateStudentsFromExcel(getCurrentSemester(), bufferedInputStream);
                                 alarmHolder.post(String.join("\n", log));
                                 setValue(null);
                             }
@@ -339,7 +398,6 @@ public class MainView extends CustomComponent implements View {
                     }
                 });
             }
-
         };
 
         uploadField2.setFieldType(UploadField.FieldType.FILE);
@@ -347,6 +405,29 @@ public class MainView extends CustomComponent implements View {
         uploadField2.setButtonCaption("Выбрать файл");
         uploadField2.setFileDeletesAllowed(false);
 
+        uploadField2.addListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+
+                File file = (File) uploadField2.getValue();
+                if (file == null)
+                    return;
+
+                if (checkWrongSemestr()) return;
+
+                try {
+                    try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+                        List<String> log = moduleJournalUploader.updateStudentsFromExcel(getCurrentSemester(), bufferedInputStream);
+                        alarmHolder.post(String.join("\n", log));
+                        uploadField2.setValue(null);
+                    }
+                } catch (Exception e) {
+                    alarmHolder.error(e);
+                }
+
+            }
+        });
+    
         return uploadField2;
     }
 
@@ -368,12 +449,12 @@ public class MainView extends CustomComponent implements View {
             @Override
             protected void handleFile(File file, String fileName,
                                       String mimeType, long length) {
+                if (checkWrongSemestr()) return;
                 String msg = "Модульный журнал " + fileName + " загружен";
-
                 try {
                     backupUpload(file, fileName);
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
-                    List<String> messages = moduleJournalUploader.updateMarksFromExcel(is);
+                    List<String> messages = moduleJournalUploader.updateMarksFromExcel(getCurrentSemester(), is);
                     messages.add(0, msg);
                     is.close();
                     String join = String.join("\n", messages);
@@ -432,6 +513,18 @@ public class MainView extends CustomComponent implements View {
 
     }
 
+    private boolean checkWrongSemestr() {
+        if (getCurrentSemester().equals(ADD_SEMESTER_LABEL)) {
+            alarmHolder.post("Указано неверное название семестра");
+            return true;
+        }
+        return false;
+    }
+
+    public String getCurrentSemester() {
+        return (String) semestrCbx.getValue();
+    }
+
     private class StudentButton extends Button {
         protected Student student;
 
@@ -464,6 +557,7 @@ public class MainView extends CustomComponent implements View {
         public StudentRatingButton() {
             super("Расcчитать рейтинг");
             this.addClickListener(event -> {
+                this.setStudent(storage.getStudentById(this.student.id, getCurrentSemester()));
                 RatingCalculationTable ratingCalculationTable = new RatingCalculationTable(student);
                 ratingCalculationTable.setSizeFull();
                 VerticalLayout verticalLayout = new VerticalLayout();
@@ -476,7 +570,7 @@ public class MainView extends CustomComponent implements View {
 
                 Utils.showCentralWindow(this.getUI(), window);
                 Page.getCurrent().getJavaScript().execute("yaCounter29801259.hit('#calc');");
-            } );
+            });
         }
 
     }
@@ -490,7 +584,7 @@ public class MainView extends CustomComponent implements View {
             this.addClickListener(event -> {
                 int studentId = student.id;
                 if (oldModules == null) {
-                    storage.deleteStudentModules(student);
+                    storage.deleteStudentModules(student, getCurrentSemester());
                     oldModules = student.getModules();
                     oldModules.forEach(m -> m.setId(0));
                     setCaption("Восстановить Модули");
@@ -498,7 +592,7 @@ public class MainView extends CustomComponent implements View {
                     storage.updateModules(student);
                     student = null;
                 }
-                setWorkingStudent(studentId);
+                setWorkingStudent(studentId, MainView.this.getCurrentSemester());
             });
         }
 

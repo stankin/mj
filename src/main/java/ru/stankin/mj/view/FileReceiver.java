@@ -37,7 +37,7 @@ class FileReceiver implements Upload.Receiver {
         try {
             parsing = ecs.submit(() -> {
                 try {
-                    List<String> messages = moduleJournalUploader.updateMarksFromExcel(pipedInputStream);
+                    List<String> messages = moduleJournalUploader.updateMarksFromExcel(components.getCurrentSemester(), pipedInputStream);
                     parsing = null;
                     return String.join("\n", messages);
                 } catch (Exception e) {

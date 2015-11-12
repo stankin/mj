@@ -4,10 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.enterprise.inject.Alternative;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -53,8 +50,18 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public Student getStudentById(int value, boolean eager) {
-        return studentsList.get(value);
+    public Student getStudentById(int id, String semester) {
+        return studentsList.get(id);
+    }
+
+    @Override
+    public Set<String> getStudentSemestersWithMarks(int student) {
+        throw new UnsupportedOperationException("getStudentSemestersWithMarks");
+    }
+
+    @Override
+    public Set<String> getKnownSemesters() {
+        throw new UnsupportedOperationException("getKnownSemesters");
     }
 
     @Override
@@ -63,34 +70,34 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public void deleteStudentModules(Student student) {
+    public void deleteStudentModules(Student student, String semester) {
         throw new UnsupportedOperationException("deleteStudentModules");
     }
 
     @Override
-    public void saveStudent(Student student) {
-
+    public void saveStudent(Student student, String semestr) {
+        students.add(student);
     }
 
     private Map<String, Subject> stringSubjectMap = new HashMap<>();
 
     @Override
-    public Subject getOrCreateSubject(String group, String name, double factor) {
+    public Subject getOrCreateSubject(String semester, String group, String name, double factor) {
         Subject subject = stringSubjectMap.get(name);
         if(subject == null){
-            subject = new Subject(group, name, factor);
+            subject = new Subject(semester, group, name, factor);
             stringSubjectMap.put(name, subject);
         }
         return subject;
     }
 
     @Override
-    public Student getStudentByGroupSurnameInitials(String group, String surname, String initials) {
+    public Student getStudentByGroupSurnameInitials(String semestr, String group, String surname, String initials) {
         return new Student(group, surname, initials);
     }
 
     @Override
-    public void deleteAllModules() {
+    public void deleteAllModules(String semestr) {
         throw new UnsupportedOperationException("deleteAllModules");
     }
 

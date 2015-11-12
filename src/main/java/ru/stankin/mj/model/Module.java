@@ -1,5 +1,9 @@
 package ru.stankin.mj.model;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -23,6 +27,7 @@ public class Module implements Cloneable, Serializable {
 
     @ManyToOne()
     @JoinColumn(name = "student_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Student student;
 
     @Override

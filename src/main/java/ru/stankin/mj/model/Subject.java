@@ -1,25 +1,33 @@
 package ru.stankin.mj.model;
 
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "Subjects", indexes = {@Index(name = "title_index", columnList = "stgroup,title")})
+@Table(name = "Subjects", indexes = {@Index(name = "title_index", columnList = "semester,stgroup,title")})
 public class Subject implements Serializable {
+
+    private static final Logger logger = LogManager.getLogger(Subject.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id = 0;
 
+    private String semester = "2014/2015 весна";
     private String stgroup = "";
     private String title = "";
     private double factor = 0;
 
-    public Subject(String stgroup, String title, double factor) {
+    public Subject(String semester, String stgroup, String title, double factor) {
+        this.semester = semester;
         this.stgroup = stgroup;
         this.title = title;
         this.factor = factor;
+        logger.debug("Subject created {}", this);
     }
 
     public Subject() {
@@ -45,6 +53,7 @@ public class Subject implements Serializable {
     public String toString() {
         return "Subject{" +
                 "id=" + id +
+                ", semester='" + semester + '\'' +
                 ", group='" + stgroup + '\'' +
                 ", title='" + title + '\'' +
                 ", factor=" + factor +
@@ -58,5 +67,12 @@ public class Subject implements Serializable {
     public void setStgroup(String group) {
         this.stgroup = group;
     }
-    
+
+    public String getSemester() {
+        return semester;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
+    }
 }

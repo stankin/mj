@@ -2,14 +2,12 @@ package ru.stankin.mj;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import ru.stankin.mj.model.*;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,10 +17,24 @@ public class ModuleJournalUploaderTest {
     public void testProcessIncomingDate1() throws Exception {
 
         Collection<Student> students = getStudentMarks("/information_items_property_2349.xls");
+        // Collection<Student> studentso = getStudentMarks("/Модули/information_items_property_2349.xls");
 
-        Assert.assertEquals(335, (long) students.size());
+//        System.out.println(students.stream().collect(Collectors.groupingBy(s -> s.stgroup,
+//                Collectors.counting()
+//        )));
+//        System.out.println(studentso.stream().collect(Collectors.groupingBy(s -> s.stgroup,
+//                Collectors.counting()
+//        )));
+//
+//        System.out.println(students.stream()
+//                .filter(s -> s.stgroup.equals("ИДБ-13-04"))
+//                .map(s -> s.surname)//.sorted()
+//                .collect(Collectors.joining("\n"))
+//        );
+
+        Assert.assertEquals(133, (long) students.size());
         Integer collect = students.stream().map(s -> s.getModules().size()).collect(Collectors.summingInt(i -> i));
-        Assert.assertEquals(10922, collect.intValue());
+        Assert.assertEquals(4067, collect.intValue());
 
     }
 
@@ -45,7 +57,7 @@ public class ModuleJournalUploaderTest {
         Assert.assertEquals(196, (long) students.size());
 
         Student pletenev =
-                students.stream().filter((Student s) -> s.surname.equals("Плетенев")).findFirst().get();
+                students.stream().filter((Student s) -> s.surname.equals("Воронин")).findFirst().get();
         System.out.println("pletenev=" + pletenev);
 
 
@@ -76,21 +88,23 @@ public class ModuleJournalUploaderTest {
         Storage storage = new MemoryStorage();
         mj.setStorage(storage);
 
-        mj.updateMarksFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream(name));
+        mj.updateMarksFromExcel("", ModuleJournalUploaderTest.class.getResourceAsStream(name));
 
         Stream<Student> students = storage.getStudents();
         return students.collect(Collectors.toList());
     }
 
     @Test
-    @Ignore
     public void testLoadStudentsList() throws Exception {
         ModuleJournalUploader mj = new ModuleJournalUploader();
 
         Storage storage = new MemoryStorage();
         mj.setStorage(storage);
 
-        mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
+        mj.updateStudentsFromExcel("2014-1", ModuleJournalUploaderTest.class.getResourceAsStream("/newEtalon.xls"));
+        //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
+
+        Assert.assertEquals(1753, storage.getStudents().count());
 
 
     }

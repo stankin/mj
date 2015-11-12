@@ -88,7 +88,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
     @Override
     public Item getItem(Object itemId) {
-        return new StudentItem(storage.getStudentById((Integer) itemId, false));
+        return new StudentItem(storage.getStudentById((Integer) itemId, null));
     }
 
     @Override

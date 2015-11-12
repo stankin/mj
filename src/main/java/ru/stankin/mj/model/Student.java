@@ -1,7 +1,5 @@
 package ru.stankin.mj.model;
 
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import ru.stankin.mj.User;
 
 import javax.persistence.*;
@@ -35,8 +33,8 @@ public class Student implements Serializable, User, Comparable {
     public String password;
 
     //@ElementCollection
-    //@Transient
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, mappedBy = "student")
+    @Transient
+    //@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, mappedBy = "student")
     private List<Module> modules = new ArrayList<>();
     public String name;
     public String patronym;
@@ -47,10 +45,17 @@ public class Student implements Serializable, User, Comparable {
     public Student() {
     }
 
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "student")
+    private List<StudentHistoricalGroup> groups = new ArrayList<>();
+
     public Student(String group, String surname, String initials) {
         this.stgroup = group;
         this.surname = surname;
         this.initials = initials;
+    }
+
+    public Optional<StudentHistoricalGroup> getHistoricalGroup(String semester) {
+        return getGroups().stream().filter(g -> g.semestr.equals(semester)).findAny();
     }
 
     public void initialsFromNP() {
@@ -59,10 +64,14 @@ public class Student implements Serializable, User, Comparable {
         if (name == null || surname == null)
             return;
 
+        initials = initialsFromNames(name, patronym);
+    }
+
+    public static String initialsFromNames(String name, String patronym) {
         String sp = "";
         if (patronym.length() > 0)
             sp = Character.toUpperCase(patronym.charAt(0)) + ".";
-        initials = Character.toUpperCase(name.charAt(0)) + "." + sp;
+        return Character.toUpperCase(name.charAt(0)) + "." + sp;
     }
 
     @Override
@@ -145,5 +154,14 @@ public class Student implements Serializable, User, Comparable {
     @Override
     public boolean isAdmin() {
         return false;
+    }
+
+
+    public List<StudentHistoricalGroup> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(List<StudentHistoricalGroup> groups) {
+        this.groups = groups;
     }
 }

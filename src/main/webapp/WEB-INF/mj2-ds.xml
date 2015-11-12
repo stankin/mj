@@ -26,7 +26,7 @@
    <datasource jndi-name="java:jboss/datasources/mj2"
       pool-name="hibernate4-quickstart" enabled="true"
       use-java-context="true">
-      <connection-url>jdbc:h2:test:mj2</connection-url>
+      <connection-url>jdbc:h2:~/test:mj2</connection-url>
       <driver>h2</driver>
       <security>
          <user-name>test</user-name>

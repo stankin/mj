@@ -1,6 +1,8 @@
 package ru.stankin.mj.model;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -14,19 +16,23 @@ public interface Storage {
 
     Stream<Student> getStudentsFiltred(String text);
 
-    Student getStudentById(int value, boolean eager);
+    Student getStudentById(int id, String semester);
+
+    Set<String> getStudentSemestersWithMarks(int student);
+
+    Set<String> getKnownSemesters();
 
     Student getStudentByCardId(String cardid);
 
-    void deleteStudentModules(Student student);
+    void deleteStudentModules(Student student, String semester);
 
-    void saveStudent(Student student);
+    void saveStudent(Student student, String semestr);
 
-    Subject getOrCreateSubject(String group, String name, double factor);
+    Subject getOrCreateSubject(String semester, String group, String name, double factor);
 
-    Student getStudentByGroupSurnameInitials(String group, String surname, String initials);
+    Student getStudentByGroupSurnameInitials(String semestr, String group, String surname, String initials);
 
-    void deleteAllModules();
+    void deleteAllModules(String semestr);
 
     void deleteStudent(Student s);
 }

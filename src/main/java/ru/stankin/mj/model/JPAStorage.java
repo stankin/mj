@@ -4,15 +4,15 @@ package ru.stankin.mj.model;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.*;
-import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.*;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 
 import javax.ejb.*;
 import javax.enterprise.inject.Default;
 import javax.persistence.*;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaQuery;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -154,6 +154,7 @@ public class JPAStorage implements Storage {
 
         Session session = (Session) em.getDelegate();
         Criteria criteria = session.createCriteria(Student.class);
+        criteria.setFetchMode("groups", FetchMode.SELECT);
         criteria
                 .addOrder(Order.asc("stgroup"))
                 .addOrder(Order.asc("surname"));

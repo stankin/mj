@@ -4,7 +4,7 @@
 
 Сообщения об ошибках и пожелания вы можете оставить [здесь](https://bitbucket.org/NicolayMitropolsky/stankin-mj/issues?sort=status).
 
-## Сборка ##
+## Сборка и инсталяция ##
 
 Для сборки из исходников необходим [maven](http://maven.apache.org/) и [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
 
@@ -15,9 +15,22 @@ mvn clean install -DskipTests
 
 Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.1.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.1.Final/wildfly-9.0.1.Final.zip).
 
+При первом запуске, для автоматического создания схемы в базе данных необходимо установить в файле
+`src/main/resources/META-INF/persistence.xml` значение `hibernate.hbm2ddl.auto` равным `update`:
+
+```xml
+    <property name="hibernate.hbm2ddl.auto" value="update"/>
+```
+
+Так же его имеет смысл сохранить равным `update` если планируется изменять схему базы данных
+
+
+
+## Тестирование ##
+
 Для выполнения тестов (`mvn test`) необходимо указать в переменной окружения `JBOSS_HOME` путь к установленному серверу Wildfly.
 
-### H2 fix ###
+## H2 fix ##
 
 Wildfly использует встроенную базу данных **H2** версии `1.3.173`, которая подвержена багу c логированием `isWrapperFor` значительно снижащим производетельность. 
 

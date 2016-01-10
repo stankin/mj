@@ -514,7 +514,7 @@ public class MainView extends CustomComponent implements View {
     }
 
     private boolean checkWrongSemestr() {
-        if (getCurrentSemester().equals(ADD_SEMESTER_LABEL)) {
+        if (getCurrentSemester() == null || getCurrentSemester().equals(ADD_SEMESTER_LABEL)) {
             alarmHolder.post("Указано неверное название семестра");
             return true;
         }

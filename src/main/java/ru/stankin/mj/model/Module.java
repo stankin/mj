@@ -1,5 +1,6 @@
 package ru.stankin.mj.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -28,6 +29,7 @@ public class Module implements Cloneable, Serializable {
     @ManyToOne()
     @JoinColumn(name = "student_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
     private Student student;
 
     @Override

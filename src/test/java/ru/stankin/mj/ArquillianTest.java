@@ -19,9 +19,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.UserTransaction;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -31,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 
@@ -315,6 +314,27 @@ public class ArquillianTest {
             Assert.assertEquals(1707, connection.getContentLength());
             connection.disconnect();
         }
+
+    }
+
+    @Test
+    @InSequence(1002)
+    public void httpApi() throws Exception {
+        //System.out.println(url);
+
+        {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url + "api/marks?student=114513&password=nonDefaultPassword&semester=2014-1").openConnection();
+            //Assert.assertEquals(6, connection.getContentLength());
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF8"));
+
+            String line = null;
+            while ((line = bufferedReader.readLine()) != null){
+                System.out.println(line);
+            }
+
+            connection.disconnect();
+        }
+
 
     }
 

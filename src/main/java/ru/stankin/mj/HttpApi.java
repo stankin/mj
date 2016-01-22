@@ -32,7 +32,6 @@ public class HttpApi extends HttpServlet {
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String cardId = request.getParameter("student");

@@ -107,5 +107,4 @@ public class Module implements Cloneable, Serializable {
     public Subject getSubject() {
         return subject;
     }
-
 }

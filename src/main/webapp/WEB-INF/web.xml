@@ -54,6 +54,10 @@
         <servlet-name>vaadinServlet</servlet-name>
         <url-pattern>/app/*</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>javax.ws.rs.core.Application</servlet-name>
+        <url-pattern>/webapi/*</url-pattern>
+    </servlet-mapping>
     <!--<servlet-mapping>-->
     <!--<servlet-name>vaadinServlet</servlet-name>-->
     <!--<url-pattern>/*</url-pattern>-->

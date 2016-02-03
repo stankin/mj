@@ -323,8 +323,9 @@ public class ArquillianTest {
         //System.out.println(url);
 
         {
-            HttpURLConnection connection = (HttpURLConnection) new URL(url + "api/marks?student=114513&password=nonDefaultPassword&semester=2014-1").openConnection();
-            //Assert.assertEquals(6, connection.getContentLength());
+            HttpURLConnection connection = (HttpURLConnection) new URL(url + "webapi/api2/marks?student=114513&password=nonDefaultPassword&semester=2014-1").openConnection();
+            Assert.assertEquals(200, connection.getResponseCode());
+            Assert.assertEquals(2025, connection.getContentLength());
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF8"));
 
             String line = null;

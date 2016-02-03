@@ -7,7 +7,6 @@
           <element id="module-output" name="modules-journal" />
         </element>
         <element id="directory" name="lib">
-          <element id="library" level="project" name="Maven: org.jboss.resteasy:jaxrs-api:3.0.12.Final" />
           <element id="library" level="project" name="Maven: org.apache.logging.log4j:log4j-api:2.1" />
           <element id="library" level="project" name="Maven: org.apache.logging.log4j:log4j-core:2.1" />
           <element id="library" level="project" name="Maven: com.vaadin:vaadin-server:7.3.7" />

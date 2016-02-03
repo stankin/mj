@@ -1,12 +1,14 @@
 package ru.stankin.mj;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 import java.util.List;
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 import ru.stankin.mj.model.Module;
 
 @Path("/api2")
@@ -19,6 +21,8 @@ public class HttpApi2 {
     private UserDAO userDAO;
 
     ObjectMapper objectMapper = new ObjectMapper();
+    
+    private final Response error401 = Response.status(401).build();
 
     // http://localhost:8080/mj/webapi/api2/marks?student=114531&password=114531&semester=w
     @GET
@@ -32,19 +36,18 @@ public class HttpApi2 {
 
         User s = userDAO.getUserBy(cardId, password);
         if (s == null)
-            return "Error: login/password";
+            return error401;
 
         List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();        
         if (modules == null || modules.isEmpty())
-            return "Error: something wrong with modules";
+            return error401;
         
-        ModuleWrapper[] moduleWrappers = new ModuleWrapper[modules.size()];
-        for (int i = 0; i < moduleWrappers.length; i++) {
-            Module m = modules.get(i);
-            moduleWrappers[i] = new ModuleWrapper(m.getSubject().getTitle(), 
-                    m.getNum(), m.getValue());
-        }
-        
+        List<ModuleWrapper> moduleWrappers = new ArrayList<>();
+        modules.stream().forEach((m) -> {
+            moduleWrappers.add(new ModuleWrapper(m.getSubject().getTitle(), 
+                    m.getNum(), m.getValue()));
+        });
+                
         return moduleWrappers;        
     }
 
@@ -59,7 +62,7 @@ public class HttpApi2 {
         
         User s = userDAO.getUserBy(cardId, password);
         if (s == null)
-            return "Error: login/password";
+            return error401;
         
         return storage.getStudentSemestersWithMarks(((Student) s).id);
     }

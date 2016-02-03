@@ -60,14 +60,6 @@ public class Module implements Cloneable, Serializable {
                 '}';
     }
     
-    public String toJSON() {
-        return "\n{" + 
-        "       \"title\": \"" + getSubject().getTitle() + "\",\n" +
-        "	\"num\": \"" + getNum() + "\",\n" +
-        "	\"value\": " + getValue() + "\n" +
-        "}\n";
-    }
-
     public int getId() {
         return id;
     }

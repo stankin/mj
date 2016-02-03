@@ -13,7 +13,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Created by nmitropo on 10.1.2016.
@@ -21,7 +24,6 @@ import java.util.List;
 @WebServlet(name = "HttpApi", urlPatterns = "api/marks")
 public class HttpApi extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
     }
 
     @Inject
@@ -32,21 +34,27 @@ public class HttpApi extends HttpServlet {
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String cardId = request.getParameter("student");
         String password = request.getParameter("password");
-        String semester = request.getParameter("semester");
+//        String semester = request.getParameter("semester");
 
         User s = userDAO.getUserBy(cardId, password);
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF8");
-        try(PrintWriter writer = response.getWriter()){
-            List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(writer, modules);
-        }
+        try(PrintWriter writer = response.getWriter()) {
+            
+//            List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();
+//            objectMapper.writerWithDefaultPrettyPrinter().writeValue(writer, modules);
 
+//            Set<String> semesters = storage.getKnownSemesters();
+//            objectMapper.writerWithDefaultPrettyPrinter().writeValue(writer, "LLLL \n" + semesters.size() + " \n" + semesters);
+
+            Set<String> semestrsWithMarks = storage.getStudentSemestersWithMarks(((Student)s).id);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(writer, "LLL: " +
+                    Arrays.toString(semestrsWithMarks.toArray()));
+        }
     }
 }

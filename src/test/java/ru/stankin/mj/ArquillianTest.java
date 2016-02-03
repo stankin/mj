@@ -22,6 +22,7 @@ import javax.transaction.UserTransaction;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -323,7 +324,22 @@ public class ArquillianTest {
         //System.out.println(url);
 
         {
-            HttpURLConnection connection = (HttpURLConnection) new URL(url + "webapi/api2/marks?student=114513&password=nonDefaultPassword&semester=2014-1").openConnection();
+            HttpURLConnection connection = (HttpURLConnection) new URL(url + "webapi/api2/marks").openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), "UTF8");
+            writer.append(URLEncoder.encode("student", "UTF-8"));
+            writer.append("=");
+            writer.append(URLEncoder.encode("114513", "UTF-8"));
+            writer.append("&");
+            writer.append(URLEncoder.encode("password", "UTF-8"));
+            writer.append("=");
+            writer.append(URLEncoder.encode("nonDefaultPassword", "UTF-8"));
+            writer.append("&");
+            writer.append(URLEncoder.encode("semester", "UTF-8"));
+            writer.append("=");
+            writer.append(URLEncoder.encode("2014-1", "UTF-8"));
+            writer.close();
             Assert.assertEquals(200, connection.getResponseCode());
             Assert.assertEquals(2025, connection.getContentLength());
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF8"));

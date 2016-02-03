@@ -25,13 +25,13 @@ public class HttpApi2 {
     private final Response error401 = Response.status(401).build();
 
     // http://localhost:8080/mj/webapi/api2/marks?student=114531&password=114531&semester=w
-    @GET
+    @POST
     @Path("marks")
     @Produces("application/json; charset=UTF-8")
     public Object marks(
-            @QueryParam("student") String cardId,
-            @QueryParam("password") String password,
-            @QueryParam("semester") String semester
+            @FormParam("student") String cardId,
+            @FormParam("password") String password,
+            @FormParam("semester") String semester
     ){
 
         User s = userDAO.getUserBy(cardId, password);
@@ -52,12 +52,12 @@ public class HttpApi2 {
     }
 
     // http://localhost:8080/mj/webapi/api2/semesters?student=114531&password=114531
-    @GET
+    @POST
     @Path("semesters")
     @Produces("application/json; charset=UTF-8")
     public Object semesters(
-            @QueryParam("student") String cardId,
-            @QueryParam("password") String password
+            @FormParam("student") String cardId,
+            @FormParam("password") String password
     ) {
         
         User s = userDAO.getUserBy(cardId, password);

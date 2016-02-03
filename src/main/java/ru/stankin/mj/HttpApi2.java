@@ -23,7 +23,7 @@ public class HttpApi2 {
     // http://localhost:8080/mj/webapi/api2/marks?student=114531&password=114531&semester=w
     @GET
     @Path("marks")
-    @Produces("text/plain; charset=UTF-8")
+    @Produces("application/json; charset=UTF-8")
     public Object marks(
             @QueryParam("student") String cardId,
             @QueryParam("password") String password,
@@ -34,23 +34,20 @@ public class HttpApi2 {
         if (s == null)
             return "Error: login/password";
 
-        List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();
+        List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();        
         if (modules == null || modules.isEmpty())
             return "Error: something wrong with modules";
         
-        StringBuilder sb = new StringBuilder();
-        
-        sb.append("[");
-        for (Module m: modules) {
-            sb.append(m.toJSON()).append(",");
+        ModuleWrapper[] moduleWrappers = new ModuleWrapper[modules.size()];
+        for (int i = 0; i < moduleWrappers.length; i++) {
+            Module m = modules.get(i);
+            moduleWrappers[i] = new ModuleWrapper(m.getSubject().getTitle(), 
+                    m.getNum(), m.getValue());
         }
-        sb.deleteCharAt(sb.length() - 1);
-        sb.append("]");
         
-        return sb.toString();
-//        return storage.getStudentById(((Student)s).id, semester).getModules();
+        return moduleWrappers;        
     }
-    
+
     // http://localhost:8080/mj/webapi/api2/semesters?student=114531&password=114531
     @GET
     @Path("semesters")
@@ -61,6 +58,46 @@ public class HttpApi2 {
     ) {
         
         User s = userDAO.getUserBy(cardId, password);
+        if (s == null)
+            return "Error: login/password";
+        
         return storage.getStudentSemestersWithMarks(((Student) s).id);
+    }
+}
+
+class ModuleWrapper {
+
+    private String title;
+    private String num;
+    private int value;
+
+    public ModuleWrapper(String title, String num, int value) {
+        this.title = title;
+        this.num = num;
+        this.value = value;
+    }
+    
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getNum() {
+        return num;
+    }
+
+    public void setNum(String num) {
+        this.num = num;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
     }
 }

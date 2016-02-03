@@ -3,3 +3,6 @@ target/**
 src/main/webapp/VAADIN/widgetsets/**
 .idea/libraries/**
 src/test/resources/Модули/**
+src/main/webapp/VAADIN/themes/modules-journal/styles.css
+File src/main/resources/META-INF/persistence.xml~
+src/main/java/ru/stankin/mj/model/Module.java.orig

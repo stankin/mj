@@ -31,8 +31,13 @@ public class HttpApi2 {
     ){
 
         User s = userDAO.getUserBy(cardId, password);
+        if (s == null)
+            return "Error: login/password";
 
         List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();
+        if (modules == null || modules.isEmpty())
+            return "Error: something wrong with modules";
+        
         StringBuilder sb = new StringBuilder();
         
         sb.append("[");

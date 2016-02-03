@@ -90,13 +90,13 @@ public class ArquillianTest {
     public void uploadWrongEtalon() throws Exception {
         utx.begin();
 //        em.joinTransaction();
-        mj.updateStudentsFromExcel("2014-1", loadResource("/newEtalon-joinedGroups.xls"));
+        mj.updateStudentsFromExcel("2014-осень", loadResource("/newEtalon-joinedGroups.xls"));
         utx.commit();
         utx.begin();
 
         Assert.assertEquals(1750, storage.getStudents().count());
         Assert.assertEquals(1750, em.createQuery("select count(g) from StudentHistoricalGroup g", Long.class).getSingleResult().intValue());
-        Assert.assertEquals(1750, em.createQuery("select count(g) from StudentHistoricalGroup g where g.semestr = '2014-1'", Long.class).getSingleResult().intValue());
+        Assert.assertEquals(1750, em.createQuery("select count(g) from StudentHistoricalGroup g where g.semestr = '2014-осень'", Long.class).getSingleResult().intValue());
         utx.commit();
     }
 
@@ -105,7 +105,7 @@ public class ArquillianTest {
     public void uploadRightEtalon() throws Exception {
         utx.begin();
 //        em.joinTransaction();
-        mj.updateStudentsFromExcel("2014-1", loadResource("/newEtalon.xls"));
+        mj.updateStudentsFromExcel("2014-осень", loadResource("/newEtalon.xls"));
         utx.commit();
         utx.begin();
 //        em.joinTransaction();
@@ -113,7 +113,7 @@ public class ArquillianTest {
 
         Assert.assertEquals(1753, storage.getStudents().count());
         Assert.assertEquals(1753, em.createQuery("select count(g) from StudentHistoricalGroup g", Long.class).getSingleResult().intValue());
-        Assert.assertEquals(1753, em.createQuery("select count(g) from StudentHistoricalGroup g where g.semestr = '2014-1'", Long.class).getSingleResult().intValue());
+        Assert.assertEquals(1753, em.createQuery("select count(g) from StudentHistoricalGroup g where g.semestr = '2014-осень'", Long.class).getSingleResult().intValue());
         utx.commit();
     }
 
@@ -122,17 +122,17 @@ public class ArquillianTest {
     public void uploadSemesterModules() throws Exception {
         utx.begin();
 //        em.joinTransaction();
-        mj.updateMarksFromExcel("2014-1", loadResource("/information_items_property_2349.xls"));
+        mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349.xls"));
         utx.commit();
         utx.begin();
         Assert.assertEquals(4067, em.createQuery("select count(m) from Module m", Long.class).getSingleResult().intValue());
-        Assert.assertEquals(4067, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-1'", Long.class).getSingleResult().intValue());
+        Assert.assertEquals(4067, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-осень'", Long.class).getSingleResult().intValue());
         {
-            Student s1 = storage.getStudentByGroupSurnameInitials("2014-1", "ИДБ-13-14", "Наумова", "Р.В.");
-            s1 = storage.getStudentById(s1.id, "2014-1");
-            Assert.assertEquals(new TreeSet<>(asList("2014-1")), storage.getStudentSemestersWithMarks(s1.id));
+            Student s1 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
+            s1 = storage.getStudentById(s1.id, "2014-осень");
+            Assert.assertEquals(new TreeSet<>(asList("2014-осень")), storage.getStudentSemestersWithMarks(s1.id));
             Assert.assertEquals(30, s1.getModules().size());
-            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
         utx.commit();
     }
@@ -161,7 +161,7 @@ public class ArquillianTest {
         Assert.assertEquals(((Student) idb1316Student).id, ((Student) idb1316StudentWithNewPassword).id);
         Assert.assertNull(userDAO.getUserBy("114513", "114513"));
 
-        mj.updateStudentsFromExcel("2014-1", loadResource("/newEtalon.xls"));
+        mj.updateStudentsFromExcel("2014-осень", loadResource("/newEtalon.xls"));
         utx.commit();
 
         utx.begin();
@@ -182,7 +182,7 @@ public class ArquillianTest {
         Assert.assertEquals("ИДБ-13-16", studentWithOldGroup.stgroup);
 
         Assert.assertEquals(1, storage.getStudentSemestersWithMarks(studentWithOldGroup.id).size());
-        Student oldSemestrStudent = storage.getStudentById(studentWithOldGroup.id, "2014-1");
+        Student oldSemestrStudent = storage.getStudentById(studentWithOldGroup.id, "2014-осень");
         int EXPECTED_MODULES_IN_2014_1 = 31;
         Assert.assertEquals(EXPECTED_MODULES_IN_2014_1, oldSemestrStudent.getModules().size());
         Assert.assertEquals(1, oldSemestrStudent.getModules().stream()
@@ -209,7 +209,7 @@ public class ArquillianTest {
                 studentWithNewGroup.getGroups().stream().map(s -> s.groupName).collect(Collectors.toCollection(TreeSet<String>::new)));
 
         Assert.assertEquals(1, storage.getStudentSemestersWithMarks(studentWithNewGroup.id).size());
-        Student oldSemestrNewStudent = storage.getStudentById(studentWithNewGroup.id, "2014-1");
+        Student oldSemestrNewStudent = storage.getStudentById(studentWithNewGroup.id, "2014-осень");
         Assert.assertEquals(EXPECTED_MODULES_IN_2014_1, oldSemestrNewStudent.getModules().size());
         Assert.assertEquals("expect one \"54\" mark in previous journal", 1, oldSemestrNewStudent.getModules().stream()
                 .filter(m -> m.getValue() == 54).count());
@@ -217,19 +217,19 @@ public class ArquillianTest {
 
         // Uploading updated Marks for previous and new semester
         utx.begin();
-        List<String> updateMarksFromExcelReport = mj.updateMarksFromExcel("2014-1", loadResource("/information_items_property_2349_idb-13-16-updated.xls"));
+        List<String> updateMarksFromExcelReport = mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349_idb-13-16-updated.xls"));
 
         Optional<String> reportAboutStudent = updateMarksFromExcelReport.stream().filter(s -> s.contains(oldSemestrStudent.surname)).findAny();
         Assert.assertFalse("not expect any errors about " + oldSemestrStudent.surname + " but got: " + reportAboutStudent, reportAboutStudent.isPresent());
         mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls"));
         utx.commit();
 
-        Assert.assertEquals("old semester uploaded but without some students", 3977, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-1'", Long.class).getSingleResult().intValue());
+        Assert.assertEquals("old semester uploaded but without some students", 3977, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-осень'", Long.class).getSingleResult().intValue());
         Assert.assertEquals("new semester uploaded", 3441, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-2'", Long.class).getSingleResult().intValue());
 
 
         // Expect updating marks for previous semestr
-        oldSemestrNewStudent = storage.getStudentById(studentWithNewGroup.id, "2014-1");
+        oldSemestrNewStudent = storage.getStudentById(studentWithNewGroup.id, "2014-осень");
         Assert.assertEquals(EXPECTED_MODULES_IN_2014_1, oldSemestrNewStudent.getModules().size());
         // Uploading Marks for previous semester with updates for this student
         Assert.assertEquals("expect ten \"54\" marks in updated prev semestr journal", 10, oldSemestrNewStudent.getModules().stream()
@@ -255,13 +255,13 @@ public class ArquillianTest {
         storage.deleteAllModules("2014-2");
 //        em.joinTransaction();
         {
-            Student s0 = storage.getStudentByGroupSurnameInitials("2014-1", "ИДБ-13-14", "Наумова", "Р.В.");
-            Student s1 = storage.getStudentById(s0.id, "2014-1");
+            Student s0 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
+            Student s1 = storage.getStudentById(s0.id, "2014-осень");
             List<Module> allModules = em.createQuery("select m from Module m", Module.class).getResultList();
             Assert.assertEquals(3977, allModules.size());
             Assert.assertEquals(30, allModules.stream().filter(m -> m.getStudent().equals(s1)).count());
             em.refresh(s1);
-            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
         utx.commit();
 
@@ -272,21 +272,21 @@ public class ArquillianTest {
             Student s0 = storage.getStudentByGroupSurnameInitials("2014-2", "ИДБ-13-14", "Наумова", "Р.В.");
             Student s2 = storage.getStudentByGroupSurnameInitials("2014-2", "ИДБ-13-14", "Новикова", "Х.Ф.");
             Student s1 = storage.getStudentById(s0.id, "2014-2");
-            Assert.assertEquals(new TreeSet<>(asList("2014-1", "2014-2")), storage.getStudentSemestersWithMarks(s1.id));
-            Assert.assertEquals(new TreeSet<>(asList("2014-1")), storage.getStudentSemestersWithMarks(s2.id));
+            Assert.assertEquals(new TreeSet<>(asList("2014-осень", "2014-2")), storage.getStudentSemestersWithMarks(s1.id));
+            Assert.assertEquals(new TreeSet<>(asList("2014-осень")), storage.getStudentSemestersWithMarks(s2.id));
             Assert.assertEquals(33, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-2")).count());
         }
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("2014-2", "ИДБ-13-14", "Наумова", "Р.В.");
-            Student s1 = storage.getStudentById(s0.id, "2014-1");
-            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+            Student s1 = storage.getStudentById(s0.id, "2014-осень");
+            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
         storage.deleteAllModules("2014-2");
         {
-            Student s0 = storage.getStudentByGroupSurnameInitials("2014-1", "ИДБ-13-14", "Наумова", "Р.В.");
-            Student s1 = storage.getStudentById(s0.id, "2014-1");
-            Assert.assertEquals(new TreeSet<>(asList("2014-1")), storage.getStudentSemestersWithMarks(s1.id));
-            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-1")).count());
+            Student s0 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
+            Student s1 = storage.getStudentById(s0.id, "2014-осень");
+            Assert.assertEquals(new TreeSet<>(asList("2014-осень")), storage.getStudentSemestersWithMarks(s1.id));
+            Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
 
         utx.commit();
@@ -327,6 +327,7 @@ public class ArquillianTest {
             HttpURLConnection connection = (HttpURLConnection) new URL(url + "webapi/api2/marks").openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
+            connection.setRequestProperty("Content-type","application/x-www-form-urlencoded; charset=utf-8");
             OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), "UTF8");
             writer.append(URLEncoder.encode("student", "UTF-8"));
             writer.append("=");
@@ -338,7 +339,7 @@ public class ArquillianTest {
             writer.append("&");
             writer.append(URLEncoder.encode("semester", "UTF-8"));
             writer.append("=");
-            writer.append(URLEncoder.encode("2014-1", "UTF-8"));
+            writer.append(URLEncoder.encode("2014-осень", "UTF-8"));
             writer.close();
             Assert.assertEquals(200, connection.getResponseCode());
             Assert.assertEquals(2025, connection.getContentLength());

@@ -40,7 +40,7 @@ public class HttpApi2 {
 
         List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();        
         if (modules == null || modules.isEmpty())
-            return error401;
+            return modules;
         
         List<ModuleWrapper> moduleWrappers = new ArrayList<>();
         modules.stream().forEach((m) -> {

@@ -66,8 +66,10 @@ public class HttpApi2 {
             return error401;
         
         Set<String> semesters = storage.getStudentSemestersWithMarks(((Student) s).id);
+        Student student = (Student) s;
         
-        return new SemestersWithSurnameWrapper(semesters, ((Student) s).surname);
+        return new SemestersWithSurnameWrapper(semesters, student.surname,
+                    student.initials, student.stgroup);
     }
 }
 
@@ -112,10 +114,14 @@ class SemestersWithSurnameWrapper {
     
     private Set<String> semesters;
     private String surname;
+    private String initials;
+    private String stgroup;
 
-    public SemestersWithSurnameWrapper(Set<String> semesters, String surname) {
+    public SemestersWithSurnameWrapper(Set<String> semesters, String surname, String initials, String stgroup) {
         this.semesters = semesters;
         this.surname = surname;
+        this.initials = initials;
+        this.stgroup = stgroup;
     }
 
     public Set<String> getSemesters() {
@@ -132,5 +138,21 @@ class SemestersWithSurnameWrapper {
 
     public void setSurname(String surname) {
         this.surname = surname;
+    }
+
+    public String getInitials() {
+        return initials;
+    }
+
+    public void setInitials(String initials) {
+        this.initials = initials;
+    }
+
+    public String getStgroup() {
+        return stgroup;
+    }
+
+    public void setStgroup(String stgroup) {
+        this.stgroup = stgroup;
     }
 }

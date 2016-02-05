@@ -29,6 +29,7 @@ public class UserResolver implements UserDAO {
     private EntityManager em;
 
     private volatile boolean initRequred = true;
+    //TODO: Maybe @javax.annotation.PostConstruct ?
     private void initIfRequired(){
         if(initRequred) synchronized (this) {
             if(initRequred) {

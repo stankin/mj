@@ -13,7 +13,12 @@
 mvn clean install -DskipTests
 ```
 
-Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.1.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.1.Final/wildfly-9.0.1.Final.zip).
+Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.2.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.2.Final/wildfly-9.0.2.Final.zip).
+
+Развертывание можно осуществить командой:
+```text
+mvn wildfly:deploy -DskipTests -Dwildfly.hostname=адрес_сервера
+```
 
 При первом запуске, для автоматического создания схемы в базе данных необходимо установить в файле
 `src/main/resources/META-INF/persistence.xml` значение `hibernate.hbm2ddl.auto` равным `update`:

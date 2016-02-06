@@ -3,6 +3,9 @@ package ru.stankin.mj;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
 
@@ -20,8 +23,6 @@ public class HttpApi2 {
     @Inject
     private UserDAO userDAO;
 
-    ObjectMapper objectMapper = new ObjectMapper();
-    
     private final Response error401 = Response.status(401).build();
 
     // http://localhost:8080/mj/webapi/api2/marks?student=114531&password=114531&semester=w
@@ -37,18 +38,15 @@ public class HttpApi2 {
         User s = userDAO.getUserBy(cardId, password);
         if (s == null)
             return error401;
-
+        
         List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();        
         if (modules == null || modules.isEmpty())
             return modules;
-        
-        List<ModuleWrapper> moduleWrappers = new ArrayList<>();
-        modules.stream().forEach((m) -> {
-            moduleWrappers.add(new ModuleWrapper(m.getSubject().getTitle(), 
-                    m.getNum(), m.getValue()));
-        });
-                
-        return moduleWrappers;        
+
+        return modules.stream().map((m) ->
+                new ModuleWrapper(m.getSubject().getTitle(),
+                        m.getNum(), m.getValue())
+        ).collect(Collectors.toList());
     }
 
     // http://localhost:8080/mj/webapi/api2/semesters?student=114531&password=114531
@@ -64,7 +62,11 @@ public class HttpApi2 {
         if (s == null)
             return error401;
         
-        return storage.getStudentSemestersWithMarks(((Student) s).id);
+        Set<String> semesters = storage.getStudentSemestersWithMarks(((Student) s).id);
+        Student student = (Student) s;
+        
+        return new SemestersWithSurnameWrapper(semesters, student.surname,
+                    student.initials, student.stgroup);
     }
 }
 
@@ -102,5 +104,52 @@ class ModuleWrapper {
 
     public void setValue(int value) {
         this.value = value;
+    }
+}
+
+class SemestersWithSurnameWrapper {
+    
+    private Set<String> semesters;
+    private String surname;
+    private String initials;
+    private String stgroup;
+
+    public SemestersWithSurnameWrapper(Set<String> semesters, String surname, String initials, String stgroup) {
+        this.semesters = semesters;
+        this.surname = surname;
+        this.initials = initials;
+        this.stgroup = stgroup;
+    }
+
+    public Set<String> getSemesters() {
+        return semesters;
+    }
+
+    public void setSemesters(Set<String> semesters) {
+        this.semesters = semesters;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public String getInitials() {
+        return initials;
+    }
+
+    public void setInitials(String initials) {
+        this.initials = initials;
+    }
+
+    public String getStgroup() {
+        return stgroup;
+    }
+
+    public void setStgroup(String stgroup) {
+        this.stgroup = stgroup;
     }
 }

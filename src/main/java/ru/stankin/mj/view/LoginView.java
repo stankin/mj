@@ -8,6 +8,9 @@ import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.UserError;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.VaadinService;
+import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
@@ -17,6 +20,7 @@ import ru.stankin.mj.UserDAO;
 import ru.stankin.mj.UserInfo;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 
 
 @CDIView("login")
@@ -64,6 +68,17 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         layout.addComponent(errorLabel);
         layout.addComponent(passwordField);
         layout.addComponent(loginButton);
+
+
+        VaadinRequest request = VaadinService.getCurrentRequest();
+        if (request instanceof VaadinServletRequest) {
+            HttpServletRequest httpRequest = ((VaadinServletRequest)request).getHttpServletRequest();
+            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
+            if (userAgent.contains("android")) {
+                layout.addComponent(new Label("<a href=\"https://play.google.com/store/apps/details?id=maxim.ru.modulejournal\">Приложение для Android</a>",  ContentMode.HTML));
+            }
+
+        }
 
         Panel panel = new Panel();
         panel.setWidthUndefined();

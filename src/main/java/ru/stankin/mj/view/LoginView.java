@@ -75,7 +75,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
             HttpServletRequest httpRequest = ((VaadinServletRequest)request).getHttpServletRequest();
             String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
             if (userAgent.contains("android")) {
-                layout.addComponent(new Label("<a href=\"https://play.google.com/store/apps/details?id=maxim.ru.modulejournal\">Приложение для Android</a>",  ContentMode.HTML));
+                layout.addComponent(new Label("<a href=\"https://play.google.com/store/apps/details?id=ru.modulejournal\">Приложение для Android</a>",  ContentMode.HTML));
             }
 
         }

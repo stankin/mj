@@ -54,6 +54,9 @@ public class ModuleJournalUploader {
 
         Sheet sheet = workbook.getSheetAt(0);
 
+        if(!sheet.getSheetName().equals("Общий список"))
+            throw new IllegalArgumentException("Загружаемый файл не является Эталоном. Первая страница должна иметь название \"Общий список\"");
+
         Set<String> processedCards = new HashSet<>();
 
         for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {

@@ -54,7 +54,7 @@ public class ModuleJournalUploader {
 
         Sheet sheet = workbook.getSheetAt(0);
 
-        if(!sheet.getSheetName().equals("Общий список"))
+        if (!sheet.getSheetName().equals("Общий список"))
             throw new IllegalArgumentException("Загружаемый файл не является Эталоном. Первая страница должна иметь название \"Общий список\"");
 
         Set<String> processedCards = new HashSet<>();
@@ -142,7 +142,7 @@ public class ModuleJournalUploader {
                     logger.debug("modulePrototypesMap=" + modulePrototypesMap);
 
                     sheet.iterator().forEachRemaining(row -> {
-                        if (row.getCell(0) != null && !row.getCell(0).getStringCellValue().isEmpty()) {
+                        if (hasValue(row.getCell(0)) && hasValue(row.getCell(1)) && hasValue(row.getCell(2))) {
 
                             String group = row.getCell(0).getStringCellValue().trim();
                             String surname = row.getCell(1).getStringCellValue().trim();
@@ -179,11 +179,11 @@ public class ModuleJournalUploader {
                                         student.getModules().add(module);
                                         if (module.getColor() == YELLOW_MODULE && module.getValue() > 25) {
                                             messages.add("Просроченный модуль > 25 :"
-                                                            + student.stgroup + " "
-                                                            + student.surname + " "
-                                                            + student.initials + " "
-                                                            + module.getSubject().getTitle() + ": "
-                                                            + module.getValue()
+                                                    + student.stgroup + " "
+                                                    + student.surname + " "
+                                                    + student.initials + " "
+                                                    + module.getSubject().getTitle() + ": "
+                                                    + module.getValue()
                                             );
                                         }
                                     }
@@ -378,6 +378,10 @@ public class ModuleJournalUploader {
                 this.factor = factor;
             }
         }
+    }
+
+    private static boolean hasValue(Cell cell) {
+        return cell != null && !cell.getStringCellValue().isEmpty();
     }
 
     private static Stream<String> getStringStream(Row row) {

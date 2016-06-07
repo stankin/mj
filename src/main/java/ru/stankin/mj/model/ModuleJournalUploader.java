@@ -147,7 +147,10 @@ public class ModuleJournalUploader {
                             String group = row.getCell(0).getStringCellValue().trim();
                             String surname = row.getCell(1).getStringCellValue().trim();
                             String initials = row.getCell(2).getStringCellValue().trim();
-                            Student student = storage.getStudentByGroupSurnameInitials(semester, group, surname, initials);
+                            String cardid = stringValue(row.getCell(3)).trim();
+                            //Student student = storage.getStudentByGroupSurnameInitials(semester, group, surname, initials);
+                            Student student = storage.getStudentByCardId(cardid);
+
 
                             if (student == null) {
                                 logger.debug("Не найден студент " + group + " " + surname + " " + initials + " в " + semester);

@@ -153,8 +153,9 @@ public class ModuleJournalUploader {
 
 
                             if (student == null) {
-                                logger.debug("Не найден студент " + group + " " + surname + " " + initials + " в " + semester);
-                                messages.add("Не найден студент " + group + " " + surname + " " + initials + " в " + semester);
+                                final String m = "Не найден студент " + group + " " + surname + " " + initials + " " + cardid + " в " + semester;
+                                logger.debug(m);
+                                messages.add(m);
                             } else {
 
                                 student.setModules(new ArrayList<>());

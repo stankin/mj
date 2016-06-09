@@ -225,7 +225,7 @@ public class ArquillianTest {
         utx.commit();
 
         Assert.assertEquals("old semester uploaded but without some students", 3977, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-осень'", Long.class).getSingleResult().intValue());
-        Assert.assertEquals("new semester uploaded", 3441, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-2'", Long.class).getSingleResult().intValue());
+        Assert.assertEquals("new semester uploaded", 3573, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-2'", Long.class).getSingleResult().intValue());
 
 
         // Expect updating marks for previous semestr
@@ -302,7 +302,7 @@ public class ArquillianTest {
         //System.out.println(url);
         {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            Assert.assertEquals(3885, connection.getContentLength());
+            Assert.assertEquals(3883, connection.getContentLength());
             connection.disconnect();
         }
         {

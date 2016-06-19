@@ -35,4 +35,6 @@ public interface Storage {
     void deleteAllModules(String semestr);
 
     void deleteStudent(Student s);
+
+    Student getStudentByCookie(String cardid);
 }

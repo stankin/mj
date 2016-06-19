@@ -11,4 +11,9 @@ public interface User {
     void setPassword(String password);
 
     boolean isAdmin();
+
+    String getCookie();
+
+    void setCookie(String cookie1);
+
 }

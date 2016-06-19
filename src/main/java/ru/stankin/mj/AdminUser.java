@@ -16,6 +16,9 @@ public class AdminUser implements Serializable, User {
     private String email = null;
     private boolean isAdmin = true;
 
+    @Column(unique = true)
+    public String cookie;
+
     public AdminUser() {
     }
 
@@ -82,4 +85,10 @@ public class AdminUser implements Serializable, User {
                 ", isAdmin=" + isAdmin +
                 '}';
     }
+
+    @Override
+    public String getCookie() {return cookie;}
+
+    @Override
+    public void setCookie(String cookie1) {this.cookie = cookie1;}
 }

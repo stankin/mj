@@ -20,7 +20,9 @@ import ru.stankin.mj.UserDAO;
 import ru.stankin.mj.UserInfo;
 
 import javax.inject.Inject;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 
 @CDIView("login")
@@ -36,6 +38,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
     private Label errorLabel;
     private PasswordField passwordField;
     private Button loginButton;
+    private CheckBox checkBox;
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -52,6 +55,8 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         loginButton.addClickListener(this);
         loginButton.setClickShortcut(KeyCode.ENTER);
         setHeight("100%");
+        checkBox = new CheckBox("Запомнить");
+        checkBox.setBuffered(true);
 
         VerticalLayout layout = new VerticalLayout();
 
@@ -67,6 +72,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         layout.addComponent(usernameField);
         layout.addComponent(errorLabel);
         layout.addComponent(passwordField);
+        layout.addComponent(checkBox);
         layout.addComponent(loginButton);
 
 
@@ -116,6 +122,23 @@ public class LoginView extends CustomComponent implements View, ClickListener {
 //            new Notification("Неверный пароль", Notification.TYPE_ERROR_MESSAGE)
 //                    .show(getUI().getPage());
             return;
+        }
+        if ((checkBox.getValue() == true) && (loginUser != null)) {
+
+            {
+                UUID idCook = UUID.randomUUID();
+
+                Cookie moduleZhurnal = new Cookie("ModuleZhurnal", idCook.toString());
+                loginUser.setCookie(idCook.toString());
+
+                userDAO.saveUser(loginUser);
+
+                moduleZhurnal.setMaxAge(60 * 60 * 24 * 30 * 24);
+                moduleZhurnal.setPath(VaadinService.getCurrentRequest().getContextPath());
+                VaadinService.getCurrentResponse().addCookie(moduleZhurnal);
+
+            }
+
         }
 
         user.setUser(loginUser);

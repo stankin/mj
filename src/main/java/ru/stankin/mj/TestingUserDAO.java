@@ -63,4 +63,14 @@ public class TestingUserDAO implements UserDAO, Serializable {
         return users;
     }
 
+    @Override
+    public User getUserCookie(String Cookie) {
+        for (User user : users) {
+            if (user.getCookie().equals(Cookie)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
 }

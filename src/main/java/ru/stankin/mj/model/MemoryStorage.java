@@ -105,4 +105,9 @@ public class MemoryStorage implements Storage {
     public void deleteStudent(Student s) {
         throw new UnsupportedOperationException("deleteStudent");
     }
+
+    @Override
+    public Student getStudentByCookie(String CookId) {
+        return null;
+    }
 }

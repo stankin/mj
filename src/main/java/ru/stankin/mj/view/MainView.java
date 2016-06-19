@@ -25,6 +25,7 @@ import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
 
 import javax.inject.Inject;
+import javax.servlet.http.Cookie;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -114,6 +115,15 @@ public class MainView extends CustomComponent implements View {
         content.setComponentAlignment(settings, Alignment.TOP_RIGHT);
         Button exit = new Button("Выход");
         exit.addClickListener(event1 -> {
+            Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+            for (Cookie cookie : cookies) {
+                if (("ModuleZhurnal".equals(cookie.getName()))) {
+                    cookie.setMaxAge(0);
+                    cookie.setPath(VaadinService.getCurrentRequest().getContextPath());
+                    VaadinService.getCurrentResponse().addCookie(cookie);
+                }
+            }
+            user.setCookie();
             user.setUser(null);
             VaadinService.getCurrentRequest().getWrappedSession().invalidate();
             this.getUI().getPage().reload();

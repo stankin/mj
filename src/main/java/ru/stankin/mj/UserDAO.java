@@ -11,4 +11,6 @@ public interface UserDAO {
     public boolean saveUser(User user);
 
     public List<User> getUsers();
+
+    public User getUserCookie(String Cook);
 }

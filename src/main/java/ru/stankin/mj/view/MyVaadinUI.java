@@ -9,13 +9,17 @@ import com.vaadin.cdi.CDIViewProvider;
 import com.vaadin.cdi.UIScoped;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.VaadinService;
 import com.vaadin.server.WrappedSession;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.UI;
+import ru.stankin.mj.User;
+import ru.stankin.mj.UserDAO;
 import ru.stankin.mj.UserInfo;
 
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
+import javax.servlet.http.Cookie;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -38,12 +42,27 @@ public class MyVaadinUI extends UI {
     @Inject
     private UserInfo user;
 
+    @Inject
+    private UserDAO userDAO;
+
     @Override
     protected void init(VaadinRequest request) {
 
         final WrappedSession session = request.getWrappedSession();
         System.out.println("MyVaadinUI init");
 
+        String cook = null;
+
+        Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+        for (Cookie cookie : cookies) {
+
+            if (("ModuleZhurnal".equals(cookie.getName()))) {
+                cookie.setMaxAge(60 * 60 * 24 * 30 * 24);
+                cook = cookie.getValue();
+
+
+            }
+        }
 
 
         try {
@@ -64,6 +83,19 @@ public class MyVaadinUI extends UI {
         Navigator navigator = new Navigator(this, getCurrent());
         navigator.addProvider(viewProvider);
         System.out.println("user.getRoles()"+String.join(", ", user.getRoles()));
+
+        User loginUser = null;
+
+        if (cook != null) {
+            loginUser = userDAO.getUserCookie(cook);
+        }
+
+        if (loginUser != null) {
+            user.setUser(loginUser);
+            this.getUI().getNavigator().navigateTo("");
+            return;
+        }
+
         if(!user.getRoles().contains("user")) {
             navigator.navigateTo("login");
             return;

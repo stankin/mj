@@ -48,4 +48,8 @@ public class UserInfo implements Serializable {
     public boolean isAdmin() {
         return user != null && user.isAdmin();
     }
+
+    public void setCookie() {
+        user.setCookie(null);
+    }
 }

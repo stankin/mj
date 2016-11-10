@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 public class ModuleJournalUploaderTest {
 
     @Test
-    public void testProcessIncomingDate1() throws Exception {
+    public void testProcessIncomingData1() throws Exception {
 
         Collection<Student> students = getStudentMarks("/information_items_property_2349.xls");
         // Collection<Student> studentso = getStudentMarks("/Модули/information_items_property_2349.xls");
@@ -38,54 +38,35 @@ public class ModuleJournalUploaderTest {
 
     }
 
+
     @Test
-    public void testProcessIncomingDate2() throws Exception {
-        Collection<Student> students = getStudentMarks("/information_items_property_2446.xls");
+    public void testProcessIncomingData4withBlack() throws Exception {
+        Collection<Student> students = getStudentMarks("/2 курс II семестр 2014-2015.xls");
+
         Assert.assertEquals(119, (long) students.size());
-    }
-
-    @Test
-    public void testProcessIncomingDate3() throws Exception {
-        Collection<Student> students = getStudentMarks("/information_items_property_2444.xls");
-        Assert.assertEquals(251, (long) students.size());
-    }
-
-    @Test
-    public void testProcessIncomingDate4withBlack() throws Exception {
-        Collection<Student> students = getStudentMarks("/information_items_property_2445.xls");
-
-        Assert.assertEquals(196, (long) students.size());
 
         Student pletenev =
-                students.stream().filter((Student s) -> s.surname.equals("Воронин")).findFirst().get();
-        System.out.println("pletenev=" + pletenev);
+                students.stream().filter((Student s) -> s.cardid.equals("2222222")).findAny().get();
+
+        System.out.println("pletenev = " + pletenev);
 
 
         Assert.assertEquals(0, pletenev.getModules().stream()
-                .filter(m -> m.getSubject().equals("Управление роботами и робототехнич. системами"))
+                .filter(m -> m.getSubject().getTitle().equals("Правоведение"))
+                .filter(m -> m.getValue() > 0)
+                .count());
+        Assert.assertEquals(3, pletenev.getModules().stream()
+                .filter(m -> m.getSubject().getTitle().equals("Операционные системы"))
+                .filter(m -> m.getValue() > 0)
                 .count());
 
-        Assert.assertEquals(5980, (long) students.stream().mapToInt(s -> s.getModules().size()).sum());
-    }
-
-    @Test
-    public void testProcessIncomingWithRatings() throws Exception {
-        Collection<Student> students = getStudentMarks("/4 курс II семестр 2014-2015.xls");
-        System.out.println(students);
-        Assert.assertEquals(194, (long) students.size());
-
-        List<Subject> subjectList = students.stream().flatMap(s -> s.getModules().stream())
-                .map(m -> m.getSubject()).distinct().collect(Collectors.toList());
-
-        subjectList.stream().forEach(System.out::println);
-
-
+        Assert.assertEquals(3751, (long) students.stream().mapToInt(s -> s.getModules().size()).sum());
     }
 
     private Collection<Student> getStudentMarks(String name) throws IOException, InvalidFormatException {
         ModuleJournalUploader mj = new ModuleJournalUploader();
 
-        Storage storage = new MemoryStorage();
+        Storage storage = new MemoryStorage(true);
         mj.setStorage(storage);
 
         mj.updateMarksFromExcel("", ModuleJournalUploaderTest.class.getResourceAsStream(name));

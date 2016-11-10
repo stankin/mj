@@ -4,10 +4,7 @@ import ru.stankin.mj.User;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +18,10 @@ import java.util.stream.Collectors;
 public class Student implements Serializable, User, Comparable {
 
     private static final long serialVersionUID = 1L;
+    public final static Comparator<Student> studentComparator = Comparator.comparing((Student s) -> s.stgroup)
+            .thenComparing(s -> s.surname)
+            .thenComparing(s -> s.initials)
+            .thenComparing(s -> s.cardid);
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -94,12 +95,7 @@ public class Student implements Serializable, User, Comparable {
 
     @Override
     public int compareTo(Object o) {
-        Student a = (Student) o;
-        int gc = stgroup.compareTo(a.stgroup);
-        return gc != 0 ? gc :
-                surname.compareTo(a.surname) != 0 ? surname.compareTo(a.surname) :
-                        initials.compareTo(a.initials);
-
+          return  studentComparator.compare(this, (Student) o);
     }
 
     @Override
@@ -112,6 +108,7 @@ public class Student implements Serializable, User, Comparable {
         if (stgroup != null ? !stgroup.equals(student.stgroup) : student.stgroup != null) return false;
         if (initials != null ? !initials.equals(student.initials) : student.initials != null) return false;
         if (surname != null ? !surname.equals(student.surname) : student.surname != null) return false;
+        if (cardid != null ? !cardid.equals(student.cardid) : student.cardid != null) return false;
 
         return true;
     }
@@ -121,6 +118,7 @@ public class Student implements Serializable, User, Comparable {
         int result = stgroup != null ? stgroup.hashCode() : 0;
         result = 31 * result + (surname != null ? surname.hashCode() : 0);
         result = 31 * result + (initials != null ? initials.hashCode() : 0);
+        result = 31 * result + (cardid != null ? cardid.hashCode() : 0);
         return result;
     }
 

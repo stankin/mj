@@ -15,23 +15,38 @@ import java.util.stream.Stream;
 public class MemoryStorage implements Storage {
 
     private static final Logger logger = LogManager.getLogger(MemoryStorage.class);
+    private final boolean etalonless;
 
     private TreeSet<Student> students = new TreeSet<>();
     private ArrayList<Student> studentsList = new ArrayList<>();
 
+    public MemoryStorage(boolean etalonless) {
+        this.etalonless = etalonless;
+    }
+
+    public MemoryStorage() {
+        this(false);
+    }
+
     @Override
     public synchronized void updateModules(Student student) {
         //System.out.println("updateModules:"+student);
-        if (students.add(student)) {
-            student.id = students.size()-1;
-            studentsList.add(student);
-        } else {
+        if (!addStudent(student)) {
             Student floor = students.floor(student);
             //logger.debug("floor: {}", floor);
             floor.setModules(student.getModules());
         }
 
         //logger.debug("studentscount: {}",students.size());
+    }
+
+    private synchronized boolean addStudent(Student student) {
+        boolean add = students.add(student);
+        if (add) {
+            student.id = students.size() - 1;
+            studentsList.add(student);
+        }
+        return add;
     }
 
     @Override
@@ -66,7 +81,23 @@ public class MemoryStorage implements Storage {
 
     @Override
     public Student getStudentByCardId(String cardid) {
-        return null;
+
+        if (etalonless) {
+            if (cardid.equals(""))
+                throw new IllegalArgumentException("empty cardid");
+
+
+            return studentsList.stream().filter(s -> s.cardid.equals(cardid)).findAny().orElseGet(() -> {
+                Student student = new Student("nogroup", "noname", "noinitials");
+//            if (cardid.equals("")) {
+//                student.cardid = Integer.toString(students.size() - 1);
+//            } else {
+                student.cardid = cardid;
+                //}
+                addStudent(student);
+                return student;
+            });
+        } else return null;
     }
 
     @Override
@@ -76,17 +107,18 @@ public class MemoryStorage implements Storage {
 
     @Override
     public void saveStudent(Student student, String semestr) {
-        students.add(student);
+        addStudent(student);
     }
 
     private Map<String, Subject> stringSubjectMap = new HashMap<>();
 
     @Override
     public Subject getOrCreateSubject(String semester, String group, String name, double factor) {
-        Subject subject = stringSubjectMap.get(name);
+        String id = semester + "-" + group + "-" + name;
+        Subject subject = stringSubjectMap.get(id);
         if(subject == null){
             subject = new Subject(semester, group, name, factor);
-            stringSubjectMap.put(name, subject);
+            stringSubjectMap.put(id, subject);
         }
         return subject;
     }

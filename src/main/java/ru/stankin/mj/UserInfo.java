@@ -1,6 +1,6 @@
 package ru.stankin.mj;
 
-import com.vaadin.cdi.UIScoped;
+import ru.stankin.mj.model.User;
 
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;

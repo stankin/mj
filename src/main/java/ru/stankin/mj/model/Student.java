@@ -1,7 +1,5 @@
 package ru.stankin.mj.model;
 
-import ru.stankin.mj.User;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.*;

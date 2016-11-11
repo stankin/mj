@@ -1,5 +1,7 @@
 package ru.stankin.mj;
 
+import ru.stankin.mj.model.User;
+
 import java.util.List;
 
 public interface UserDAO {

@@ -2,8 +2,10 @@ package ru.stankin.mj;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import ru.stankin.mj.model.AdminUser;
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
+import ru.stankin.mj.model.User;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

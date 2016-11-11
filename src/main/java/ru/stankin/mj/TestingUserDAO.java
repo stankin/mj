@@ -1,5 +1,7 @@
 package ru.stankin.mj;
 
+import ru.stankin.mj.model.User;
+
 import javax.enterprise.inject.Alternative;
 import java.io.Serializable;
 import java.util.LinkedList;

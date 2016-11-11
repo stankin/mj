@@ -1,29 +1,23 @@
 package ru.stankin.mj.view;
 
-import com.vaadin.annotations.PreserveOnRefresh;
-import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.cdi.CDIUI;
 import com.vaadin.cdi.CDIViewProvider;
-import com.vaadin.cdi.UIScoped;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.WrappedSession;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.UI;
-import ru.stankin.mj.User;
+import ru.stankin.mj.model.User;
 import ru.stankin.mj.UserDAO;
 import ru.stankin.mj.UserInfo;
 
-import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Theme("modules-journal")

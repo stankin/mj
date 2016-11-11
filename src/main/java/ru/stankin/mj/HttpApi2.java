@@ -1,7 +1,5 @@
 package ru.stankin.mj;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,6 +11,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import ru.stankin.mj.model.Module;
+import ru.stankin.mj.model.User;
 
 @Path("/api2")
 public class HttpApi2 {

@@ -44,6 +44,11 @@
           <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.6.1" />
           <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.6.0" />
           <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-core:2.6.1" />
+          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.5" />
+          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.5" />
+          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.5" />
+          <element id="library" level="project" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk7:0.3" />
+          <element id="library" level="project" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk8:0.3" />
         </element>
       </element>
       <element id="directory" name="META-INF">

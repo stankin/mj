@@ -13,7 +13,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import ru.stankin.mj.model.*;
+import ru.stankin.mj.model.user.User;
 import ru.stankin.mj.view.AccountWindow;
+import ru.stankin.mj.model.user.UserDAO;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;

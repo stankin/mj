@@ -1,4 +1,4 @@
-package ru.stankin.mj.model;
+package ru.stankin.mj.model.user;
 
 /**
  * Created by nickl on 16.02.15.

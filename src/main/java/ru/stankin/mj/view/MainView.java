@@ -17,12 +17,9 @@ import org.apache.logging.log4j.Logger;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.MultiFileUpload;
 import org.vaadin.easyuploads.UploadField;
-import ru.stankin.mj.UserDAO;
-import ru.stankin.mj.UserInfo;
-import ru.stankin.mj.model.Module;
-import ru.stankin.mj.model.ModuleJournalUploader;
-import ru.stankin.mj.model.Storage;
-import ru.stankin.mj.model.Student;
+import ru.stankin.mj.model.*;
+import ru.stankin.mj.model.user.UserDAO;
+import ru.stankin.mj.model.user.UserInfo;
 
 import javax.inject.Inject;
 import javax.servlet.http.Cookie;

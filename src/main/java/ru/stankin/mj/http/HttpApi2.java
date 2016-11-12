@@ -1,4 +1,4 @@
-package ru.stankin.mj;
+package ru.stankin.mj.http;
 
 import java.util.List;
 import java.util.Set;
@@ -11,7 +11,8 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import ru.stankin.mj.model.Module;
-import ru.stankin.mj.model.User;
+import ru.stankin.mj.model.user.User;
+import ru.stankin.mj.model.user.UserDAO;
 
 @Path("/api2")
 public class HttpApi2 {

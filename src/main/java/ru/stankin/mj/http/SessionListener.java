@@ -1,4 +1,4 @@
-package ru.stankin.mj;
+package ru.stankin.mj.http;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

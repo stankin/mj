@@ -1,4 +1,4 @@
-package ru.stankin.mj;
+package ru.stankin.mj.http;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;

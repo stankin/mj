@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
     <!--<filter>-->
         <!--<filter-name>LocalFilter</filter-name>-->
-        <!--<filter-class>ru.stankin.mj.LocalFilter</filter-class>-->
+        <!--<filter-class>ru.stankin.mj.http.LocalFilter</filter-class>-->
     <!--</filter>-->
     <!--<filter-mapping>-->
         <!--<filter-name>LocalFilter</filter-name>-->

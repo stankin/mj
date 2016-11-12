@@ -1,11 +1,10 @@
-package ru.stankin.mj;
+package ru.stankin.mj.model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.stankin.mj.model.AdminUser;
-import ru.stankin.mj.model.Storage;
-import ru.stankin.mj.model.Student;
-import ru.stankin.mj.model.User;
+import ru.stankin.mj.model.user.AdminUser;
+import ru.stankin.mj.model.user.User;
+import ru.stankin.mj.model.user.UserDAO;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

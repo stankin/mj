@@ -1,6 +1,4 @@
-package ru.stankin.mj;
-
-import ru.stankin.mj.model.User;
+package ru.stankin.mj.model.user;
 
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;

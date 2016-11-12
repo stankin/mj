@@ -4,7 +4,7 @@ import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractStringValidator;
 import com.vaadin.ui.*;
-import ru.stankin.mj.model.User;
+import ru.stankin.mj.model.user.User;
 import ru.stankin.mj.model.Student;
 
 import java.util.function.Consumer;

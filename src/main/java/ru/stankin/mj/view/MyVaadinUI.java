@@ -9,9 +9,9 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.WrappedSession;
 import com.vaadin.ui.UI;
-import ru.stankin.mj.model.User;
-import ru.stankin.mj.UserDAO;
-import ru.stankin.mj.UserInfo;
+import ru.stankin.mj.model.user.User;
+import ru.stankin.mj.model.user.UserDAO;
+import ru.stankin.mj.model.user.UserInfo;
 
 import javax.inject.Inject;
 import javax.servlet.http.Cookie;

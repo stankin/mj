@@ -328,7 +328,11 @@
             <artifactId>kotlinx-support-jdk8</artifactId>
             <version>0.3</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.sql2o</groupId>
+            <artifactId>sql2o</artifactId>
+            <version>1.5.4</version>
+        </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

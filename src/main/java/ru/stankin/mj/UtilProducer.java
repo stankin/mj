@@ -1,6 +1,7 @@
 package ru.stankin.mj;
 
 import com.sun.org.apache.xpath.internal.SourceTree;
+import org.sql2o.Sql2o;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
@@ -34,6 +35,11 @@ public class UtilProducer {
     @Default
     public DataSource defaultDataSource() {
         return dataSource;
+    }
+
+    @Produces
+    public Sql2o defaultSql2o() {
+        return new Sql2o(dataSource);
     }
 
 

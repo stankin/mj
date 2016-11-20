@@ -48,13 +48,11 @@ public class MyVaadinUI extends UI {
         String cook = null;
 
         Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+        if(cookies != null)
         for (Cookie cookie : cookies) {
-
             if (("ModuleZhurnal".equals(cookie.getName()))) {
                 cookie.setMaxAge(60 * 60 * 24 * 30 * 24);
                 cook = cookie.getValue();
-
-
             }
         }
 

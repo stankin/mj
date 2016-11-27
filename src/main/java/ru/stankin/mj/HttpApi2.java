@@ -54,7 +54,7 @@ public class HttpApi2 {
 
         return modules.stream().map((m) ->
                 new ModuleWrapper(m.getSubject().getTitle(),
-                        m.getNum(), m.getValue())
+                        m.getNum(), m.getValue(), m.getSubject().getFactor())
         ).collect(Collectors.toList());
     }
 
@@ -80,14 +80,16 @@ public class HttpApi2 {
 
 class ModuleWrapper {
 
+    private final double factor;
     private String title;
     private String num;
     private int value;
 
-    public ModuleWrapper(String title, String num, int value) {
+    public ModuleWrapper(String title, String num, int value, double factor) {
         this.title = title;
         this.num = num;
         this.value = value;
+        this.factor = factor;
     }
     
     public String getTitle() {
@@ -112,6 +114,10 @@ class ModuleWrapper {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public double getFactor() {
+        return factor;
     }
 }
 

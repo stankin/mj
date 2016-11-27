@@ -11,6 +11,10 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.mgt.SecurityManager;
 import ru.stankin.mj.model.user.User;
 import ru.stankin.mj.model.user.UserDAO;
 import ru.stankin.mj.model.user.UserInfo;
@@ -18,6 +22,7 @@ import ru.stankin.mj.model.user.UserInfo;
 import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -29,6 +34,9 @@ public class LoginView extends CustomComponent implements View, ClickListener {
 
     @Inject
     private UserDAO userDAO;
+
+    @Inject
+    private SecurityManager securityManager;
 
     private TextField usernameField;
     private Label errorLabel;
@@ -110,18 +118,14 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         String username = usernameField.getValue();
         String password = passwordField.getValue();
 
-        User loginUser = userDAO.getUserBy(username, password);
-        if (loginUser == null) {
-            errorLabel.setValue("Неверный пароль.\nОбратитесь в деканат, если не знаете пароль.");
-            errorLabel.setVisible(true);
-//            passwordField.setComponentError(new UserError("Неверный пароль"));
-//            new Notification("Неверный пароль", Notification.TYPE_ERROR_MESSAGE)
-//                    .show(getUI().getPage());
-            return;
-        }
-        if ((checkBox.getValue() == true) && (loginUser != null)) {
 
-            {
+
+        try {
+            SecurityUtils.getSubject().login(new UsernamePasswordToken(username, password, false));
+
+            User loginUser = Objects.requireNonNull(userDAO.getUserBy(username, password), "user cant be null") ;
+
+            if (checkBox.getValue()) {
                 UUID idCook = UUID.randomUUID();
 
                 Cookie moduleZhurnal = new Cookie("ModuleZhurnal", idCook.toString());
@@ -135,10 +139,18 @@ public class LoginView extends CustomComponent implements View, ClickListener {
 
             }
 
-        }
+            user.setUser(loginUser);
+            this.getUI().getNavigator().navigateTo("");
 
-        user.setUser(loginUser);
-        this.getUI().getNavigator().navigateTo("");
+        } catch (AuthenticationException e){
+
+                errorLabel.setValue("Неверный пароль.\nОбратитесь в деканат, если не знаете пароль.");
+                errorLabel.setVisible(true);
+//            passwordField.setComponentError(new UserError("Неверный пароль"));
+//            new Notification("Неверный пароль", Notification.TYPE_ERROR_MESSAGE)
+//                    .show(getUI().getPage());
+
+        }
 
     }
 }

@@ -14,6 +14,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.shiro.SecurityUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.MultiFileUpload;
 import org.vaadin.easyuploads.UploadField;
@@ -122,6 +123,7 @@ public class MainView extends CustomComponent implements View {
             }
             user.setCookie();
             user.setUser(null);
+            SecurityUtils.getSubject().logout();
             VaadinService.getCurrentRequest().getWrappedSession().invalidate();
             this.getUI().getPage().reload();
         });

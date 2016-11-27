@@ -59,7 +59,7 @@ class ShiroConfiguration {
 
         val fcMan = DefaultFilterChainManager().apply {
             addFilter("basic", org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter())
-            createChain("/**", "basic");
+            createChain("/webapi/**", "basic");
         }
 
 

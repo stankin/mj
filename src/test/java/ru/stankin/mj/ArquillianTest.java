@@ -12,8 +12,10 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import ru.stankin.mj.http.HttpApi2;
 import ru.stankin.mj.model.*;
 import ru.stankin.mj.model.user.User;
+import ru.stankin.mj.rested.security.ShiroConfiguration;
 import ru.stankin.mj.view.AccountWindow;
 import ru.stankin.mj.model.user.UserDAO;
 
@@ -49,7 +51,10 @@ public class ArquillianTest {
                 .addAsLibraries(files)
                 .addPackage(Package.getPackage("ru.stankin.mj"))
                 .addPackage(Package.getPackage("ru.stankin.mj.model"))
+                .addPackage(Package.getPackage("ru.stankin.mj.model.user"))
                 .addPackage(AccountWindow.class.getPackage())
+                .addPackage(HttpApi2.class.getPackage())
+                .addPackage(ShiroConfiguration.class.getPackage())
                 .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
                 .addAsResource("log4j2-test.xml")
                 .addAsWebInfResource("jbossas-ds.xml")

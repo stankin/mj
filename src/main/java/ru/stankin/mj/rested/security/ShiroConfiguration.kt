@@ -1,6 +1,7 @@
 package ru.stankin.mj.rested.security
 
 import org.apache.logging.log4j.LogManager
+import org.apache.shiro.mgt.AbstractRememberMeManager
 import org.apache.shiro.mgt.DefaultSubjectDAO
 import org.apache.shiro.session.Session
 import org.apache.shiro.session.SessionListener
@@ -31,19 +32,11 @@ class ShiroConfiguration {
     @Produces
     fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(SecurityRealm(userService)).apply {
         sessionManager = ServletContainerSessionManager().apply {
-//            sessionListeners.add(object : SessionListener {
-//                override fun onExpiration(p0: Session?) {
-//                    logger.info("onExpiration $p0")
-//                }
-//
-//                override fun onStart(p0: Session?) {
-//                    logger.info("onStart $p0")
-//                }
-//
-//                override fun onStop(p0: Session?) {
-//                    logger.info("onStop $p0")
-//                }
-//            })
+
+            val cipher = System.getenv("SHIRO_CIPHER_KEY")
+            if(cipher != null)
+                (rememberMeManager as AbstractRememberMeManager).cipherKey = cipher.toByteArray()
+
             subjectDAO = DefaultSubjectDAO().apply {
                 sessionStorageEvaluator = DefaultWebSessionStorageEvaluator().apply {
                     isSessionStorageEnabled = false
@@ -59,7 +52,7 @@ class ShiroConfiguration {
 
         val fcMan = DefaultFilterChainManager().apply {
             addFilter("basic", org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter())
-            createChain("/webapi/**", "basic");
+            createChain("/webapi/api3/**", "basic");
         }
 
 

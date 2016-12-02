@@ -42,7 +42,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
     private Label errorLabel;
     private PasswordField passwordField;
     private Button loginButton;
-    private CheckBox checkBox;
+    private CheckBox rememberMeCbx;
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -59,8 +59,8 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         loginButton.addClickListener(this);
         loginButton.setClickShortcut(KeyCode.ENTER);
         setHeight("100%");
-        checkBox = new CheckBox("Запомнить");
-        checkBox.setBuffered(true);
+        rememberMeCbx = new CheckBox("Запомнить");
+        rememberMeCbx.setBuffered(true);
 
         VerticalLayout layout = new VerticalLayout();
 
@@ -76,7 +76,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         layout.addComponent(usernameField);
         layout.addComponent(errorLabel);
         layout.addComponent(passwordField);
-        layout.addComponent(checkBox);
+        layout.addComponent(rememberMeCbx);
         layout.addComponent(loginButton);
 
 
@@ -119,37 +119,17 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         String password = passwordField.getValue();
 
 
-
         try {
-            SecurityUtils.getSubject().login(new UsernamePasswordToken(username, password, false));
+            SecurityUtils.getSubject().login(new UsernamePasswordToken(username, password, rememberMeCbx.getValue()));
 
             User loginUser = Objects.requireNonNull(userDAO.getUserBy(username, password), "user cant be null") ;
-
-            if (checkBox.getValue()) {
-                UUID idCook = UUID.randomUUID();
-
-                Cookie moduleZhurnal = new Cookie("ModuleZhurnal", idCook.toString());
-                loginUser.setCookie(idCook.toString());
-
-                userDAO.saveUser(loginUser);
-
-                moduleZhurnal.setMaxAge(60 * 60 * 24 * 30 * 24);
-                moduleZhurnal.setPath(VaadinService.getCurrentRequest().getContextPath());
-                VaadinService.getCurrentResponse().addCookie(moduleZhurnal);
-
-            }
 
             user.setUser(loginUser);
             this.getUI().getNavigator().navigateTo("");
 
         } catch (AuthenticationException e){
-
                 errorLabel.setValue("Неверный пароль.\nОбратитесь в деканат, если не знаете пароль.");
                 errorLabel.setVisible(true);
-//            passwordField.setComponentError(new UserError("Неверный пароль"));
-//            new Notification("Неверный пароль", Notification.TYPE_ERROR_MESSAGE)
-//                    .show(getUI().getPage());
-
         }
 
     }

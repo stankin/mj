@@ -104,33 +104,4 @@ public class UserResolver implements UserDAO {
         throw new UnsupportedOperationException("getUsers");
     }
 
-
-
-    @Override
-    @Transactional
-    public User getUserCookie(String cookie) {
-        User result = storage.getStudentByCookie(cookie);
-        if (result == null)
-            result = getAdminByCookId(cookie);
-        return result;
-    }
-
-    public AdminUser getAdminByCookId(String cookie) {
-        CriteriaBuilder b = em.getCriteriaBuilder();
-        CriteriaQuery<AdminUser> query = b.createQuery(AdminUser.class);
-        Root<AdminUser> from = query.from(AdminUser.class);
-        query.where(b.equal(from.get("cookie"), cookie));
-
-        try {
-            TypedQuery<AdminUser> query1 = em.createQuery(query);
-
-            query1.setFlushMode(FlushModeType.COMMIT);
-            query1.setMaxResults(1);
-            return query1.getSingleResult();
-        } catch (javax.persistence.NoResultException e) {
-            return null;
-        }
-    }
-
-
 }

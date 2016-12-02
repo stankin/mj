@@ -9,6 +9,9 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.WrappedSession;
 import com.vaadin.ui.UI;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.shiro.SecurityUtils;
 import ru.stankin.mj.model.user.User;
 import ru.stankin.mj.model.user.UserDAO;
 import ru.stankin.mj.model.user.UserInfo;
@@ -30,6 +33,8 @@ import java.util.stream.Collectors;
 @Widgetset("ru.stankin.mj.WidgetSet")
 public class MyVaadinUI extends UI {
 
+    private static Logger log = LogManager.getLogger(MyVaadinUI.class);
+
     @Inject
     CDIViewProvider viewProvider;
 
@@ -43,26 +48,13 @@ public class MyVaadinUI extends UI {
     protected void init(VaadinRequest request) {
 
         final WrappedSession session = request.getWrappedSession();
-        System.out.println("MyVaadinUI init");
-
-        String cook = null;
-
-        Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
-        if(cookies != null)
-        for (Cookie cookie : cookies) {
-            if (("ModuleZhurnal".equals(cookie.getName()))) {
-                cookie.setMaxAge(60 * 60 * 24 * 30 * 24);
-                cook = cookie.getValue();
-            }
-        }
-
 
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ObjectOutputStream outputStream = new ObjectOutputStream(out);
             outputStream.writeObject(session.getAttribute("com.vaadin.server.VaadinSession.VaadinServlet"));
             outputStream.close();
-            System.out.println("Session size:"+out.size());
+            log.debug("Session size:"+out.size());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,22 +62,19 @@ public class MyVaadinUI extends UI {
         String collect = session.getAttributeNames().stream()
                 .map(s -> (s + " -> " + session.getAttribute(s))).collect(Collectors.joining("\n"));
 
-        System.out.println("Session:"+collect);
+        log.debug("Session:"+collect);
 
         Navigator navigator = new Navigator(this, getCurrent());
         navigator.addProvider(viewProvider);
-        System.out.println("user.getRoles()"+String.join(", ", user.getRoles()));
+        log.debug("user.getRoles()"+String.join(", ", user.getRoles()));
 
         User loginUser = null;
 
-        if (cook != null) {
-            loginUser = userDAO.getUserCookie(cook);
-        }
-
-        if (loginUser != null) {
+        final Object principal = SecurityUtils.getSubject().getPrincipal();
+        log.debug("current principal {}", principal);
+        if (principal != null) {
+            loginUser = userDAO.getUserBy(principal.toString());
             user.setUser(loginUser);
-            this.getUI().getNavigator().navigateTo("");
-            return;
         }
 
         if(!user.getRoles().contains("user")) {
@@ -93,10 +82,6 @@ public class MyVaadinUI extends UI {
             return;
         }
         navigator.navigateTo("");
-
-
-
-        //navigator.navigateTo("login");
     }
 
 }

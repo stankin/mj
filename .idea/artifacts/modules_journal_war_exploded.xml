@@ -44,9 +44,9 @@
           <element id="library" level="project" name="Maven: org.apache.shiro:shiro-core:1.3.2" />
           <element id="library" level="project" name="Maven: commons-beanutils:commons-beanutils:1.8.3" />
           <element id="library" level="project" name="Maven: org.apache.shiro:shiro-web:1.3.2" />
-          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.5" />
-          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.5" />
-          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.5" />
+          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.5-2" />
+          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.5-2" />
+          <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.5-2" />
           <element id="library" level="project" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk7:0.3" />
           <element id="library" level="project" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk8:0.3" />
           <element id="library" level="project" name="Maven: org.sql2o:sql2o:1.5.4" />
@@ -56,6 +56,11 @@
         <element id="file-copy" path="$PROJECT_DIR$/target/modules-journal/META-INF/MANIFEST.MF" />
       </element>
       <element id="javaee-facet-resources" facet="modules-journal/web/Web" />
+      <element id="directory" name="VAADIN">
+        <element id="directory" name="widgetsets">
+          <element id="gwt-compiler-output" facet="modules-journal/gwt/GWT" />
+        </element>
+      </element>
     </root>
   </artifact>
 </component>

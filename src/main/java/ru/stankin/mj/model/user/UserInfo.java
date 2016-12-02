@@ -47,7 +47,4 @@ public class UserInfo implements Serializable {
         return user != null && user.isAdmin();
     }
 
-    public void setCookie() {
-        user.setCookie(null);
-    }
 }

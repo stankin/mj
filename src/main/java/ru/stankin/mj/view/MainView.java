@@ -23,7 +23,6 @@ import ru.stankin.mj.model.user.UserDAO;
 import ru.stankin.mj.model.user.UserInfo;
 
 import javax.inject.Inject;
-import javax.servlet.http.Cookie;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -104,7 +103,11 @@ public class MainView extends CustomComponent implements View {
         content.setExpandRatio(blonk, 1);
 
         Button settings = new Button("Аккаунт: " + user.getName(), event1 -> {
-            this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser, true));
+            if(SecurityUtils.getSubject().isAuthenticated()) {
+                this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser, true));
+            }
+            else
+                this.getUI().getNavigator().navigateTo("login");
         });
         if (AccountWindow.needChangePassword(user.getUser()))
             settings.click();
@@ -113,15 +116,6 @@ public class MainView extends CustomComponent implements View {
         content.setComponentAlignment(settings, Alignment.TOP_RIGHT);
         Button exit = new Button("Выход");
         exit.addClickListener(event1 -> {
-            Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
-            for (Cookie cookie : cookies) {
-                if (("ModuleZhurnal".equals(cookie.getName()))) {
-                    cookie.setMaxAge(0);
-                    cookie.setPath(VaadinService.getCurrentRequest().getContextPath());
-                    VaadinService.getCurrentResponse().addCookie(cookie);
-                }
-            }
-            user.setCookie();
             user.setUser(null);
             SecurityUtils.getSubject().logout();
             VaadinService.getCurrentRequest().getWrappedSession().invalidate();

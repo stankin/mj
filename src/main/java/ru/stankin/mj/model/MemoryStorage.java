@@ -138,8 +138,4 @@ public class MemoryStorage implements Storage {
         throw new UnsupportedOperationException("deleteStudent");
     }
 
-    @Override
-    public Student getStudentByCookie(String CookId) {
-        return null;
-    }
 }

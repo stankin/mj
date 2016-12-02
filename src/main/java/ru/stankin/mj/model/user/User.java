@@ -12,8 +12,4 @@ public interface User {
 
     boolean isAdmin();
 
-    String getCookie();
-
-    void setCookie(String cookie1);
-
 }

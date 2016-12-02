@@ -296,22 +296,6 @@ public class JPAStorage implements Storage {
         }
     }
 
-    @Override
-    public Student getStudentByCookie(String cookie) {
-        CriteriaBuilder b = em.getCriteriaBuilder();
-        CriteriaQuery<Student> query = b.createQuery(Student.class);
-        Root<Student> from = query.from(Student.class);
-        query.where(b.equal(from.get("cookie"), cookie));
-        try {
-            TypedQuery<Student> query1 = em.createQuery(query);
-            query1.setFlushMode(FlushModeType.COMMIT);
-            query1.setMaxResults(1);
-            return query1.getSingleResult();
-        } catch (javax.persistence.NoResultException e) {
-            return null;
-        }
-    }
-
 
     private <T> Spliterator<T> toSplitIterator(ScrollableResults scroll, Class<T> type) {
         return Spliterators.spliteratorUnknownSize(

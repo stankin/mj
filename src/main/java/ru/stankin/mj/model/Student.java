@@ -43,8 +43,6 @@ public class Student implements Serializable, User, Comparable {
     @Column(unique = true)
     public String cardid;
 
-    @Column(unique = true)
-    public String cookie;
 
     public Student() {
     }
@@ -83,7 +81,6 @@ public class Student implements Serializable, User, Comparable {
         return "Student{" +
                 "id='" + id + '\'' +
                 " card='" + cardid + '\'' +
-                " cookie='" + cookie + '\'' +
                 ", '" + stgroup + '\'' +
                 ", '" + surname + '\'' +
                 ", '" + initials + '\'' +
@@ -167,9 +164,4 @@ public class Student implements Serializable, User, Comparable {
         this.groups = groups;
     }
 
-    @Override
-    public String getCookie() {return cookie;}
-
-    @Override
-    public void setCookie(String cookie1) {this.cookie = cookie1;}
 }

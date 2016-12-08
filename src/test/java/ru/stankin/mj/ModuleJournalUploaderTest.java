@@ -8,6 +8,7 @@ import ru.stankin.mj.model.*;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,11 +34,26 @@ public class ModuleJournalUploaderTest {
 //        );
 
         Assert.assertEquals(133, (long) students.size());
-        Integer collect = students.stream().map(s -> s.getModules().size()).collect(Collectors.summingInt(i -> i));
+        Integer collect = students.stream().mapToInt(s -> s.getModules().size()).sum();
         Assert.assertEquals(4067, collect.intValue());
 
     }
 
+    @Test
+    public void testMasters() throws Exception {
+
+        Collection<Student> students = getStudentMarks("/master-practics.xls");
+
+        for (Student student : students) {
+            System.out.println("student:" + student);
+        }
+
+
+        Assert.assertEquals(35, (long) students.size());
+        Integer collect = students.stream().mapToInt(s -> s.getModules().size()).sum();
+        Assert.assertEquals(660, collect.intValue());
+
+    }
 
     @Test
     public void testProcessIncomingData4withBlack() throws Exception {
@@ -69,7 +85,7 @@ public class ModuleJournalUploaderTest {
         Storage storage = new MemoryStorage(true);
         mj.setStorage(storage);
 
-        mj.updateMarksFromExcel("", ModuleJournalUploaderTest.class.getResourceAsStream(name));
+        mj.updateMarksFromExcel("", Objects.requireNonNull(ModuleJournalUploaderTest.class.getResourceAsStream(name), "resource " + name + " shoud exist"));
 
         Stream<Student> students = storage.getStudents();
         return students.collect(Collectors.toList());

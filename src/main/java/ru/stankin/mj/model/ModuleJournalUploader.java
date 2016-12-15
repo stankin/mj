@@ -137,7 +137,12 @@ public class ModuleJournalUploader {
                     modulesrow = sheet.getRow(2);
 
 
-                    Map<Integer, ModulePrototype> modulePrototypesMap = buildModulePrototypesMap();
+                    Map<Integer, ModulePrototype> modulePrototypesMap;
+                    try {
+                        modulePrototypesMap = buildModulePrototypesMap();
+                    } catch (Exception e) {
+                        throw new RuntimeException("error building modules prototypes on page " + sheet.getSheetName() + " row: " + subjRow.getRowNum() + " :" + e.getMessage(), e);
+                    }
 
                     logger.debug("modulePrototypesMap=" + modulePrototypesMap);
 
@@ -338,6 +343,8 @@ public class ModuleJournalUploader {
                     return -1;
                 byte[] aRgb = xssfColor.getARgb();
                 logger.debug("XSSFColor {}", Arrays.toString(aRgb));
+                if (aRgb == null)
+                    return -1;
                 return aRgb[1] << 16 | aRgb[2] << 8 | aRgb[3];
             }
 
@@ -395,7 +402,7 @@ public class ModuleJournalUploader {
             case Cell.CELL_TYPE_STRING:
                 return cell.getStringCellValue().trim();
             case Cell.CELL_TYPE_FORMULA:
-                return "FORMULA";
+                return "";
             case Cell.CELL_TYPE_BOOLEAN:
                 return cell.getBooleanCellValue() + "";
             case Cell.CELL_TYPE_ERROR:

@@ -12,6 +12,8 @@ import java.io.Serializable;
 @Table(name = "Modules")
 public class Module implements Cloneable, Serializable {
 
+    public static final int BLACK_MODULE = 3355443;
+
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -106,5 +108,9 @@ public class Module implements Cloneable, Serializable {
 
     public Subject getSubject() {
         return subject;
+    }
+
+    public boolean disabled() {
+        return getColor() == BLACK_MODULE;
     }
 }

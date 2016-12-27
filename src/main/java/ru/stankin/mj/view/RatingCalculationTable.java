@@ -1,6 +1,5 @@
 package ru.stankin.mj.view;
 
-import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.event.FieldEvents;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -17,13 +16,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 
 /**
  * Created by nickl on 03.05.15.
  */
 public class RatingCalculationTable extends MarksTable {
 
-    private static final Logger logger = LogManager.getLogger(RatingCalculationTable.class);
+    private static final Logger log = LogManager.getLogger(RatingCalculationTable.class);
     private Label ratingLabel;
 
     public RatingCalculationTable(Student student) {
@@ -44,6 +45,8 @@ public class RatingCalculationTable extends MarksTable {
             );
             updateRating();
             return ratingLabel;
+        } else if (module.disabled()) {
+            return new Label("-");
         } else {
 
             return new ModuleField(module, event -> updateRating());
@@ -63,9 +66,13 @@ public class RatingCalculationTable extends MarksTable {
     private void updateRating() {
 
         double total = 0.0;
+        double factorssum = 0.0;
 
         for (Map.Entry<Subject, Map<String, Module>> subj : this.modulesGrouped.entrySet()) {
-            Collection<Module> modules = subj.getValue().values();
+            Collection<Module> modules = subj.getValue().values().stream().filter(m -> !m.disabled()).collect(Collectors.toList());
+
+            if(modules.isEmpty())
+                continue;
 
             double subjsum = 0;
             for (Module module : modules) {
@@ -79,10 +86,12 @@ public class RatingCalculationTable extends MarksTable {
 
             subjsum = subjsum / modules.stream().mapToDouble(m -> marksFactor.get(m.getNum())).sum();
 
-            total += subjsum * subj.getKey().getFactor();
+            double factor = subj.getKey().getFactor();
+            total += subjsum * factor;
+            factorssum += factor;
         }
 
-        total = total / this.modulesGrouped.keySet().stream().mapToDouble(Subject::getFactor).sum();
+        total = total / factorssum;
 
         ratingLabel.setValue("<b>" + total + "</b>");
 

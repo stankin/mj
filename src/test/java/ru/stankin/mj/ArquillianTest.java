@@ -7,6 +7,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
@@ -55,12 +56,16 @@ public class ArquillianTest {
                 .addPackage(AccountWindow.class.getPackage())
                 .addPackage(HttpApi2.class.getPackage())
                 .addPackage(ShiroConfiguration.class.getPackage())
-                .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
+                .addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml")
                 .addAsResource("log4j2-test.xml")
-                .addAsWebInfResource("jbossas-ds.xml")
                 .addAsWebInfResource(new File("src/main/webapp/WEB-INF/web.xml"))
                 .addAsWebResource(new File("src/main/webapp/index.html"))
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+                .addAsResource(new StringAsset("flyway.cleandb = true"), "flyway.properties");
+
+        Files.list(Paths.get("src/main/resources/sql"))
+                .forEach(p -> jar.addAsResource(p.toFile(), "/sql/" + p.getFileName()));
+
 
         Files.list(Paths.get("src/test/resources"))
                 .filter(p -> p.toString().endsWith(".xls"))

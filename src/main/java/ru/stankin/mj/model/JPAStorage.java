@@ -6,9 +6,11 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.*;
 import org.hibernate.criterion.*;
 import org.hibernate.criterion.Order;
+import org.sql2o.Sql2o;
 
 import javax.ejb.*;
 import javax.enterprise.inject.Default;
+import javax.inject.Inject;
 import javax.persistence.*;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
@@ -35,6 +37,9 @@ import static org.hibernate.criterion.Restrictions.ilike;
 public class JPAStorage implements Storage {
 
     private static final Logger logger = LogManager.getLogger(JPAStorage.class);
+
+    @Inject
+    Sql2o sql2o;
 
     @PersistenceContext
     private EntityManager em;

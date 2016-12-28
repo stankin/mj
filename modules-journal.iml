@@ -71,8 +71,12 @@
                 <option name="extraHelp" value="false" />
                 <option name="noInline" value="false" />
                 <option name="repeat" />
-                <option name="pluginClasspaths" />
-                <option name="pluginOptions" />
+                <option name="pluginClasspaths">
+                  <array />
+                </option>
+                <option name="pluginOptions">
+                  <array />
+                </option>
                 <option name="freeArgs">
                   <list />
                 </option>
@@ -272,5 +276,6 @@
     <orderEntry type="library" name="Maven: org.sql2o:sql2o:1.5.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.h2database:h2:1.4.191" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.0.5-3" level="project" />
+    <orderEntry type="library" name="Maven: org.flywaydb:flyway-core:4.0.3" level="project" />
   </component>
 </module>

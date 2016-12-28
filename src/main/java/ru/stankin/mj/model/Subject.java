@@ -27,7 +27,6 @@ public class Subject implements Serializable {
         this.stgroup = stgroup;
         this.title = title;
         this.factor = factor;
-        logger.debug("Subject created {}", this);
     }
 
     public Subject() {

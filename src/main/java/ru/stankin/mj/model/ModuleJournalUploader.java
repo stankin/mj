@@ -30,7 +30,7 @@ public class ModuleJournalUploader {
     @Inject
     private Storage storage;
 
-    private static Set<String> markTypes = Arrays.asList("З", "Э", "К").stream().collect(Collectors.toSet());
+    private static Set<String> markTypes = Stream.of("М1", "М2", "З", "Э", "К").collect(Collectors.toSet());
 
     public List<String> updateMarksFromExcel(String semester, InputStream is) throws IOException, InvalidFormatException {
         Workbook workbook = WorkbookFactory.create(is);
@@ -137,7 +137,12 @@ public class ModuleJournalUploader {
                     modulesrow = sheet.getRow(2);
 
 
-                    Map<Integer, ModulePrototype> modulePrototypesMap = buildModulePrototypesMap();
+                    Map<Integer, ModulePrototype> modulePrototypesMap;
+                    try {
+                        modulePrototypesMap = buildModulePrototypesMap();
+                    } catch (Exception e) {
+                        throw new RuntimeException("error building modules prototypes on page " + sheet.getSheetName() + " row: " + subjRow.getRowNum() + " :" + e.getMessage(), e);
+                    }
 
                     logger.debug("modulePrototypesMap=" + modulePrototypesMap);
 
@@ -217,7 +222,7 @@ public class ModuleJournalUploader {
 
         }
 
-        private Row detectSubjsRow(Sheet sheet) {
+        private void detectSubjsRow(Sheet sheet) {
             for (int i = 0; i < sheet.getLastRowNum(); i++) {
                 Row currentRow = sheet.getRow(i);
                 if (currentRow == null)
@@ -237,7 +242,8 @@ public class ModuleJournalUploader {
                             this.factorsrow = prevRow;
                         }
                     }
-                    return this.subjRow = currentRow;
+                    this.subjRow = currentRow;
+                    return;
                 }
             }
             throw new IllegalArgumentException("no SubjsRow found");
@@ -250,34 +256,22 @@ public class ModuleJournalUploader {
             int accumulatedRainingIndex = -1;
 
 
+            SubjectColumnInfo subjectInfo = null;
+
             for (int j = 0; j < modulesrow.getLastCellNum(); j++) {
                 Cell cell = modulesrow.getCell(j);
                 if (cell != null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
                     String header = cell.getStringCellValue().trim();
-                    if (header.equals("М1")) {
+
+                    if (subjRow.getCell(j) != null) {
                         String subjName = subjRow.getCell(j).getStringCellValue().trim();
-
-                        SubjectColumnInfo subjectInfo = new SubjectColumnInfo(subjName, getFactor(j));
-
-                        if (!modulesrow.getCell(j + 1).getStringCellValue().trim().equals("М2"))
-                            throw new IllegalArgumentException("no m2");
-
-                        moduleMap.put(j, new ModulePrototype(subjectInfo, "М1"));
-                        moduleMap.put(j + 1, new ModulePrototype(subjectInfo, "М2"));
-
-
-                        for (int k = 2; k < 5; k++) {
-                            String markType = modulesrow.getCell(j + k).getStringCellValue().trim();
-                            //logger.debug("markType {}", markType);
-                            if (markType.equals("М1"))
-                                break;
-
-                            boolean contains = markTypes.contains(markType);
-                            //logger.debug("contains {}", contains);
-                            if (contains)
-                                moduleMap.put(j + k, new ModulePrototype(subjectInfo, markType));
+                        if (!subjName.isEmpty()) {
+                            subjectInfo = new SubjectColumnInfo(subjName, getFactor(j));
                         }
+                    }
 
+                    if (markTypes.contains(header)) {
+                        moduleMap.put(j, new ModulePrototype(subjectInfo, header));
                     } else if (header.equals("Р")) {
                         rainingIndex = j;
                     } else if (header.equals("РН")) {
@@ -300,7 +294,7 @@ public class ModuleJournalUploader {
                 }
             }
 
-            moduleMap.put(rainingIndex, new ModulePrototype(rating, "М1"));
+            moduleMap.put(rainingIndex, new ModulePrototype(rating, "М1")); // M1 чтобы рейтинг показывался в первом столбце
             moduleMap.put(accumulatedRainingIndex, new ModulePrototype(accumulatedRaiting, "М1"));
 
             return moduleMap;
@@ -349,6 +343,8 @@ public class ModuleJournalUploader {
                     return -1;
                 byte[] aRgb = xssfColor.getARgb();
                 logger.debug("XSSFColor {}", Arrays.toString(aRgb));
+                if (aRgb == null)
+                    return -1;
                 return aRgb[1] << 16 | aRgb[2] << 8 | aRgb[3];
             }
 
@@ -406,7 +402,7 @@ public class ModuleJournalUploader {
             case Cell.CELL_TYPE_STRING:
                 return cell.getStringCellValue().trim();
             case Cell.CELL_TYPE_FORMULA:
-                return "FORMULA";
+                return "";
             case Cell.CELL_TYPE_BOOLEAN:
                 return cell.getBooleanCellValue() + "";
             case Cell.CELL_TYPE_ERROR:

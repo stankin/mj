@@ -310,14 +310,6 @@ public class JPAStorage implements Storage {
     }
 
 
-    @Schedule(second = "00", minute = "00", hour = "04")
-    public void executeBackup() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-        String backupFileName = "backups/backup-" + formatter.format(LocalDateTime.now()) + ".zip";
-        int i = em.createNativeQuery("BACKUP TO '" + backupFileName + "'").executeUpdate();
-        logger.info("backupped " + i + " to " + backupFileName);
-    }
-
 }
 
 class ScrollableResultIterator<T> implements Iterator<T> {

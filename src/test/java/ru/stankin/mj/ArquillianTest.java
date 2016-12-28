@@ -347,7 +347,7 @@ public class ArquillianTest {
             writer.append(URLEncoder.encode("2014-осень", "UTF-8"));
             writer.close();
             Assert.assertEquals(200, connection.getResponseCode());
-            Assert.assertEquals(2025, connection.getContentLength());
+            Assert.assertEquals(2428, connection.getContentLength());
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF8"));
 
             String line = null;

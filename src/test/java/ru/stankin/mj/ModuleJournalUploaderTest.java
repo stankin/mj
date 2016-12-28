@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 public class ModuleJournalUploaderTest {
 
     @Test
-    public void testProcessIncomingData1() throws Exception {
+    public void testProcessIncomingDate1() throws Exception {
 
         Collection<Student> students = getStudentMarks("/information_items_property_2349.xls");
         // Collection<Student> studentso = getStudentMarks("/Модули/information_items_property_2349.xls");
@@ -33,7 +33,7 @@ public class ModuleJournalUploaderTest {
 //        );
 
         Assert.assertEquals(133, (long) students.size());
-        Integer collect = students.stream().map(s -> s.getModules().size()).collect(Collectors.summingInt(i -> i));
+        Integer collect = students.stream().mapToInt(s -> s.getModules().size()).sum();
         Assert.assertEquals(4067, collect.intValue());
 
     }

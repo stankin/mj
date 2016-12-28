@@ -21,7 +21,7 @@ public class UtilProducer {
     ExecutorService executorService = Executors.newCachedThreadPool();
 
 
-    @Resource(lookup = "java:jboss/datasources/mjh2")
+    @Resource(lookup = "java:jboss/datasources/mj2")
     DataSource dataSource;
 
 

@@ -15,6 +15,39 @@ mvn clean install -DskipTests
 
 Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.2.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.2.Final/wildfly-9.0.2.Final.zip).
 
+### Postgres
+
+Для работы приложения на сервере должен быть установлен [PostgreSQL](https://www.postgresql.org/).
+
+Сервер WildFly должен иметь поддержку [JDBC-драйвера для postgresql](https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar). Для добавления его нужно выполнить следующие команды:
+
+    ./jboss-cli.sh 
+    
+И внутри него:
+
+    connect
+    module add --name=org.postgresql --slot=main --resources=путь-куда-вы-скачали-драйвер --dependencies=javax.api,javax.transaction.api
+    /subsystem=datasources/jdbc-driver=postgres:add(driver-name="postgres",driver-module-name="org.postgresql",driver-class-name=org.postgresql.Driver)
+
+Настройки доступа к базе (url, логин, пароль) должны быть указаны в конфигурации WildFly
+ (например, `$JBOSS_HOME/standalone/configuration/standalone.xml`) в секции `urn:jboss:domain:datasources:4.0`
+
+```xml
+        <subsystem xmlns="urn:jboss:domain:datasources:4.0">
+            <datasources>
+                <datasource jndi-name="java:jboss/datasources/mj2" pool-name="mj-pg-datasource" enabled="true" use-java-context="true">
+                    <connection-url>jdbc:postgresql://localhost:5432/mj</connection-url>
+                    <driver>postgres</driver>
+                    <security>
+                        <user-name>login</user-name>
+                        <password>password</password>
+                    </security>
+                </datasource>
+                ...
+```
+
+### Запуск
+
 Развертывание можно осуществить командой:
 ```text
 mvn wildfly:deploy -DskipTests -Dwildfly.hostname=адрес_сервера
@@ -35,17 +68,13 @@ mvn wildfly:deploy -DskipTests -Dwildfly.hostname=адрес_сервера
 
 Для выполнения тестов (`mvn test`) необходимо указать в переменной окружения `JBOSS_HOME` путь к установленному серверу Wildfly.
 
-### Known issues ###
+Для исполнения `ArquillianTest` необходимо предварительно создать в Postgres пользователя `mj_test` с пустым паролем и базу данных `mj_test`.
+Сделать это можно (в Ubuntu) командами:
 
-В некоторых случаях нужно указать имя файла базы данных без специальных символов в [`src/main/webapp/WEB-INF/mj2-ds.xml:29`](src/main/webapp/WEB-INF/mj2-ds.xml?fileviewer=file-view-default#mj2-ds.xml-29), заменив `~/test:mj2` на какой-нибудь другой путь на вашем диске.
+    sudo -u postgres createuser mj_test -d -P
+    sudo -u postgres createdb mj_test -O mj_test
 
-### H2 fix ###
-
-Wildfly использует встроенную базу данных **H2** версии `1.3.173`, которая подвержена багу c логированием `isWrapperFor` значительно снижащим производетельность. 
-
-Следует либо обновить **H2** до версии к примеру `1.4.188` заменив jar-файл в Wildfly по адресу: `modules/system/layers/base/com/h2database/h2/main` и обновивив версию в соответствующем `module.xml`.
-
-Либо отключить логирование как советуют [здесь](https://github.com/rundeck/rundeck/issues/1175)
+При запросе ввода пароля в качестве пароля оставить пустую строку.
 
 
 ## Работа с приложением ##

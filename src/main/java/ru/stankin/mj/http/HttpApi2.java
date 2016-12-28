@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.stankin.mj.model.Storage;
 import ru.stankin.mj.model.Student;
 
@@ -17,6 +19,8 @@ import ru.stankin.mj.model.user.UserDAO;
 @Path("/api2")
 public class HttpApi2 {
 
+//for testing with Curl curl -X POST -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" --data "student=114496&password=114496&semester=2015-%D0%B2%D0%B5%D1%81%D0%BD%D0%B0" http://localhost:8080/mj/webapi/api2/marks
+
     @Inject
     private Storage storage;
 
@@ -24,6 +28,8 @@ public class HttpApi2 {
     private UserDAO userDAO;
 
     private final Response error401 = Response.status(401).build();
+
+    private static Logger log = LogManager.getLogger(HttpApi2.class);
 
     // http://localhost:8080/mj/webapi/api2/marks?student=114531&password=114531&semester=w
     @POST
@@ -35,21 +41,23 @@ public class HttpApi2 {
             @FormParam("semester") String semester
     ){
 
+        log.debug("marks requested cards={} password={} semester={}", cardId, password, semester);
+
         User s = userDAO.getUserBy(cardId, password);
         if (s == null)
             return error401;
         
-        List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();        
+        List<Module> modules = storage.getStudentById(((Student)s).id, semester).getModules();
+        log.debug("modules are {}", modules);
         if (modules == null || modules.isEmpty())
             return modules;
 
         return modules.stream().map((m) ->
                 new ModuleWrapper(m.getSubject().getTitle(),
-                        m.getNum(), m.getValue())
+                        m.getNum(), m.getValue(), m.getSubject().getFactor())
         ).collect(Collectors.toList());
     }
 
-    // http://localhost:8080/mj/webapi/api2/semesters?student=114531&password=114531
     @POST
     @Path("semesters")
     @Produces("application/json; charset=UTF-8")
@@ -72,14 +80,16 @@ public class HttpApi2 {
 
 class ModuleWrapper {
 
+    private final double factor;
     private String title;
     private String num;
     private int value;
 
-    public ModuleWrapper(String title, String num, int value) {
+    public ModuleWrapper(String title, String num, int value, double factor) {
         this.title = title;
         this.num = num;
         this.value = value;
+        this.factor = factor;
     }
     
     public String getTitle() {
@@ -104,6 +114,10 @@ class ModuleWrapper {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public double getFactor() {
+        return factor;
     }
 }
 

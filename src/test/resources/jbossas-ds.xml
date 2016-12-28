@@ -4,11 +4,12 @@
     xsi:schemaLocation="
         http://www.jboss.org/ironjacamar/schema
         http://docs.jboss.org/ironjacamar/schema/datasources_1_0.xsd">
-    <datasource enabled="true"
-        jndi-name="jdbc/arquillian"
-        pool-name="ArquillianEmbeddedH2Pool" use-java-context="true">
-        <connection-url>jdbc:h2:mem:arquillian</connection-url>
-        <!--<connection-url>jdbc:h2:~/arqtest:mj2</connection-url>-->
-        <driver>h2</driver>
+    <datasource jndi-name="jdbc/arquillian" pool-name="ArquillianEmbeddedH2Pool" enabled="true" use-java-context="true">
+        <connection-url>jdbc:postgresql://localhost:5432/mj_test</connection-url>
+        <driver>postgres</driver>
+        <security>
+            <user-name>mj_test</user-name>
+            <password></password>
+        </security>
     </datasource>
 </datasources>

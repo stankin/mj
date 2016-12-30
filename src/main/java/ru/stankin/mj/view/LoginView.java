@@ -77,6 +77,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         layout.addComponent(errorLabel);
         layout.addComponent(passwordField);
         layout.addComponent(rememberMeCbx);
+        layout.addComponent(new Label("<a href='forceLogin?client_name=FacebookClient'>Войти через Facebook</a>", ContentMode.HTML));
         layout.addComponent(loginButton);
 
 

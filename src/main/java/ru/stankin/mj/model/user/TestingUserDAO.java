@@ -63,5 +63,10 @@ public class TestingUserDAO implements UserDAO, Serializable {
         return users;
     }
 
+    @Override
+    public User getUserByPrincipal(Object principal) {
+        throw new UnsupportedOperationException();
+    }
+
 
 }

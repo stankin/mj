@@ -73,7 +73,7 @@ public class MyVaadinUI extends UI {
         final Object principal = SecurityUtils.getSubject().getPrincipal();
         log.debug("current principal {}", principal);
         if (principal != null) {
-            loginUser = userDAO.getUserBy(principal.toString());
+            loginUser = userDAO.getUserByPrincipal(principal);
             user.setUser(loginUser);
         }
 

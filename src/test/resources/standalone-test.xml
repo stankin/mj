@@ -65,11 +65,11 @@
             <handlers>
                 <file-handler name="file" formatter="json-formatter" path="audit-log.log" relative-to="jboss.server.data.dir"/>
             </handlers>
-            <logger log-boot="true" log-read-only="false" enabled="false">
+            <log log-boot="true" log-read-only="false" enabled="false">
                 <handlers>
                     <handler name="file"/>
                 </handlers>
-            </logger>
+            </log>
         </audit-log>
         <management-interfaces>
             <http-interface security-realm="ManagementRealm" http-upgrade-enabled="true">
@@ -102,31 +102,31 @@
                 <suffix value=".yyyy-MM-dd"/>
                 <append value="true"/>
             </periodic-rotating-file-handler>
-            <logger category="com.arjuna">
+            <log category="com.arjuna">
                 <level name="WARN"/>
-            </logger>
-            <logger category="org.jboss.as.config">
+            </log>
+            <log category="org.jboss.as.config">
                 <level name="DEBUG"/>
-            </logger>
-            <logger category="sun.rmi">
+            </log>
+            <log category="sun.rmi">
                 <level name="WARN"/>
-            </logger>
-            <logger category="org.hibernate.type">
+            </log>
+            <log category="org.hibernate.type">
                 <level name="INFO"/>
-            </logger>
-            <logger category="org.hibernate.SQL">
+            </log>
+            <log category="org.hibernate.SQL">
                 <level name="INFO"/>
-            </logger>
-            <logger category="ru">
+            </log>
+            <log category="ru">
                 <level name="DEBUG"/>
-            </logger>
-            <root-logger>
+            </log>
+            <root-log>
                 <level name="INFO"/>
                 <handlers>
                     <handler name="CONSOLE"/>
                     <handler name="FILE"/>
                 </handlers>
-            </root-logger>
+            </root-log>
             <formatter name="PATTERN">
                 <pattern-formatter pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"/>
             </formatter>

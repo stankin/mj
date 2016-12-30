@@ -106,10 +106,6 @@ open class UserResolver : UserDAO {
     override fun getUserByPrincipal(principal: Any): User? {
       return when (principal) {
             is String -> getUserBy(principal)
-            is Pac4jPrincipal -> {
-                log.debug("authenticating by Pac4jPrincipal:" + principal + " " + principal.profiles)
-                AdminUser("${principal.profile.displayName}(${principal.profile.email})", "" , "")
-            }
             else -> throw UnsupportedOperationException("principals of type " + principal.javaClass.name + " are not suported")
         }
     }

@@ -33,10 +33,7 @@ class ShiroConfiguration {
 
     @Produces
     fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(mutableListOf<Realm>(
-            SecurityRealm(userService),
-            io.buji.pac4j.realm.Pac4jRealm().apply {
-
-            }
+            MjSecurityRealm(userService, io.buji.pac4j.realm.Pac4jRealm())
     )
     ).apply {
         subjectFactory = io.buji.pac4j.subject.Pac4jSubjectFactory()

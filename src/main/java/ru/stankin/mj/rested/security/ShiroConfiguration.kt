@@ -19,6 +19,9 @@ import org.apache.shiro.web.mgt.DefaultWebSessionStorageEvaluator
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager
 import org.apache.shiro.web.session.mgt.ServletContainerSessionManager
 import org.pac4j.core.client.Clients
+import org.pac4j.oauth.client.Google2Client
+import org.pac4j.oauth.client.VkClient
+import java.util.*
 
 
 /**
@@ -30,6 +33,9 @@ class ShiroConfiguration {
 
     @Inject
     lateinit var userService: UserService
+
+    @Inject
+    lateinit var properties: Properties
 
     @Produces
     fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(mutableListOf<Realm>(
@@ -56,21 +62,22 @@ class ShiroConfiguration {
 
         val pacConfig = org.pac4j.core.config.Config().apply {
             clients = Clients(
-                    org.pac4j.oauth.client.FacebookClient(
-                            "145278422258960",
-                            "be21409ba8f39b5dae2a7de525484da8"
+                    Google2Client(
+                            properties.getProperty("oauth.google.clientid")!!,
+                            properties.getProperty("oauth.google.secret")!!
                     ).apply {
-                        callbackUrl = "http://localhost:8080/mj/callback"
+                       callbackUrl = properties.getProperty("oauth.callbackurl")
+                    },
+                    VkClient(properties.getProperty("oauth.vk.clientid")!!,
+                            properties.getProperty("oauth.vk.secret")!!)
+                            .apply {
+                        callbackUrl = properties.getProperty("oauth.callbackurl")
                     }
             )
         }
 
         val fcMan = DefaultFilterChainManager().apply {
             addFilter("basic", org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter())
-//            addFilter("facebook",io.buji.pac4j.filter.SecurityFilter().apply {
-//                config = pacConfig
-//                clients = "FacebookClient"
-//            })
             addFilter("callbackFilter", io.buji.pac4j.filter.CallbackFilter().apply {
                 config = pacConfig
                 defaultUrl = "/mj"
@@ -79,7 +86,6 @@ class ShiroConfiguration {
                 config = pacConfig
             })
             createChain("/webapi/api3/**", "basic");
-//            createChain("/facebook/**", "facebook");
             createChain("/callback", "callbackFilter");
             createChain("/forceLogin", "forceLoginFilter");
         }

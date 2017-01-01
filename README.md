@@ -15,6 +15,19 @@ mvn clean install -DskipTests
 
 Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.2.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.2.Final/wildfly-9.0.2.Final.zip).
 
+### Конфигурация
+
+В папке `${jboss.server.config.dir}` (например, `$JBOSS_HOME/standalone/configuration`) должен находиться файл `mj.properties` следующего содержания :
+
+```properties
+oauth.google.clientid=клинет_ид_приложения_в_google
+oauth.google.secret=секрет_приложения_в_google
+oauth.vk.clientid=клинет_ид_приложения_в_vk
+oauth.vk.secret=секрет_приложения_в_vk
+oauth.callbackurl=http://localhost:8080/mj/callback (или другой при развертывании на сервере)
+```
+
+
 ### Postgres
 
 Для работы приложения на сервере должен быть установлен [PostgreSQL](https://www.postgresql.org/).

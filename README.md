@@ -24,6 +24,8 @@ oauth.google.clientid=клинет_ид_приложения_в_google
 oauth.google.secret=секрет_приложения_в_google
 oauth.vk.clientid=клинет_ид_приложения_в_vk
 oauth.vk.secret=секрет_приложения_в_vk
+oauth.yandex.clientid=клинет_ид_приложения_в_yandex
+oauth.yandex.secret=секрет_приложения_в_yandex
 oauth.callbackurl=http://localhost:8080/mj/callback (или другой при развертывании на сервере)
 ```
 

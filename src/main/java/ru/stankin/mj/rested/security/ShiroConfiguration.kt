@@ -72,7 +72,12 @@ class ShiroConfiguration {
                             properties.getProperty("oauth.vk.secret")!!)
                             .apply {
                         callbackUrl = properties.getProperty("oauth.callbackurl")
+                            },
+                    YandexClient(properties.getProperty("oauth.yandex.clientid")!!,
+                            properties.getProperty("oauth.yandex.secret")!!).apply {
+                        callbackUrl = properties.getProperty("oauth.callbackurl")
                     }
+
             )
         }
 

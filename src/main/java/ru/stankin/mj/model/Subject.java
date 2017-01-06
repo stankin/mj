@@ -32,6 +32,10 @@ public class Subject implements Serializable {
     public Subject() {
     }
 
+    public int getId() {
+        return id;
+    }
+
     public double getFactor() {
         return factor;
     }

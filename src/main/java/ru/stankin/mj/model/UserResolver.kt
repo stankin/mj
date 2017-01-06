@@ -1,8 +1,10 @@
 package ru.stankin.mj.model
 
 import io.buji.pac4j.subject.Pac4jPrincipal
+import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.sql2o.Sql2o
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.model.user.UserDAO
@@ -19,7 +21,7 @@ import javax.transaction.Transactional
  * Created by nickl on 16.02.15.
  */
 @Singleton
-open class UserResolver : UserDAO {
+open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO {
 
     @Inject
     internal lateinit var storage: Storage
@@ -71,19 +73,30 @@ open class UserResolver : UserDAO {
     }
 
     open fun getAdminUser(username: String): AdminUser? {
-        val b = em.criteriaBuilder
-        val query = b.createQuery(AdminUser::class.java)
-        val from = query.from(AdminUser::class.java)
-        query.where(b.equal(from.get<Any>("username"), username))
 
-        try {
-            val query1 = em.createQuery(query)
-            query1.flushMode = FlushModeType.COMMIT
-            query1.maxResults = 1
-            return query1.singleResult
-        } catch (e: javax.persistence.NoResultException) {
-            return null
+
+        return sql2o.open().use{ connection ->
+            connection
+                    .createQuery("SELECT users.id as id, * FROM users INNER JOIN adminuser on users.id = adminuser.id WHERE login = :login")
+                    .addParameter("login", username)
+                    .throwOnMappingFailure(false)
+                    .executeAndFetchFirst(AdminUser::class.java)
+
         }
+
+//        val b = em.criteriaBuilder
+//        val query = b.createQuery(AdminUser::class.java)
+//        val from = query.from(AdminUser::class.java)
+//        query.where(b.equal(from.get<Any>("username"), username))
+//
+//        try {
+//            val query1 = em.createQuery(query)
+//            query1.flushMode = FlushModeType.COMMIT
+//            query1.maxResults = 1
+//            return query1.singleResult
+//        } catch (e: javax.persistence.NoResultException) {
+//            return null
+//        }
 
     }
 

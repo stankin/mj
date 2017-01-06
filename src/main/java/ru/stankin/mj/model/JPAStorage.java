@@ -6,7 +6,10 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.*;
 import org.hibernate.criterion.*;
 import org.hibernate.criterion.Order;
+import org.sql2o.Connection;
+import org.sql2o.ResultSetIterable;
 import org.sql2o.Sql2o;
+import org.sql2o.StatementRunnableWithResult;
 
 import javax.ejb.*;
 import javax.enterprise.inject.Default;
@@ -38,11 +41,16 @@ public class JPAStorage implements Storage {
 
     private static final Logger logger = LogManager.getLogger(JPAStorage.class);
 
-    @Inject
+    private final
     Sql2o sql2o;
 
     @PersistenceContext
     private EntityManager em;
+
+    @Inject
+    public JPAStorage(Sql2o sql2o) {
+        this.sql2o = sql2o;
+    }
 
     @Override
     @javax.transaction.Transactional
@@ -157,49 +165,57 @@ public class JPAStorage implements Storage {
         if (text == null)
             return getStudents();
 
-        Session session = (Session) em.getDelegate();
-        Criteria criteria = session.createCriteria(Student.class);
-        criteria.setFetchMode("groups", FetchMode.SELECT);
-        criteria
-                .addOrder(Order.asc("stgroup"))
-                .addOrder(Order.asc("surname"));
-        criteria.add(Restrictions.or(
-                ilike("stgroup", text, MatchMode.ANYWHERE),
-                ilike("surname", text, MatchMode.ANYWHERE),
-                ilike("initials", text, MatchMode.ANYWHERE)
-        ));
-        criteria.setFetchSize(Integer.valueOf(1000));
-        criteria.setReadOnly(true);
-        criteria.setCacheable(false);
-        criteria.setLockMode("a", LockMode.NONE);
+        Connection connection = sql2o.open();
+        try {
+            return toStream(connection
+                    .createQuery("SELECT users.id as id, * FROM users INNER JOIN student on users.id = student.id  WHERE surname || initials || stgroup ILIKE :pattern ORDER BY stgroup, surname;\n")
+                    .addParameter("pattern", "%" + text + "%")
+                    .throwOnMappingFailure(false)
+                    .executeAndFetchLazy(Student.class), connection);
 
-        ScrollableResults scroll = criteria.scroll(ScrollMode.FORWARD_ONLY);
-
-        return toStream(scroll, Student.class);
-        //return toStream(scroll, Student.class).collect(Collectors.toList()).stream();
-
+        } catch (Exception e) {
+            connection.close();
+            throw e;
+        }
     }
 
 
     @Override
     @javax.transaction.Transactional
     public Student getStudentById(int id, String semester) {
-        Student student = em.find(Student.class, id);
-        if (semester != null) {
-            CriteriaBuilder b = em.getCriteriaBuilder();
-            CriteriaQuery<Module> query = b.createQuery(Module.class);
-            Root<Module> from = query.from(Module.class);
-            query.where(b.and(
-                    b.equal(from.get("student"), student),
-                    b.equal(from.get("subject").get("semester"), semester)
-            ));
-            student.setModules(em.createQuery(query).getResultList());
-            //student.getModules().size();
-//            ArrayList<Module> modules = new ArrayList<>(student.getModules());
-//            //logger.debug("modules:{}", modules);
-//            student.setModules(modules);
+
+        try (Connection connection = sql2o.open()) {
+            Student student = connection
+                    .createQuery("SELECT users.id as id, * FROM users INNER JOIN student on users.id = student.id" +
+                            " WHERE users.id = :id")
+                    .addParameter("id", id)
+                    .throwOnMappingFailure(false)
+                    .executeAndFetchFirst(Student.class);
+
+            if (semester != null) {
+                Map<Integer, Subject> subjectsCache = new HashMap<>();
+                student.setModules(connection
+                        .createQuery("SELECT * from modules WHERE student_id = :id and subject_id in (SELECT subjects.id from subjects WHERE semester = :semester)")
+                        .addParameter("id", id)
+                        .addParameter("semester", semester)
+                        .throwOnMappingFailure(false)
+                        .executeAndFetch(Module.class).stream()
+                        .map(module -> {
+                            Subject subject = connection
+                                    .createQuery("SELECT * from subjects WHERE subjects.id in (SELECT subject_id FROM modules WHERE modules.id = :id)")
+                                    .addParameter("id", module.getId())
+                                    .throwOnMappingFailure(false).executeAndFetchFirst(Subject.class);
+
+                            //TODO: вообще их можно было бы кешировать глобально и отдельно, всеравно предметы у модулей не меняются
+                            Subject cashedSubject = subjectsCache.computeIfAbsent(subject.getId(), i -> subject);
+                            module.setSubject(cashedSubject);
+                            return module;
+                        }).collect(Collectors.toList())
+                );
+            }
+
+            return student;
         }
-        return student;
     }
 
     @Override
@@ -286,19 +302,30 @@ public class JPAStorage implements Storage {
 
     @Override
     public Student getStudentByCardId(String cardid) {
-        CriteriaBuilder b = em.getCriteriaBuilder();
-        CriteriaQuery<Student> query = b.createQuery(Student.class);
-        Root<Student> from = query.from(Student.class);
-        query.where(b.equal(from.get("cardid"), cardid));
 
-        try {
-            TypedQuery<Student> query1 = em.createQuery(query);
-            query1.setFlushMode(FlushModeType.COMMIT);
-            query1.setMaxResults(1);
-            return query1.getSingleResult();
-        } catch (javax.persistence.NoResultException e) {
-            return null;
+        try (Connection connection = sql2o.open()) {
+            return connection
+                    .createQuery("SELECT users.id as id, * FROM users INNER JOIN student on users.id = student.id" +
+                            " WHERE login = :login")
+                    .addParameter("login", cardid)
+                    .throwOnMappingFailure(false)
+                    .executeAndFetchFirst(Student.class);
+
         }
+
+//        CriteriaBuilder b = em.getCriteriaBuilder();
+//        CriteriaQuery<Student> query = b.createQuery(Student.class);
+//        Root<Student> from = query.from(Student.class);
+//        query.where(b.equal(from.get("cardid"), cardid));
+//
+//        try {
+//            TypedQuery<Student> query1 = em.createQuery(query);
+//            query1.setFlushMode(FlushModeType.COMMIT);
+//            query1.setMaxResults(1);
+//            return query1.getSingleResult();
+//        } catch (javax.persistence.NoResultException e) {
+//            return null;
+//        }
     }
 
 
@@ -312,6 +339,16 @@ public class JPAStorage implements Storage {
 
     private <T> Stream<T> toStream(ScrollableResults scroll, Class<T> type) {
         return StreamSupport.stream(toSplitIterator(scroll, type), false);
+    }
+
+    private <T> Stream<T> toStream(ResultSetIterable<T> resultSet, Connection connection) {
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(resultSet.iterator(),
+                Spliterator.DISTINCT | Spliterator.NONNULL |
+                        Spliterator.CONCURRENT | Spliterator.IMMUTABLE
+        ), false).onClose(() -> {
+            resultSet.close();
+            connection.close();
+        });
     }
 
 

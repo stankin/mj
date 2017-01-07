@@ -8,6 +8,7 @@ import org.sql2o.Sql2o
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.model.user.UserDAO
+import javax.annotation.PostConstruct
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,7 +16,6 @@ import javax.persistence.*
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.Root
-import javax.transaction.Transactional
 
 /**
  * Created by nickl on 16.02.15.
@@ -29,34 +29,34 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
     @PersistenceContext
     private lateinit var em: EntityManager
 
-    @Volatile private var initRequred = true
-    //TODO: Maybe @javax.annotation.PostConstruct ?
-    // Но проблема в том что PostConstruct не может быть одновременно @Transactional
-    open fun initIfRequired() {
-        if (initRequred)
-            synchronized(this) {
-                if (initRequred) {
-                    val b = em.criteriaBuilder
-                    val query = b.createQuery(AdminUser::class.java)
-                    query.select(query.from(AdminUser::class.java))
-                    try {
-                        em.createQuery(query).maxResults
-                    } catch (e: NoResultException) {
-                        em.persist(AdminUser("admin", "adminadmin", null))
-                    } catch (e: javax.persistence.NonUniqueResultException){
-                    }
 
-                    em.flush()
-                    initRequred = false
-                }
+    @PostConstruct
+    open fun initIfRequired() {
+
+        //language=SQL
+        sql2o.beginTransaction().use { connection ->
+
+            val adminsCount = connection.createQuery("SELECT COUNT(id) FROM adminuser LIMIT 1;")
+                    .executeScalar(Int::class.java)
+            if(adminsCount == 0) {
+                val userId = connection
+                        .createQuery("INSERT INTO users (login) " + "VALUES (:login);", true)
+                        .addParameter("login", "admin")
+                        .executeUpdate().getKey<Int>(Int::class.java)
+
+                connection.createQuery("INSERT INTO adminuser (id, password) " + "VALUES (:id, :password);")
+                        .addParameter("id", userId)
+                        .addParameter("password", "adminadmin")
+                        .executeUpdate()
+
+                connection.commit();
             }
+        }
 
     }
 
 
-    @Transactional
     override fun getUserBy(username: String, password: String): User? {
-        initIfRequired()
         var result: User? = getUserBy(username)
 
         if (result?.password != password)
@@ -101,7 +101,6 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
     }
 
 
-    @Transactional
     override fun saveUser(user: User): Boolean {
         log.debug("saving user {}", user)
         if (user is Student)

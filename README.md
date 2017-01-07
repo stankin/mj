@@ -50,7 +50,7 @@ oauth.callbackurl=http://localhost:8080/mj/callback (или другой при 
 ```xml
         <subsystem xmlns="urn:jboss:domain:datasources:4.0">
             <datasources>
-                <datasource jndi-name="java:jboss/datasources/mj2" pool-name="mj-pg-datasource" enabled="true" use-java-context="true">
+                <datasource jndi-name="java:jboss/datasources/mj2" jta="false" pool-name="mj-pg-datasource" enabled="true" use-java-context="true">
                     <connection-url>jdbc:postgresql://localhost:5432/mj</connection-url>
                     <driver>postgres</driver>
                     <security>

@@ -24,7 +24,7 @@ public class StudentHistoricalGroup implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id = 0;
+    public int id = 0;
 
     @ManyToOne()
     @JoinColumn(name = "student_id")

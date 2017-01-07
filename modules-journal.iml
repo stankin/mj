@@ -37,7 +37,7 @@
                 <option name="metaInfo" value="false" />
                 <option name="kjsm" value="false" />
                 <option name="target" />
-                <option name="moduleKind" />
+                <option name="moduleKind" value="plain" />
                 <option name="main" />
                 <option name="outputPrefix" />
                 <option name="outputPostfix" />
@@ -325,5 +325,8 @@
     <orderEntry type="library" name="Maven: com.google.appengine:appengine-api-1.0-sdk:1.9.31" level="project" />
     <orderEntry type="library" name="Maven: com.google.appengine:appengine-jsr107cache:1.9.31" level="project" />
     <orderEntry type="library" name="Maven: net.sf.jsr107cache:jsr107cache:1.1" level="project" />
+    <orderEntry type="library" name="java" level="project" />
+    <orderEntry type="library" name="ironjacamar-jdbc-1.3.4.Final" level="project" />
+    <orderEntry type="library" name="org.postgresql:postgresql:9.4.1212" level="project" />
   </component>
 </module>

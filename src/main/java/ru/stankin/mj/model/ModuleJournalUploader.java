@@ -47,7 +47,6 @@ public class ModuleJournalUploader {
         return strings;
     }
 
-    @javax.transaction.Transactional
     public List<String> updateStudentsFromExcel(String semestr, InputStream inputStream) throws IOException, InvalidFormatException {
 
         Workbook workbook = WorkbookFactory.create(inputStream);

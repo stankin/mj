@@ -53,7 +53,7 @@ public class JPAStorage implements Storage {
     }
 
     @Override
-    @javax.transaction.Transactional
+    //@javax.transaction.Transactional
     public void updateModules(Student student0) {
 
         Student student = /*em.merge(*/student0/*)*/;
@@ -81,7 +81,7 @@ public class JPAStorage implements Storage {
     }
 
     @Override
-    @javax.transaction.Transactional
+    //@javax.transaction.Transactional
     public void deleteStudentModules(Student student, String semester) {
 
         Query query = em.createQuery(
@@ -95,7 +95,7 @@ public class JPAStorage implements Storage {
     }
 
     @Override
-    @javax.transaction.Transactional
+//    //@javax.transaction.Transactional
     public void deleteAllModules(String semester) {
         Query query = em.createQuery(
                 "DELETE from Module m where m in (select sm from Module sm where sm.subject.semester = :semester)"
@@ -113,53 +113,99 @@ public class JPAStorage implements Storage {
 
     @Override
     public void deleteStudent(Student s) {
-//        Query query = em.createQuery(
-//                "DELETE from Module m  where m.student = :student"
-//        );
-//        query.setParameter("student", s);
-//        query.executeUpdate();
-        em.remove(s);
-        //logger.debug("deleted {}", s);
-        em.flush();
+
+        logger.debug("deleting student {}", s);
+
+        try (Connection connection = sql2o.beginTransaction()) {
+            connection.createQuery("DELETE FROM users WHERE id=:id;").addParameter("id", s.id).executeUpdate();
+        }
+
     }
 
     @Override
-    @javax.transaction.Transactional
     public void saveStudent(Student student, String semestr) {
 
-        if(semestr != null) {
-            Optional<StudentHistoricalGroup> historicalGroup = student.getHistoricalGroup(semestr);
-            if (!historicalGroup.filter(g -> g.groupName.equals(student.stgroup)).isPresent()) {
-                StudentHistoricalGroup semg = historicalGroup.orElse(new StudentHistoricalGroup(student, semestr, student.stgroup));
-                semg.semestr = semestr;
-                semg.groupName = student.stgroup;
-                em.persist(semg);
-                //semg = em.merge(semg);
-                if (!historicalGroup.isPresent()) {
-                    student.getGroups().add(semg);
-                }
+        try (Connection connection = sql2o.beginTransaction()) { //TODO: на самом деле должны быть одна транзакция на всех студентов
 
+            if(student.password == null){
+                student.password = student.cardid;
             }
 
-        }
+            logger.trace("saving student {} at semester {}", student, semestr);
 
-        Student merge = em.merge(student);
-        if (merge.password == null) {
-            merge.password = merge.cardid;
-            em.merge(merge);
+            if(student.id == 0){
+                logger.trace("inserting student {}", student);
+                Integer userId = connection
+                        .createQuery("INSERT INTO users (login, initials, name, patronym, surname) " +
+                                "VALUES (:cardid, :initials, :name, :patronym, :surname)", true)
+                        .bind(student)
+                        .executeUpdate().getKey(Integer.class);
+
+                student.id = userId;
+
+                connection.createQuery("INSERT INTO student (id, password, stgroup) " +
+                        "VALUES (:id, :password, :stgroup)")
+                        .bind(student)
+                        .executeUpdate();
+            } else {
+                logger.trace("updating student {}", student);
+                connection
+                        .createQuery("UPDATE users  SET login = :cardid," +
+                                " initials = :initials," +
+                                " name = :name," +
+                                " patronym = :patronym," +
+                                " surname = :surname" +
+                                " WHERE id = :id")
+                        .bind(student)
+                        .executeUpdate();
+
+                connection.createQuery("UPDATE student SET password = :password, stgroup = :stgroup " +
+                        "WHERE id = :id")
+                        .bind(student)
+                        .executeUpdate();
+            }
+
+
+            logger.trace("updating student groups history {} at semester {}", student, semestr);
+
+            StudentHistoricalGroup group = connection
+                    .createQuery("SELECT * from groupshistory WHERE student_id = :studentId and semestr = :semester LIMIT 1")
+                    .addParameter("studentId", student.id)
+                    .addParameter("semester", semestr)
+                    .throwOnMappingFailure(false)
+                    .executeAndFetchFirst(StudentHistoricalGroup.class);
+
+            logger.trace("updating student group at semester {} {}", semestr, group);
+
+            if (group == null) {
+                connection
+                        .createQuery("INSERT INTO groupshistory (groupname, semestr, student_id) " +
+                                "VALUES (:group, :semester, :student)")
+                        .addParameter("group", student.stgroup)
+                        .addParameter("semester", semestr)
+                        .addParameter("student", student.id)
+                        .executeUpdate();
+            } else if (!group.groupName.equals(student.stgroup)) {
+                connection
+                        .createQuery("UPDATE groupshistory SET groupname = :group WHERE id = :entryid")
+                        .addParameter("group", student.stgroup)
+                        .addParameter("entryid", group.id)
+                        .executeUpdate();
+            }
+
+            connection.commit();
         }
-        em.flush();
     }
 
 
     @Override
-    //@javax.transaction.Transactional
+    ////@javax.transaction.Transactional
     public Stream<Student> getStudents() {
         return getStudentsFiltred("");
     }
 
     @Override
-    @TransactionAttribute(value = TransactionAttributeType.SUPPORTS)
+    //@TransactionAttribute(value = TransactionAttributeType.SUPPORTS)
     public Stream<Student> getStudentsFiltred(String text) {
         logger.debug("getStudentsFiltred '{}'", text);
         if (text == null)
@@ -168,7 +214,7 @@ public class JPAStorage implements Storage {
         Connection connection = sql2o.open();
         try {
             return toStream(connection
-                    .createQuery("SELECT users.id as id, * FROM users INNER JOIN student on users.id = student.id  WHERE surname || initials || stgroup ILIKE :pattern ORDER BY stgroup, surname;\n")
+                    .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id  WHERE surname || initials || stgroup ILIKE :pattern ORDER BY stgroup, surname;\n")
                     .addParameter("pattern", "%" + text + "%")
                     .throwOnMappingFailure(false)
                     .executeAndFetchLazy(Student.class), connection);
@@ -181,12 +227,11 @@ public class JPAStorage implements Storage {
 
 
     @Override
-    @javax.transaction.Transactional
     public Student getStudentById(int id, String semester) {
 
         try (Connection connection = sql2o.open()) {
             Student student = connection
-                    .createQuery("SELECT users.id as id, * FROM users INNER JOIN student on users.id = student.id" +
+                    .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id" +
                             " WHERE users.id = :id")
                     .addParameter("id", id)
                     .throwOnMappingFailure(false)
@@ -238,7 +283,7 @@ public class JPAStorage implements Storage {
     }
 
     @Override
-    @javax.transaction.Transactional
+    //@javax.transaction.Transactional
     public Subject getOrCreateSubject(String semester, String group, String name, double factor) {
         CriteriaBuilder b = em.getCriteriaBuilder();
         CriteriaQuery<Subject> query = b.createQuery(Subject.class);
@@ -268,7 +313,7 @@ public class JPAStorage implements Storage {
     }
 
     @Override
-    @javax.transaction.Transactional
+    //@javax.transaction.Transactional
     public Student getStudentByGroupSurnameInitials(String semestr, String group, String surname, String initials) {
         CriteriaBuilder b = em.getCriteriaBuilder();
         CriteriaQuery<Student> query = b.createQuery(Student.class);
@@ -305,27 +350,12 @@ public class JPAStorage implements Storage {
 
         try (Connection connection = sql2o.open()) {
             return connection
-                    .createQuery("SELECT users.id as id, * FROM users INNER JOIN student on users.id = student.id" +
+                    .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id" +
                             " WHERE login = :login")
                     .addParameter("login", cardid)
                     .throwOnMappingFailure(false)
                     .executeAndFetchFirst(Student.class);
-
         }
-
-//        CriteriaBuilder b = em.getCriteriaBuilder();
-//        CriteriaQuery<Student> query = b.createQuery(Student.class);
-//        Root<Student> from = query.from(Student.class);
-//        query.where(b.equal(from.get("cardid"), cardid));
-//
-//        try {
-//            TypedQuery<Student> query1 = em.createQuery(query);
-//            query1.setFlushMode(FlushModeType.COMMIT);
-//            query1.setMaxResults(1);
-//            return query1.getSingleResult();
-//        } catch (javax.persistence.NoResultException e) {
-//            return null;
-//        }
     }
 
 

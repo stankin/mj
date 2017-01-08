@@ -128,6 +128,9 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.stormpath.sdk:stormpath-sdk-impl:0.9.3" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.codehaus.jackson:jackson-mapper-asl:1.9.11" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.codehaus.jackson:jackson-core-asl:1.9.11" level="project" />
+    <orderEntry type="library" name="java" level="project" />
+    <orderEntry type="library" name="ironjacamar-jdbc-1.3.4.Final" level="project" />
+    <orderEntry type="library" name="org.postgresql:postgresql:9.4.1212" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.enterprise:cdi-api:1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.el:el-api:2.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.spec.javax.interceptor:jboss-interceptors-api_1.1_spec:1.0.0.Beta1" level="project" />
@@ -163,18 +166,6 @@
     <orderEntry type="library" name="Maven: org.apache.poi:poi-ooxml-schemas:3.11" level="project" />
     <orderEntry type="library" name="Maven: org.apache.xmlbeans:xmlbeans:2.6.0" level="project" />
     <orderEntry type="library" name="Maven: stax:stax-api:1.0.1" level="project" />
-    <orderEntry type="library" name="Maven: org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec:1.0.0.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.hibernate:hibernate-core:5.0.7.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.logging:jboss-logging:3.3.0.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.javassist:javassist:3.18.1-GA" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: antlr:antlr:2.7.7" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.geronimo.specs:geronimo-jta_1.1_spec:1.1.1" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss:jandex:2.0.0.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: dom4j:dom4j:1.6.1" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.hibernate.common:hibernate-commons-annotations:5.0.1.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.hibernate:hibernate-validator:5.2.3.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml:classmate:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.vaadin.addon:easyuploads:7.3.4" level="project" />
     <orderEntry type="library" name="Maven: org.peimari:maddon:1.20" level="project" />
     <orderEntry type="library" name="Maven: org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.0" level="project" />
@@ -214,6 +205,7 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.wildfly.core:wildfly-network:1.0.0.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.wildfly.core:wildfly-self-contained:1.0.0.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.wildfly.core:wildfly-version:1.0.0.Final" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jboss:jandex:1.2.2.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.invocation:jboss-invocation:1.4.1.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.logmanager:jboss-logmanager:2.0.0.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.modules:jboss-modules:1.4.3.Final" level="project" />
@@ -233,6 +225,7 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.msc:jboss-msc:1.2.6.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.xnio:xnio-api:3.3.1.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.xnio:xnio-nio:3.3.1.Final" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.logging:jboss-logging:3.3.0.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.marshalling:jboss-marshalling:1.4.10.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.marshalling:jboss-marshalling-river:1.4.10.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.remoting:jboss-remoting:4.0.9.Final" level="project" />
@@ -291,8 +284,7 @@
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.6" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk7:0.3" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk8:0.3" level="project" />
-    <orderEntry type="library" name="Maven: org.sql2o:sql2o:1.5.4" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: com.h2database:h2:1.4.191" level="project" />
+    <orderEntry type="library" name="Maven: org.sql2o:sql2o:1.6.0-RC3" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.0.6" level="project" />
     <orderEntry type="library" name="Maven: org.flywaydb:flyway-core:4.0.3" level="project" />
     <orderEntry type="library" name="Maven: io.buji:buji-pac4j:2.0.3" level="project" />
@@ -325,8 +317,5 @@
     <orderEntry type="library" name="Maven: com.google.appengine:appengine-api-1.0-sdk:1.9.31" level="project" />
     <orderEntry type="library" name="Maven: com.google.appengine:appengine-jsr107cache:1.9.31" level="project" />
     <orderEntry type="library" name="Maven: net.sf.jsr107cache:jsr107cache:1.1" level="project" />
-    <orderEntry type="library" name="java" level="project" />
-    <orderEntry type="library" name="ironjacamar-jdbc-1.3.4.Final" level="project" />
-    <orderEntry type="library" name="org.postgresql:postgresql:9.4.1212" level="project" />
   </component>
 </module>

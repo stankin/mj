@@ -1,36 +1,25 @@
 package ru.stankin.mj.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
-@Entity
-@Table(name = "Modules")
 public class Module implements Cloneable, Serializable {
 
     public static final int BLACK_MODULE = 3355443;
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+
     private int id = 0;
 
-    @ManyToOne
-    @JoinColumn(name = "subject_id")
+
     private Subject subject = null;
 
     private String num = "";
     private int value = -1;
     private int color = 0;
 
-    @ManyToOne()
-    @JoinColumn(name = "student_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Student student;
 

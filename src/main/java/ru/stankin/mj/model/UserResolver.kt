@@ -12,10 +12,7 @@ import javax.annotation.PostConstruct
 
 import javax.inject.Inject
 import javax.inject.Singleton
-import javax.persistence.*
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
-import javax.persistence.criteria.Root
+
 
 /**
  * Created by nickl on 16.02.15.
@@ -26,8 +23,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
     @Inject
     internal lateinit var storage: Storage
 
-    @PersistenceContext
-    private lateinit var em: EntityManager
+
 
 
     @PostConstruct
@@ -106,7 +102,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
         if (user is Student)
             storage.saveStudent(user, null)
         else {
-            em.merge(user)
+            throw UnsupportedOperationException("cant save non user")
         }
         return true
     }

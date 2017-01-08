@@ -13,6 +13,8 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.sql2o.Connection;
+import org.sql2o.Sql2o;
 import ru.stankin.mj.http.HttpApi2;
 import ru.stankin.mj.model.*;
 import ru.stankin.mj.model.user.User;
@@ -21,9 +23,6 @@ import ru.stankin.mj.view.AccountWindow;
 import ru.stankin.mj.model.user.UserDAO;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.UserTransaction;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -33,6 +32,10 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -90,53 +93,57 @@ public class ArquillianTest {
     Storage storage;
 
     @Inject
-    UserTransaction utx;
+    Sql2o sql2;
 
-    @PersistenceContext
-    private EntityManager em;
+
+    private <T> T connect(Function<Connection, T> op) {
+        try (Connection connection = sql2.open()) {
+            return op.apply(connection);
+        }
+    }
+
+    private long connectLong(ToLongFunction<Connection> op) {
+        try (Connection connection = sql2.open()) {
+            return op.applyAsLong(connection);
+        }
+    }
+
+    private void refresh(Student s) {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
 
     @Test
     @InSequence(1)
     public void uploadWrongEtalon() throws Exception {
-        utx.begin();
-//        em.joinTransaction();
+        //        sql2.joinTransaction();
         mj.updateStudentsFromExcel("2014-осень", loadResource("/newEtalon-joinedGroups.xls"));
-        utx.commit();
-        utx.begin();
 
         Assert.assertEquals(1750, storage.getStudents().count());
-        Assert.assertEquals(1750, em.createQuery("select count(g) from StudentHistoricalGroup g", Long.class).getSingleResult().intValue());
-        Assert.assertEquals(1750, em.createQuery("select count(g) from StudentHistoricalGroup g where g.semestr = '2014-осень'", Long.class).getSingleResult().intValue());
-        utx.commit();
+        Assert.assertEquals(1750, connectLong(c -> c.createQuery("SELECT count(g) FROM groupshistory g").executeScalar(Integer.class)));
+        Assert.assertEquals(1750, connectLong(c -> c.createQuery("SELECT count(g) FROM groupshistory g WHERE g.semestr = '2014-осень'").executeScalar(Long.class)));
     }
 
     @Test
     @InSequence(1)
     public void uploadRightEtalon() throws Exception {
-        utx.begin();
-//        em.joinTransaction();
+        //        sql2.joinTransaction();
         mj.updateStudentsFromExcel("2014-осень", loadResource("/newEtalon.xls"));
-        utx.commit();
-        utx.begin();
-//        em.joinTransaction();
+        //        sql2.joinTransaction();
         //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
 
         Assert.assertEquals(1753, storage.getStudents().count());
-        Assert.assertEquals(1753, em.createQuery("select count(g) from StudentHistoricalGroup g", Long.class).getSingleResult().intValue());
-        Assert.assertEquals(1753, em.createQuery("select count(g) from StudentHistoricalGroup g where g.semestr = '2014-осень'", Long.class).getSingleResult().intValue());
-        utx.commit();
+        Assert.assertEquals(1753, connectLong(c -> c.createQuery("SELECT count(g) FROM groupshistory g").executeScalar(Long.class)));
+        Assert.assertEquals(1753, connectLong(c -> c.createQuery("SELECT count(g) FROM groupshistory g WHERE g.semestr = '2014-осень'").executeScalar(Long.class)));
     }
 
     @Test
     @InSequence(3)
     public void uploadSemesterModules() throws Exception {
-        utx.begin();
-//        em.joinTransaction();
+        //        sql2.joinTransaction();
         mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349.xls"));
-        utx.commit();
-        utx.begin();
-        Assert.assertEquals(4067, em.createQuery("select count(m) from Module m", Long.class).getSingleResult().intValue());
-        Assert.assertEquals(4067, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-осень'", Long.class).getSingleResult().intValue());
+        Assert.assertEquals(4067, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m").executeScalar(Long.class)));
+        Assert.assertEquals(4067, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject.semester = '2014-осень'").executeScalar(Long.class)));
         {
             Student s1 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
             s1 = storage.getStudentById(s1.id, "2014-осень");
@@ -144,7 +151,6 @@ public class ArquillianTest {
             Assert.assertEquals(30, s1.getModules().size());
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
-        utx.commit();
     }
 
     @Test
@@ -160,24 +166,18 @@ public class ArquillianTest {
     @InSequence(5)
     public void testPasswordChange() throws Exception {
 
-        utx.begin();
         User idb1316Student = userDAO.getUserBy("114513", "114513"); // Богданова	Устина	Кирилловна
         idb1316Student.setPassword("nonDefaultPassword");
         userDAO.saveUser(idb1316Student);
-        utx.commit();
 
-        utx.begin();
         User idb1316StudentWithNewPassword = userDAO.getUserBy("114513", "nonDefaultPassword");
         Assert.assertEquals(((Student) idb1316Student).id, ((Student) idb1316StudentWithNewPassword).id);
         Assert.assertNull(userDAO.getUserBy("114513", "114513"));
 
         mj.updateStudentsFromExcel("2014-осень", loadResource("/newEtalon.xls"));
-        utx.commit();
 
-        utx.begin();
         User idb1316StudentWithNewPasswordAfterEtalonUpdate = userDAO.getUserBy("114513", "nonDefaultPassword");
         Assert.assertEquals(((Student) idb1316Student).id, ((Student) idb1316StudentWithNewPasswordAfterEtalonUpdate).id);
-        utx.commit();
 
 
     }
@@ -187,7 +187,6 @@ public class ArquillianTest {
     public void testNewEtalon() throws Exception {
 
 
-        utx.begin();
         Student studentWithOldGroup = (Student) userDAO.getUserBy("114513");
         Assert.assertEquals("ИДБ-13-16", studentWithOldGroup.stgroup);
 
@@ -202,12 +201,9 @@ public class ArquillianTest {
                 oldSemestrStudent.getGroups().stream().map(s -> s.groupName).collect(Collectors.toCollection(TreeSet<String>::new)));
 
 
-
         // Student switches group
         mj.updateStudentsFromExcel("2014-2", loadResource("/newEtalon-joinedGroups.xls"));
-        utx.commit();
 
-        utx.begin();
         Student studentWithNewGroup = (Student) userDAO.getUserBy("114513");
         Assert.assertEquals("ИДБ-13-15", studentWithNewGroup.stgroup);
 
@@ -223,19 +219,16 @@ public class ArquillianTest {
         Assert.assertEquals(EXPECTED_MODULES_IN_2014_1, oldSemestrNewStudent.getModules().size());
         Assert.assertEquals("expect one \"54\" mark in previous journal", 1, oldSemestrNewStudent.getModules().stream()
                 .filter(m -> m.getValue() == 54).count());
-        utx.commit();
 
         // Uploading updated Marks for previous and new semester
-        utx.begin();
         List<String> updateMarksFromExcelReport = mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349_idb-13-16-updated.xls"));
 
         Optional<String> reportAboutStudent = updateMarksFromExcelReport.stream().filter(s -> s.contains(oldSemestrStudent.surname)).findAny();
         Assert.assertFalse("not expect any errors about " + oldSemestrStudent.surname + " but got: " + reportAboutStudent, reportAboutStudent.isPresent());
         mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls"));
-        utx.commit();
 
-        Assert.assertEquals("old semester uploaded but without some students", 3977, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-осень'", Long.class).getSingleResult().intValue());
-        Assert.assertEquals("new semester uploaded", 3573, em.createQuery("select count(m) from Module m where m.subject.semester = '2014-2'", Long.class).getSingleResult().intValue());
+        Assert.assertEquals("old semester uploaded but without some students", 3977, connectLong(c -> c.createQuery("SELECT count(m) FROM m m WHERE m.subject.semester = '2014-осень'").executeScalar(Long.class)));
+        Assert.assertEquals("new semester uploaded", 3573, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject.semester = '2014-2'").executeScalar(Long.class)));
 
 
         // Expect updating marks for previous semestr
@@ -247,8 +240,8 @@ public class ArquillianTest {
 
 
         Assert.assertEquals("Expect new marks for new semestr in database for " + studentWithNewGroup.id, 29,
-                em.createQuery("select count(m) from Module m where m.subject.semester = '2014-2' and m.student = :student", Long.class)
-                        .setParameter("student", studentWithNewGroup).getSingleResult().intValue());
+                connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject.semester = '2014-2' AND m.student = :student").addParameter("student", studentWithNewGroup).executeScalar(Long.class))
+        );
 
         Student newSemestrNewStudent = storage.getStudentById(studentWithNewGroup.id, "2014-2");
         Assert.assertEquals("Expect new marks for new semestr", 29, newSemestrNewStudent.getModules().size());
@@ -261,22 +254,19 @@ public class ArquillianTest {
     @Test
     @InSequence(7)
     public void testUploadNewSemesterModules() throws Exception {
-        utx.begin();
         storage.deleteAllModules("2014-2");
-//        em.joinTransaction();
+//        sql2.joinTransaction();
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
             Student s1 = storage.getStudentById(s0.id, "2014-осень");
-            List<Module> allModules = em.createQuery("select m from Module m", Module.class).getResultList();
+            List<Module> allModules = connect(c -> c.createQuery("SELECT m FROM modules m").executeAndFetch(Module.class));
             Assert.assertEquals(3977, allModules.size());
             Assert.assertEquals(30, allModules.stream().filter(m -> m.getStudent().equals(s1)).count());
-            em.refresh(s1);
+            refresh(s1);
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
-        utx.commit();
 
-        utx.begin();
-//        em.joinTransaction();
+        //        sql2.joinTransaction();
         mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls"));
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("2014-2", "ИДБ-13-14", "Наумова", "Р.В.");
@@ -299,7 +289,6 @@ public class ArquillianTest {
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
 
-        utx.commit();
 
     }
 
@@ -337,7 +326,7 @@ public class ArquillianTest {
             HttpURLConnection connection = (HttpURLConnection) new URL(url + "webapi/api2/marks").openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
-            connection.setRequestProperty("Content-type","application/x-www-form-urlencoded; charset=utf-8");
+            connection.setRequestProperty("Content-type", "application/x-www-form-urlencoded; charset=utf-8");
             OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), "UTF8");
             writer.append(URLEncoder.encode("student", "UTF-8"));
             writer.append("=");
@@ -356,7 +345,7 @@ public class ArquillianTest {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF8"));
 
             String line = null;
-            while ((line = bufferedReader.readLine()) != null){
+            while ((line = bufferedReader.readLine()) != null) {
                 System.out.println(line);
             }
 

@@ -117,7 +117,7 @@ public class MemoryStorage implements Storage {
         String id = semester + "-" + group + "-" + name;
         Subject subject = stringSubjectMap.get(id);
         if(subject == null){
-            subject = new Subject(semester, group, name, factor);
+            subject = new Subject(0, semester, group, name, factor);
             stringSubjectMap.put(id, subject);
         }
         return subject;

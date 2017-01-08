@@ -4,17 +4,14 @@ package ru.stankin.mj.model;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
-@Entity
-@Table(name = "Subjects", indexes = {@Index(name = "title_index", columnList = "semester,stgroup,title")})
+
 public class Subject implements Serializable {
 
     private static final Logger logger = LogManager.getLogger(Subject.class);
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+
     private int id = 0;
 
     private String semester = "2014/2015 весна";
@@ -22,7 +19,8 @@ public class Subject implements Serializable {
     private String title = "";
     private double factor = 0;
 
-    public Subject(String semester, String stgroup, String title, double factor) {
+    public Subject(int id, String semester, String stgroup, String title, double factor) {
+        this.id = id;
         this.semester = semester;
         this.stgroup = stgroup;
         this.title = title;

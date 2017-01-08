@@ -1,16 +1,12 @@
 package ru.stankin.mj.model.user;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
-@Entity
+
 public class AdminUser implements Serializable, User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @Column(unique = true)
     private String username = null;
     private String password = null;
     private String email = null;

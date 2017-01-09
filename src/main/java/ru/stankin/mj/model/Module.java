@@ -21,7 +21,7 @@ public class Module implements Cloneable, Serializable {
     private int color = 0;
 
     @JsonIgnore
-    private Student student;
+    public int studentId;
 
     @Override
     public Module clone()  {
@@ -81,14 +81,6 @@ public class Module implements Cloneable, Serializable {
 
     public void setColor(int color) {
         this.color = color;
-    }
-
-    public Student getStudent() {
-        return student;
-    }
-
-    public void setStudent(Student student) {
-        this.student = student;
     }
 
     public void setSubject(Subject subject) {

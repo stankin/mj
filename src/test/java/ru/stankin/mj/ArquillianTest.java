@@ -59,7 +59,6 @@ public class ArquillianTest {
                 .addPackage(AccountWindow.class.getPackage())
                 .addPackage(HttpApi2.class.getPackage())
                 .addPackage(ShiroConfiguration.class.getPackage())
-                .addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml")
                 .addAsResource("log4j2-test.xml")
                 .addAsWebInfResource(new File("src/main/webapp/WEB-INF/web.xml"))
                 .addAsWebResource(new File("src/main/webapp/index.html"))
@@ -97,19 +96,28 @@ public class ArquillianTest {
 
 
     private <T> T connect(Function<Connection, T> op) {
-        try (Connection connection = sql2.open()) {
+        try (Connection connection = sql2.open().setRollbackOnException(false)) {
             return op.apply(connection);
         }
     }
 
     private long connectLong(ToLongFunction<Connection> op) {
-        try (Connection connection = sql2.open()) {
+        try (Connection connection = sql2.open().setRollbackOnException(false)) {
             return op.applyAsLong(connection);
         }
     }
 
     private void refresh(Student s) {
-        throw new UnsupportedOperationException("not implemented");
+        Student student = storage.getStudentById(s.id, s.getModules().get(0).getSubject().getSemester());
+        s.password = student.password;
+        s.cardid = student.cardid;
+        s.name = student.name;
+        s.initials = student.initials;
+        s.surname = student.surname;
+        s.stgroup = student.stgroup;
+        s.patronym = student.patronym;
+        s.setGroups(student.getGroups());
+        s.setModules(student.getModules());
     }
 
 
@@ -143,7 +151,7 @@ public class ArquillianTest {
         //        sql2.joinTransaction();
         mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349.xls"));
         Assert.assertEquals(4067, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m").executeScalar(Long.class)));
-        Assert.assertEquals(4067, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject.semester = '2014-осень'").executeScalar(Long.class)));
+        Assert.assertEquals(4067, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m JOIN subjects s ON m.subject_id = s.id WHERE s.semester = '2014-осень'").executeScalar(Long.class)));
         {
             Student s1 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
             s1 = storage.getStudentById(s1.id, "2014-осень");
@@ -196,7 +204,7 @@ public class ArquillianTest {
         Assert.assertEquals(EXPECTED_MODULES_IN_2014_1, oldSemestrStudent.getModules().size());
         Assert.assertEquals(1, oldSemestrStudent.getModules().stream()
                 .filter(m -> m.getValue() == 54).count());
-        Assert.assertEquals("Student has his group in history",
+        Assert.assertEquals("Student has his group in history: " + oldSemestrStudent.getGroups(),
                 new TreeSet<>(asList("ИДБ-13-16")),
                 oldSemestrStudent.getGroups().stream().map(s -> s.groupName).collect(Collectors.toCollection(TreeSet<String>::new)));
 
@@ -227,8 +235,8 @@ public class ArquillianTest {
         Assert.assertFalse("not expect any errors about " + oldSemestrStudent.surname + " but got: " + reportAboutStudent, reportAboutStudent.isPresent());
         mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls"));
 
-        Assert.assertEquals("old semester uploaded but without some students", 3977, connectLong(c -> c.createQuery("SELECT count(m) FROM m m WHERE m.subject.semester = '2014-осень'").executeScalar(Long.class)));
-        Assert.assertEquals("new semester uploaded", 3573, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject.semester = '2014-2'").executeScalar(Long.class)));
+        Assert.assertEquals("old semester uploaded but without some students", 3977, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject_id IN (SELECT id FROM subjects WHERE semester = '2014-осень')").executeScalar(Long.class)));
+        Assert.assertEquals("new semester uploaded", 3573, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject_id IN (SELECT id FROM subjects WHERE semester = '2014-2')").executeScalar(Long.class)));
 
 
         // Expect updating marks for previous semestr
@@ -240,7 +248,7 @@ public class ArquillianTest {
 
 
         Assert.assertEquals("Expect new marks for new semestr in database for " + studentWithNewGroup.id, 29,
-                connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject.semester = '2014-2' AND m.student = :student").addParameter("student", studentWithNewGroup).executeScalar(Long.class))
+                connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject_id IN (SELECT id FROM subjects WHERE semester = '2014-2') AND m.student_id = :student").addParameter("student", studentWithNewGroup.id).executeScalar(Long.class))
         );
 
         Student newSemestrNewStudent = storage.getStudentById(studentWithNewGroup.id, "2014-2");
@@ -258,10 +266,12 @@ public class ArquillianTest {
 //        sql2.joinTransaction();
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
+            Assert.assertNotNull(s0);
             Student s1 = storage.getStudentById(s0.id, "2014-осень");
-            List<Module> allModules = connect(c -> c.createQuery("SELECT m FROM modules m").executeAndFetch(Module.class));
+            List<Module> allModules = connect(c -> c.createQuery("SELECT m.*, m.student_id as studentId FROM modules m").throwOnMappingFailure(false).executeAndFetch(Module.class));
+            Assert.assertFalse("",allModules.stream().anyMatch(m -> m.studentId == 0));
             Assert.assertEquals(3977, allModules.size());
-            Assert.assertEquals(30, allModules.stream().filter(m -> m.getStudent().equals(s1)).count());
+            Assert.assertEquals(30, allModules.stream().filter(m -> m.studentId == s1.id).count());
             refresh(s1);
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }

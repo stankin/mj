@@ -76,4 +76,31 @@ public class Subject implements Serializable {
     public void setSemester(String semester) {
         this.semester = semester;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Subject)) return false;
+
+        Subject subject = (Subject) o;
+
+        if (id != subject.id) return false;
+        if (Double.compare(subject.factor, factor) != 0) return false;
+        if (semester != null ? !semester.equals(subject.semester) : subject.semester != null) return false;
+        if (stgroup != null ? !stgroup.equals(subject.stgroup) : subject.stgroup != null) return false;
+        return title != null ? title.equals(subject.title) : subject.title == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = id;
+        result = 31 * result + (semester != null ? semester.hashCode() : 0);
+        result = 31 * result + (stgroup != null ? stgroup.hashCode() : 0);
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        temp = Double.doubleToLongBits(factor);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
 }

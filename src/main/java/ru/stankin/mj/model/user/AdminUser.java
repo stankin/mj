@@ -57,6 +57,10 @@ public class AdminUser implements Serializable, User {
         return id;
     }
 
+    public void setId(long id) {
+        this.id = id;
+    }
+
     public int hashCode() {
         return (int) id;
     }

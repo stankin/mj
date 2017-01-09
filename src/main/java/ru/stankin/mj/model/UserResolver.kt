@@ -24,8 +24,6 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
     internal lateinit var storage: Storage
 
 
-
-
     @PostConstruct
     open fun initIfRequired() {
 
@@ -73,26 +71,12 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
 
         return sql2o.open().use{ connection ->
             connection
-                    .createQuery("SELECT users.id as id, * FROM users INNER JOIN adminuser on users.id = adminuser.id WHERE login = :login")
+                    .createQuery("SELECT users.id as id, users.login as username, * FROM users INNER JOIN adminuser on users.id = adminuser.id WHERE login = :login")
                     .addParameter("login", username)
                     .throwOnMappingFailure(false)
                     .executeAndFetchFirst(AdminUser::class.java)
 
         }
-
-//        val b = em.criteriaBuilder
-//        val query = b.createQuery(AdminUser::class.java)
-//        val from = query.from(AdminUser::class.java)
-//        query.where(b.equal(from.get<Any>("username"), username))
-//
-//        try {
-//            val query1 = em.createQuery(query)
-//            query1.flushMode = FlushModeType.COMMIT
-//            query1.maxResults = 1
-//            return query1.singleResult
-//        } catch (e: javax.persistence.NoResultException) {
-//            return null
-//        }
 
     }
 
@@ -102,14 +86,43 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
         if (user is Student)
             storage.saveStudent(user, null)
         else {
-            throw UnsupportedOperationException("cant save non user")
+            saveAdmin(user as AdminUser)
         }
         return true
     }
 
-    override fun getUsers(): List<User> {
-        throw UnsupportedOperationException("getUsers")
+    private fun saveAdmin(admin: AdminUser) {
+
+        sql2o.beginTransaction().use { connection ->
+
+            if (admin.id == 0L) {
+
+                val userId = connection
+                        .createQuery("INSERT INTO users (login, email) VALUES (:username, :email)", true)
+                        .bind(admin)
+                        .executeUpdate().getKey<Long>(Long::class.java)
+
+                admin.id = userId!!
+
+                connection.createQuery("INSERT INTO adminuser (id, password) VALUES (:id, :password)")
+                        .bind(admin)
+                        .executeUpdate()
+            } else {
+                connection
+                        .createQuery("UPDATE users  SET email = :email WHERE id = :id")
+                        .bind(admin)
+                        .executeUpdate()
+
+                connection.createQuery("UPDATE adminuser SET password = :password WHERE id = :id")
+                        .bind(admin)
+                        .executeUpdate()
+            }
+
+            connection.commit()
+
+        }
     }
+
 
     override fun getUserByPrincipal(principal: Any): User? {
       return when (principal) {

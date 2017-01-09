@@ -10,7 +10,5 @@ public interface UserDAO {
 
     public boolean saveUser(User user);
 
-    public List<User> getUsers();
-
     User getUserByPrincipal(Object principal);
 }

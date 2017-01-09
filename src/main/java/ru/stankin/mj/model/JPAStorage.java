@@ -8,12 +8,9 @@ import org.sql2o.Connection;
 import org.sql2o.ResultSetIterable;
 import org.sql2o.Sql2o;
 
-import javax.ejb.*;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,7 +63,6 @@ public class JPAStorage implements Storage {
                 Optional<Module> existigModule = currentModules.stream().filter(cur ->
                         cur.getSubject().equals(module.getSubject()) && cur.getNum().equals(module.getNum())).findAny();
 
-
                 if(existigModule.isPresent()){
                     connection
                             .createQuery("UPDATE modules SET color = :color, value = :value WHERE id = :id")
@@ -74,6 +70,8 @@ public class JPAStorage implements Storage {
                             .addParameter("value", module.getValue())
                             .addParameter("id", existigModule.get().getId())
                             .executeUpdate();
+
+                    currentModules.remove(existigModule.get());
                 } else {
                     connection
                             .createQuery("INSERT INTO modules (color, num, value, student_id, subject_id) VALUES (" +
@@ -84,8 +82,18 @@ public class JPAStorage implements Storage {
                             .executeUpdate();
                 }
 
+
             }
 
+            if (!currentModules.isEmpty()) {
+                logger.debug("removing modules {}", currentModules);
+                connection
+                        .createQuery("DELETE FROM modules WHERE id IN (:ids)")
+                        .addParameter("ids", currentModules.stream().map(Module::getId).collect(Collectors.toList()))
+                        .executeUpdate();
+            }
+
+            connection.commit();
         }
 
     }
@@ -112,6 +120,7 @@ public class JPAStorage implements Storage {
                     .createQuery("DELETE FROM modules WHERE subject_id in (SELECT subjects.id FROM subjects WHERE semester = :semester)")
                     .addParameter("semester", semester)
                     .executeUpdate();
+            connection.commit();
         }
     }
 
@@ -122,6 +131,7 @@ public class JPAStorage implements Storage {
 
         try (Connection connection = sql2o.beginTransaction()) {
             connection.createQuery("DELETE FROM users WHERE id=:id;").addParameter("id", s.id).executeUpdate();
+            connection.commit();
         }
 
     }
@@ -238,7 +248,7 @@ public class JPAStorage implements Storage {
                     .addParameter("id", id)
                     .throwOnMappingFailure(false)
                     .executeAndFetchFirst(Student.class);
-
+            student.setGroups(getStudentHistoricalGroups(connection, id));
             if (semester != null) {
                 student.setModules(getStudentModules(connection, semester, id));
             }
@@ -256,6 +266,14 @@ public class JPAStorage implements Storage {
                 .throwOnMappingFailure(false)
                 .executeAndFetch(Module.class).stream()
                 .map(subjectsCache::loadSubject).collect(Collectors.toList());
+    }
+
+    private List<StudentHistoricalGroup> getStudentHistoricalGroups(Connection connection, int studentid) {
+        return connection
+                .createQuery("SELECT * FROM groupshistory WHERE student_id = :id")
+                .addParameter("id", studentid)
+                .throwOnMappingFailure(false)
+                .executeAndFetch(StudentHistoricalGroup.class);
     }
 
     @Override
@@ -328,8 +346,11 @@ public class JPAStorage implements Storage {
                     .throwOnMappingFailure(false)
                     .executeAndFetchFirst(Student.class);
 
-            if (semester != null) {
-                student.setModules(getStudentModules(connection, semester, student.id));
+            if (student != null) {
+                student.setGroups(getStudentHistoricalGroups(connection, student.id));
+                if (semester != null) {
+                    student.setModules(getStudentModules(connection, semester, student.id));
+                }
             }
 
             return student;
@@ -341,12 +362,17 @@ public class JPAStorage implements Storage {
     public Student getStudentByCardId(String cardid) {
 
         try (Connection connection = sql2o.open()) {
-            return connection
+            Student student = connection
                     .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id" +
                             " WHERE login = :login")
                     .addParameter("login", cardid)
                     .throwOnMappingFailure(false)
                     .executeAndFetchFirst(Student.class);
+
+            if (student != null)
+                student.setGroups(getStudentHistoricalGroups(connection, student.id));
+
+            return student;
         }
     }
 

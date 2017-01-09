@@ -284,7 +284,7 @@
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.6" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk7:0.3" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk8:0.3" level="project" />
-    <orderEntry type="library" name="Maven: org.sql2o:sql2o:1.6.0-RC3" level="project" />
+    <orderEntry type="module" module-name="sql2o" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.0.6" level="project" />
     <orderEntry type="library" name="Maven: org.flywaydb:flyway-core:4.0.3" level="project" />
     <orderEntry type="library" name="Maven: io.buji:buji-pac4j:2.0.3" level="project" />

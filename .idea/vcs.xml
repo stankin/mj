@@ -2,5 +2,6 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="hg4idea" />
+    <mapping directory="$PROJECT_DIR$/sql2o" vcs="Git" />
   </component>
 </project>

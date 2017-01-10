@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.sql2o.Connection;
 import org.sql2o.ResultSetIterable;
 import org.sql2o.Sql2o;
+import ru.stankin.mj.utils.ThreadLocalTransaction;
 
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
@@ -129,7 +130,7 @@ public class JPAStorage implements Storage {
 
         logger.debug("deleting student {}", s);
 
-        try (Connection connection = sql2o.beginTransaction()) {
+        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.INSTANCE.get())) {
             connection.createQuery("DELETE FROM users WHERE id=:id;").addParameter("id", s.id).executeUpdate();
             connection.commit();
         }
@@ -139,7 +140,7 @@ public class JPAStorage implements Storage {
     @Override
     public void saveStudent(Student student, String semestr) {
 
-        try (Connection connection = sql2o.beginTransaction()) { //TODO: на самом деле должны быть одна транзакция на всех студентов
+        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.INSTANCE.get())) { //TODO: на самом деле должны быть одна транзакция на всех студентов
 
             if(student.password == null){
                 student.password = student.cardid;
@@ -361,7 +362,7 @@ public class JPAStorage implements Storage {
     @Override
     public Student getStudentByCardId(String cardid) {
 
-        try (Connection connection = sql2o.open()) {
+        try (Connection connection = sql2o.open(ThreadLocalTransaction.INSTANCE.get())) {
             Student student = connection
                     .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id" +
                             " WHERE login = :login")

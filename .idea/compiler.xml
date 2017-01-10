@@ -9,8 +9,6 @@
         <module name="modules-journal" />
         <module name="sql2o" />
         <module name="sql2o-db2" />
-        <module name="sql2o-oracle" />
-        <module name="sql2o-oracle-joda-time" />
         <module name="sql2o-postgres" />
       </profile>
     </annotationProcessing>

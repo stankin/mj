@@ -72,7 +72,7 @@ mvn wildfly:deploy -DskipTests -Dwildfly.hostname=адрес_сервера
 Сделать это можно (в Ubuntu) командами:
 
     sudo -u postgres createuser mj_test -d -P
-    sudo -u postgres createdb mj_test -O mj_test
+    sudo -u postgres createdb mj_test -E UTF8 -l en_US.UTF-8 -O mj_test
 
 При запросе ввода пароля в качестве пароля оставить пустую строку.
 

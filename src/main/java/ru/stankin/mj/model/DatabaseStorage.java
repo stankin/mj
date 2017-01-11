@@ -26,15 +26,15 @@ import java.util.stream.StreamSupport;
 //@javax.inject.Singleton
 @Default
 //@Lock(LockType.READ)
-public class JPAStorage implements Storage {
+public class DatabaseStorage implements Storage {
 
-    private static final Logger logger = LogManager.getLogger(JPAStorage.class);
+    private static final Logger logger = LogManager.getLogger(DatabaseStorage.class);
 
     private final
     Sql2o sql2o;
 
     @Inject
-    public JPAStorage(Sql2o sql2o) {
+    public DatabaseStorage(Sql2o sql2o) {
         this.sql2o = sql2o;
     }
 
@@ -47,7 +47,7 @@ public class JPAStorage implements Storage {
         String semester = studentModules.get(0).getSubject().getSemester();
         //logger.debug("saving student {} modules: {}", student.name, studentModules.size());
 
-        try (Connection connection = sql2o.beginTransaction().setRollbackOnClose(false)) {
+        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.INSTANCE.get())) {
 
             SubjectsCache subjectsCache = new SubjectsCache(connection);
 

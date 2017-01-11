@@ -40,17 +40,16 @@ public class ModuleJournalUploader {
 
     public List<String> updateMarksFromExcel(String semester, InputStream is) throws IOException, InvalidFormatException {
         Workbook workbook = WorkbookFactory.create(is);
-        List<String> strings = new MarksWorkbookReader(semester, workbook, storage).writeToStorage();
-        is.close();
+        try {
 
-//        ObjectOutputStream outputStream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream
-//                ("students.bin")));
-//
-//        outputStream.writeObject(studentList);
-//
-//        outputStream.close();
+            Function0<List<String>> modulesUpdateTransaction = () -> new MarksWorkbookReader(semester, workbook, storage).writeToStorage();
 
-        return strings;
+            return sql2o != null ?
+                    ThreadLocalTransaction.INSTANCE.within(sql2o, modulesUpdateTransaction)
+                    : modulesUpdateTransaction.invoke();
+        } finally {
+            is.close();
+        }
     }
 
     public List<String> updateStudentsFromExcel(String semestr, InputStream inputStream) throws IOException, InvalidFormatException {

@@ -9,20 +9,20 @@ open class SubjectsCache(private val connection: Connection) {
 
     private val log = LogManager.getLogger(SubjectsCache::class.java);
 
-    private val moduleSubjectCash = HashMap<Int, Subject>()
+    private val moduleSubjectCache = HashMap<Int, Subject>()
     private val subjectIdentityCache = HashMap<Int, Subject>()
 
 
     @Synchronized
     fun moduleSubject(moduleId: Int): Subject =
-            moduleSubjectCash.computeIfAbsent(moduleId, { moduleId ->
+            moduleSubjectCache.computeIfAbsent(moduleId, { moduleId ->
                 val subject0 = connection
                         .createQuery("SELECT * from subjects WHERE subjects.id in (SELECT subject_id FROM modules WHERE modules.id = :id)")
                         .addParameter("id", moduleId)
                         .throwOnMappingFailure(false)
                         .executeAndFetchFirst(Subject::class.java) ?: throw NoSuchElementException("no subject for module ${moduleId}")
 
-                log.debug("loaded for moduleid {} subject is {}", moduleId, subject0)
+                log.trace("loaded for moduleid {} subject is {}", moduleId, subject0)
 
                 val subject = subjectIdentityCache.computeIfAbsent(subject0.id, { i -> subject0 })
 
@@ -32,7 +32,7 @@ open class SubjectsCache(private val connection: Connection) {
                         .executeScalarList(Int::class.java)
 
                 for (m in allModules) {
-                    moduleSubjectCash.put(m, subject)
+                    moduleSubjectCache.put(m, subject)
                 }
 
                 subject

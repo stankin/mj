@@ -13,6 +13,7 @@
 ```text
 cd sql2o
 mvn --projects core -pl extensions/postgres clean install -DskipTests
+cd ..
 ```
 
 Сборку можно осуществить командой:

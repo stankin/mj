@@ -131,50 +131,6 @@
     <orderEntry type="library" name="java" level="project" />
     <orderEntry type="library" name="ironjacamar-jdbc-1.3.4.Final" level="project" />
     <orderEntry type="library" name="org.postgresql:postgresql:9.4.1212" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-core:1.3.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.slf4j:slf4j-api:1.7.7" level="project" />
-    <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.8.3" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-web:1.3.2" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jboss:jandex:1.2.2.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.undertow:undertow-core:1.3.15.Final" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.6" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.6" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.6" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk7:0.3" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk8:0.3" level="project" />
-    <orderEntry type="module" module-name="sql2o" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.0.6" level="project" />
-    <orderEntry type="library" name="Maven: org.flywaydb:flyway-core:4.0.3" level="project" />
-    <orderEntry type="library" name="Maven: io.buji:buji-pac4j:2.0.3" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-core:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-oauth:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.10" level="project" />
-    <orderEntry type="library" name="Maven: com.github.scribejava:scribejava-apis:2.5.3" level="project" />
-    <orderEntry type="library" name="Maven: com.github.scribejava:scribejava-core:2.5.3" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-openid:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: org.openid4java:openid4java:1.0.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.1" level="project" />
-    <orderEntry type="library" name="Maven: net.sourceforge.nekohtml:nekohtml:1.9.10" level="project" />
-    <orderEntry type="library" name="Maven: com.google.inject:guice:2.0" level="project" />
-    <orderEntry type="library" name="Maven: aopalliance:aopalliance:1.0" level="project" />
-    <orderEntry type="library" name="Maven: xerces:xercesImpl:2.8.1" level="project" />
-    <orderEntry type="library" name="Maven: org.slf4j:jcl-over-slf4j:1.7.14" level="project" />
-    <orderEntry type="library" name="Maven: xml-apis:xml-apis:1.0.b2" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-http:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-oidc:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: com.nimbusds:oauth2-oidc-sdk:5.15" level="project" />
-    <orderEntry type="library" name="Maven: javax.mail:mail:1.4.7" level="project" />
-    <orderEntry type="library" name="Maven: javax.activation:activation:1.1.1" level="project" />
-    <orderEntry type="library" name="Maven: com.github.stephenc.jcip:jcip-annotations:1.0-1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.commons:commons-collections4:4.1" level="project" />
-    <orderEntry type="library" name="Maven: net.minidev:json-smart:1.3.1" level="project" />
-    <orderEntry type="library" name="Maven: com.nimbusds:lang-tag:1.4" level="project" />
-    <orderEntry type="library" name="Maven: com.nimbusds:nimbus-jose-jwt:4.26" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-gae:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: com.google.appengine:appengine-api-1.0-sdk:1.9.31" level="project" />
-    <orderEntry type="library" name="Maven: com.google.appengine:appengine-jsr107cache:1.9.31" level="project" />
-    <orderEntry type="library" name="Maven: net.sf.jsr107cache:jsr107cache:1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.enterprise:cdi-api:1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.el:el-api:2.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.spec.javax.interceptor:jboss-interceptors-api_1.1_spec:1.0.0.Beta1" level="project" />

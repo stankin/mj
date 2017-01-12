@@ -66,8 +66,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
         return result
     }
 
-    open fun getAdminUser(username: String): AdminUser? {
-
+    private fun getAdminUser(username: String): AdminUser? {
 
         return sql2o.open().use{ connection ->
             connection

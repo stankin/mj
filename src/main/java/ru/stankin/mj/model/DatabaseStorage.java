@@ -9,8 +9,10 @@ import org.sql2o.ResultSetIterable;
 import org.sql2o.Sql2o;
 import ru.stankin.mj.utils.ThreadLocalTransaction;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,9 +22,9 @@ import java.util.stream.StreamSupport;
 /**
  * Created by nickl on 01.02.15.
  */
-@javax.ejb.Singleton
-@javax.ejb.Startup
-//@ApplicationScoped
+//@javax.ejb.Singleton
+//@javax.ejb.Startup
+@Singleton
 //@javax.inject.Singleton
 @Default
 //@Lock(LockType.READ)

@@ -36,9 +36,9 @@ open class UtilProducer {
 
 
     @PostConstruct
-    fun initDatabase() {
-        FlywayMigrations.process(dataSource)
-    }
+    open fun initDatabase() = initDatabase(null)
+
+    open fun initDatabase(properties: Properties?) = FlywayMigrations.process(dataSource, properties)
 
 
     @Resource(lookup = "java:jboss/datasources/mj2")
@@ -46,17 +46,17 @@ open class UtilProducer {
 
 
     @Produces
-    fun defaultExecutorService(): ExecutorService = executorService
+    open fun defaultExecutorService(): ExecutorService = executorService
 
     @Produces
     @Default
-    fun defaultDataSource(): DataSource = dataSource
+    open fun defaultDataSource(): DataSource = dataSource
 
     @Produces
-    fun defaultSql2o(): Sql2o = Sql2o(dataSource)
+    open fun defaultSql2o(): Sql2o = Sql2o(dataSource)
 
     @Produces
-    fun defaultApplicationProperties(): Properties  {
+    open fun defaultApplicationProperties(): Properties  {
         val fileName = System.getProperty("jboss.server.config.dir")!! + "/mj.properties"
 
         return Properties().apply {

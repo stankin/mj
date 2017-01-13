@@ -4,11 +4,14 @@ import io.buji.pac4j.subject.Pac4jPrincipal
 import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.apache.shiro.authc.credential.DefaultPasswordService
+import org.apache.shiro.authc.credential.PasswordService
 import org.sql2o.Sql2o
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.model.user.UserDAO
 import javax.annotation.PostConstruct
+import javax.enterprise.inject.Produces
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,7 +43,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
 
                 connection.createQuery("INSERT INTO adminuser (id, password) VALUES (:id, :password);")
                         .addParameter("id", userId)
-                        .addParameter("password", "adminadmin")
+                        .addParameter("password", passwordService.encryptPassword("adminadmin"))
                         .executeUpdate()
 
                 connection.commit();
@@ -49,12 +52,19 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
 
     }
 
+    private val passwordService = DefaultPasswordService()
+
+    @Produces
+    open fun getPasswordService(): PasswordService = passwordService
+
 
     override fun getUserBy(username: String, password: String): User? {
-        var result: User? = getUserBy(username)
+        val result: User? = getUserBy(username)
+        if (result == null)
+            return null
 
-        if (result?.password != password)
-            result = null
+        if (!passwordService.passwordsMatch(password, result.password))
+            return null
 
         return result
     }
@@ -82,6 +92,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
 
     override fun saveUser(user: User): Boolean {
         log.debug("saving user {}", user)
+        user.password = passwordService.encryptPassword(user.password)
         if (user is Student)
             storage.saveStudent(user, null)
         else {

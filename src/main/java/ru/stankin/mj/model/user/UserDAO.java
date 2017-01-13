@@ -4,6 +4,7 @@ import java.util.List;
 
 public interface UserDAO {
 
+    @Deprecated
     public User getUserBy(String username, String password);
 
     public User getUserBy(String username);

@@ -20,6 +20,8 @@ abstract class InWeldTest : FunSpec() {
     override fun beforeAll() {
         try {
 
+            System.setProperty("jboss.server.config.dir", "src/test/resources/testconfig")
+
             val weld = object : Weld() {
                 override fun createDeployment(resourceLoader: ResourceLoader?, bootstrap: CDI11Bootstrap?): Deployment {
                     val deployment = super.createDeployment(resourceLoader, bootstrap)

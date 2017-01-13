@@ -1,6 +1,7 @@
 package ru.stankin.mj.rested.security
 
 import org.apache.logging.log4j.LogManager
+import org.apache.shiro.authc.credential.PasswordService
 import org.apache.shiro.mgt.AbstractRememberMeManager
 import org.apache.shiro.mgt.DefaultSubjectDAO
 import org.apache.shiro.realm.Realm
@@ -21,6 +22,7 @@ import org.apache.shiro.web.session.mgt.ServletContainerSessionManager
 import org.pac4j.core.client.Clients
 import org.pac4j.oauth.client.Google2Client
 import org.pac4j.oauth.client.VkClient
+import ru.stankin.mj.model.user.UserDAO
 import java.util.*
 
 
@@ -32,14 +34,17 @@ class ShiroConfiguration {
     private val logger = LogManager.getLogger(ShiroConfiguration::class.java)
 
     @Inject
-    lateinit var userService: UserService
+    lateinit var userService: UserDAO
+
+    @Inject
+    lateinit var passwordService: PasswordService
 
     @Inject
     lateinit var properties: Properties
 
     @Produces
     fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(mutableListOf<Realm>(
-            MjSecurityRealm(userService, io.buji.pac4j.realm.Pac4jRealm())
+            MjSecurityRealm(userService, passwordService, io.buji.pac4j.realm.Pac4jRealm())
     )
     ).apply {
         subjectFactory = io.buji.pac4j.subject.Pac4jSubjectFactory()

@@ -3,33 +3,29 @@ package ru.stankin.mj.rested.security
 import io.buji.pac4j.subject.Pac4jPrincipal
 import org.apache.logging.log4j.LogManager
 import org.apache.shiro.authc.*
+import org.apache.shiro.authc.credential.DefaultPasswordService
+import org.apache.shiro.authc.credential.PasswordMatcher
 import org.apache.shiro.authz.AuthorizationException
 import org.apache.shiro.authz.AuthorizationInfo
 import org.apache.shiro.authz.SimpleAuthorizationInfo
 import org.apache.shiro.realm.AuthorizingRealm
 import org.apache.shiro.realm.Realm
 import org.apache.shiro.subject.PrincipalCollection
-import org.apache.shiro.subject.SimplePrincipalCollection
+import org.apache.shiro.authc.credential.PasswordService
+import org.sql2o.connectionsources.ConnectionSource
 import ru.stankin.mj.model.user.UserDAO
 import javax.inject.Inject
 
-class UserService {
 
-
-    @Inject
-    lateinit var userDao: UserDAO
-
-
-    fun validUser(username: String, password: CharArray?): Boolean {
-        return userDao.getUserBy(username, String(password!!)) != null;
-    }
-
-}
-
-class MjSecurityRealm(private val userService: UserService, vararg realms: Realm) : AuthorizingRealm() {
+class MjSecurityRealm(private val userService: UserDAO, val passwordService: PasswordService, vararg realms: Realm) : AuthorizingRealm() {
 
     private val realms = realms.asList()
 
+    init {
+        this.credentialsMatcher = PasswordMatcher().apply {
+            this.passwordService = this@MjSecurityRealm.passwordService
+        }
+    }
 
     override fun supports(token: AuthenticationToken?): Boolean {
         return super.supports(token) || realms.any { it.supports(token) }
@@ -64,8 +60,9 @@ class MjSecurityRealm(private val userService: UserService, vararg realms: Realm
 
     private fun authenicateByUsernamePasswordToken(userPassToken: UsernamePasswordToken): SimpleAuthenticationInfo? {
 
-        if (userService.validUser(userPassToken.username, userPassToken.password)) {
-            return SimpleAuthenticationInfo(userPassToken.username, userPassToken.password, name)
+        val user = userService.getUserBy(userPassToken.username)
+        if (user != null) {
+            return SimpleAuthenticationInfo(user.username, user.password, name)
         } else
             throw IncorrectCredentialsException()
     }

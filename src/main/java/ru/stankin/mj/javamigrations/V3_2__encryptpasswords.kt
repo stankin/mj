@@ -20,13 +20,8 @@ class V3_2__encryptpasswords : JdbcMigration {
         val adminPasswords = connection.prepareStatement("SELECT id, password FROM adminuser")
                 .use { aggregateIdPasswords(it) }
 
-        println("passwords=" + adminPasswords)
-
-
         val studentPasswords = connection.prepareStatement("SELECT id, password FROM student")
                 .use { aggregateIdPasswords(it) }
-
-        println("passwords=" + studentPasswords)
 
         storePasswordsInAithentication(connection, adminPasswords + studentPasswords)
 

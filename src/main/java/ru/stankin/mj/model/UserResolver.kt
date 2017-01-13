@@ -34,11 +34,11 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
                     .executeScalar(Int::class.java)
             if(adminsCount == 0) {
                 val userId = connection
-                        .createQuery("INSERT INTO users (login) " + "VALUES (:login);", true)
+                        .createQuery("INSERT INTO users (login) VALUES (:login);", true)
                         .addParameter("login", "admin")
                         .executeUpdate().getKey<Int>(Int::class.java)
 
-                connection.createQuery("INSERT INTO adminuser (id, password) " + "VALUES (:id, :password);")
+                connection.createQuery("INSERT INTO adminuser (id, password) VALUES (:id, :password);")
                         .addParameter("id", userId)
                         .addParameter("password", "adminadmin")
                         .executeUpdate()

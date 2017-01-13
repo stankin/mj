@@ -17,7 +17,7 @@ object FlywayMigrations {
         log.info("Running Flyway to init database ")
 
         val flyway = Flyway()
-        flyway.setLocations("classpath:/sql")
+        flyway.setLocations("classpath:/sql", "classpath:/ru/stankin/mj/javamigrations")
         flyway.dataSource = dataSource
 
         val cleanup = props.getProperty("flyway.cleandb")

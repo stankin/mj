@@ -10,13 +10,15 @@ import org.apache.shiro.authz.SimpleAuthorizationInfo
 import org.apache.shiro.realm.AuthorizingRealm
 import org.apache.shiro.realm.Realm
 import org.apache.shiro.subject.PrincipalCollection
+import org.apache.shiro.subject.SimplePrincipalCollection
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.user.UserDAO
+import java.util.*
 
 
-class MjSecurityRealm(private val userService: UserDAO, val authService: AuthenticationsStore, vararg realms: Realm) : AuthorizingRealm() {
+class MjSecurityRealm(private val userService: UserDAO, private val authService: AuthenticationsStore) : AuthorizingRealm() {
 
-    private val realms = realms.asList()
+
 
     init {
         this.credentialsMatcher = PasswordMatcher().apply {
@@ -25,7 +27,7 @@ class MjSecurityRealm(private val userService: UserDAO, val authService: Authent
     }
 
     override fun supports(token: AuthenticationToken?): Boolean {
-        return super.supports(token) || realms.any { it.supports(token) }
+        return token is UsernamePasswordToken
     }
 
     override fun doGetAuthorizationInfo(p0: PrincipalCollection?): AuthorizationInfo {
@@ -39,18 +41,7 @@ class MjSecurityRealm(private val userService: UserDAO, val authService: Authent
 
         return when(token) {
            is UsernamePasswordToken -> authenicateByUsernamePasswordToken(token)
-           else -> {
-               val otherAuthInfo = realms.asSequence()
-                       .filter { it.supports(token) }
-                       .mapNotNull { realm -> realm.getAuthenticationInfo(token) }.firstOrNull()
-
-               if(otherAuthInfo == null)
-                   return null;
-
-               log.debug("otherAuthInfo = " + otherAuthInfo)
-               val pac4jPrincipal = otherAuthInfo.principals.first() as Pac4jPrincipal
-               SimpleAuthenticationInfo("admin", otherAuthInfo.credentials, otherAuthInfo.principals.realmNames.first() )
-           }
+            else -> throw UnsupportedOperationException("unsupported token type ${token?.javaClass}")
         }
 
     }
@@ -69,3 +60,44 @@ class MjSecurityRealm(private val userService: UserDAO, val authService: Authent
     }
 
 }
+
+class MjOauthSecurityRealm(private val userService: UserDAO,
+                           private val authService: AuthenticationsStore,
+                           vararg realms: Realm) : AuthorizingRealm() {
+
+    val log = LogManager.getLogger(MjOauthSecurityRealm::class.java)
+
+    override fun supports(token: AuthenticationToken?): Boolean = realms.any { it.supports(token) }
+
+    override fun doGetAuthenticationInfo(token: AuthenticationToken?): AuthenticationInfo? {
+        val otherAuthInfo = realms.asSequence()
+                .filter { it.supports(token) }
+                .mapNotNull { realm -> realm.getAuthenticationInfo(token) }.firstOrNull()
+
+        if (otherAuthInfo == null)
+            return null;
+
+        log.debug("otherAuthInfo = " + otherAuthInfo)
+
+        val pac4jPrincipal = otherAuthInfo.principals.first() as Pac4jPrincipal
+
+        val login: String? = userService.getUserByPrincipal(pac4jPrincipal)?.username
+
+        val elems = ArrayList<Any>(2)
+        if (login != null)
+            elems.add(login)
+        elems.add(pac4jPrincipal)
+        val principals = SimplePrincipalCollection(elems, this.javaClass.simpleName)
+
+
+        return SimpleAuthenticationInfo(principals, otherAuthInfo.credentials)
+    }
+
+    override fun doGetAuthorizationInfo(principals: PrincipalCollection?): AuthorizationInfo {
+        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private val realms = realms.asList()
+
+}
+

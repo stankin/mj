@@ -247,9 +247,12 @@ public class DatabaseStorage implements Storage {
                     .addParameter("id", id)
                     .throwOnMappingFailure(false)
                     .executeAndFetchFirst(Student.class);
-            student.setGroups(getStudentHistoricalGroups(connection, id));
-            if (semester != null) {
-                student.setModules(getStudentModules(connection, semester, id));
+
+            if(student != null) {
+                student.setGroups(getStudentHistoricalGroups(connection, id));
+                if (semester != null) {
+                    student.setModules(getStudentModules(connection, semester, id));
+                }
             }
 
             return student;

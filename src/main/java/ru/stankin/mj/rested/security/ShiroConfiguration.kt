@@ -45,7 +45,8 @@ class ShiroConfiguration {
 
     @Produces
     fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(mutableListOf<Realm>(
-            MjSecurityRealm(userService, authenticationsStore, io.buji.pac4j.realm.Pac4jRealm())
+            MjSecurityRealm(userService, authenticationsStore),
+            MjOauthSecurityRealm(userService, authenticationsStore, io.buji.pac4j.realm.Pac4jRealm())
     )
     ).apply {
         subjectFactory = io.buji.pac4j.subject.Pac4jSubjectFactory()

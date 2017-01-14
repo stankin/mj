@@ -91,6 +91,19 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
 
     }
 
+    private fun getAdminUser(id: Int): AdminUser? {
+
+        return sql2o.open().use{ connection ->
+            connection
+                    .createQuery("SELECT users.id as id, users.login as username, * FROM users INNER JOIN adminuser on users.id = adminuser.id WHERE users.id = :id")
+                    .addParameter("id", id)
+                    .throwOnMappingFailure(false)
+                    .executeAndFetchFirst(AdminUser::class.java)
+
+        }
+
+    }
+
 
     override fun saveUser(user: User): Boolean {
         log.debug("saving user {}", user)
@@ -145,8 +158,11 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
 
 
     override fun getUserByPrincipal(principal: Any): User? {
-      return when (principal) {
+        return when (principal) {
             is String -> getUserBy(principal)
+            is Pac4jPrincipal -> auth.findUserByOauth(principal.profile)?.let {
+                (storage.getStudentById(it, null) as User?) ?: getAdminUser(it)
+            }
             else -> throw UnsupportedOperationException("principals of type " + principal.javaClass.name + " are not suported")
         }
     }

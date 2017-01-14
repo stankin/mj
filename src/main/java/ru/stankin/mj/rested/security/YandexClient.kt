@@ -33,6 +33,7 @@ class YandexClient() : BaseOAuth20Client<YandexProfile>() {
         log.debug("extractUserProfile for body: $body")
         return YandexProfile().let { profile ->
             JsonHelper.getFirstNode(body)?.run {
+                profile.setId(JsonHelper.getElement(this, "id"))
                 for (attribute in profile.attributesDefinition.primaryAttributes) {
                     profile.addAttribute(attribute, JsonHelper.getElement(this, attribute))
                 }
@@ -47,7 +48,17 @@ class YandexClient() : BaseOAuth20Client<YandexProfile>() {
 }
 
 
-class YandexProfile : OAuth20Profile() {
+class YandexProfile() : OAuth20Profile() {
+
+    constructor(id: String, attributes: Map<String, Any>) : this() {
+        setId(id)
+        clientName = "YandexProfile"
+        for ((k, v) in attributes) {
+            addAttribute(k, v)
+        }
+    }
+
+
     override fun getAttributesDefinition(): AttributesDefinition = YandexAttributesDefinition
 }
 

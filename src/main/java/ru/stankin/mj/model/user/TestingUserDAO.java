@@ -26,8 +26,7 @@ public class TestingUserDAO implements UserDAO, Serializable {
     @Override
     public User getUserBy(String username, String password) {
         for (User user : users) {
-            if (user.getUsername().equals(username)
-                    && user.getPassword().equals(password)) {
+            if (user.getUsername().equals(username)) {
                 return user;
             }
         }
@@ -56,6 +55,11 @@ public class TestingUserDAO implements UserDAO, Serializable {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public boolean saveUserAndPassword(User user, String password) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

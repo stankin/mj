@@ -22,6 +22,7 @@ import org.apache.shiro.web.session.mgt.ServletContainerSessionManager
 import org.pac4j.core.client.Clients
 import org.pac4j.oauth.client.Google2Client
 import org.pac4j.oauth.client.VkClient
+import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.user.UserDAO
 import java.util.*
 
@@ -37,14 +38,14 @@ class ShiroConfiguration {
     lateinit var userService: UserDAO
 
     @Inject
-    lateinit var passwordService: PasswordService
+    lateinit var authenticationsStore: AuthenticationsStore
 
     @Inject
     lateinit var properties: Properties
 
     @Produces
     fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(mutableListOf<Realm>(
-            MjSecurityRealm(userService, passwordService, io.buji.pac4j.realm.Pac4jRealm())
+            MjSecurityRealm(userService, authenticationsStore, io.buji.pac4j.realm.Pac4jRealm())
     )
     ).apply {
         subjectFactory = io.buji.pac4j.subject.Pac4jSubjectFactory()

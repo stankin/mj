@@ -3,15 +3,13 @@ package ru.stankin.mj.model
 import io.buji.pac4j.subject.Pac4jPrincipal
 import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
-import org.apache.shiro.authc.credential.DefaultPasswordService
-import org.apache.shiro.authc.credential.PasswordService
 import org.sql2o.Sql2o
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.model.user.UserDAO
+import ru.stankin.mj.utils.ThreadLocalTransaction
 import javax.annotation.PostConstruct
-import javax.enterprise.inject.Produces
+import javax.enterprise.context.ApplicationScoped
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,42 +18,46 @@ import javax.inject.Singleton
 /**
  * Created by nickl on 16.02.15.
  */
-@Singleton
+@ApplicationScoped
 open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO {
 
+
     @Inject
-    internal lateinit var storage: Storage
+    private lateinit var storage: Storage
+
+    @Inject
+    private lateinit var auth: AuthenticationsStore
 
 
     @PostConstruct
     open fun initIfRequired() {
 
-        //language=SQL
-        sql2o.beginTransaction().use { connection ->
+        ThreadLocalTransaction.within(sql2o) { ->
 
-            val adminsCount = connection.createQuery("SELECT COUNT(id) FROM adminuser LIMIT 1;")
-                    .executeScalar(Int::class.java)
-            if(adminsCount == 0) {
-                val userId = connection
-                        .createQuery("INSERT INTO users (login) VALUES (:login);", true)
-                        .addParameter("login", "admin")
-                        .executeUpdate().getKey<Int>(Int::class.java)
+            sql2o.beginTransaction(ThreadLocalTransaction.get()!!).use { connection ->
 
-                connection.createQuery("INSERT INTO adminuser (id, password) VALUES (:id, :password);")
-                        .addParameter("id", userId)
-                        .addParameter("password", passwordService.encryptPassword("adminadmin"))
-                        .executeUpdate()
+                val adminsCount = connection.createQuery("SELECT COUNT(id) FROM adminuser LIMIT 1;")
+                        .executeScalar(Int::class.java)
+                if (adminsCount == 0) {
+                    val userId = connection
+                            .createQuery("INSERT INTO users (login) VALUES (:login);", true)
+                            .addParameter("login", "admin")
+                            .executeUpdate().getKey<Int>(Int::class.java)
 
-                connection.commit();
+                    connection.createQuery("INSERT INTO adminuser (id) VALUES (:id);")
+                            .addParameter("id", userId)
+                            .executeUpdate()
+
+                    auth.updatePassword(userId, "adminadmin")
+
+                    connection.commit();
+                }
             }
+
         }
 
     }
 
-    private val passwordService = DefaultPasswordService()
-
-    @Produces
-    open fun getPasswordService(): PasswordService = passwordService
 
 
     override fun getUserBy(username: String, password: String): User? {
@@ -63,7 +65,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
         if (result == null)
             return null
 
-        if (!passwordService.passwordsMatch(password, result.password))
+        if (!auth.acceptPassword(result.id, password))
             return null
 
         return result
@@ -92,7 +94,6 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
 
     override fun saveUser(user: User): Boolean {
         log.debug("saving user {}", user)
-        user.password = passwordService.encryptPassword(user.password)
         if (user is Student)
             storage.saveStudent(user, null)
         else {
@@ -101,20 +102,29 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
         return true
     }
 
+    override fun saveUserAndPassword(user: User, password: String): Boolean {
+        ThreadLocalTransaction.joinOrNew(sql2o) { ->
+            saveUser(user)
+            if (!password.isNullOrBlank())
+                auth.updatePassword(user.id, password)
+        }
+        return true
+    }
+
     private fun saveAdmin(admin: AdminUser) {
 
         sql2o.beginTransaction().use { connection ->
 
-            if (admin.id == 0L) {
+            if (admin.id == 0) {
 
                 val userId = connection
                         .createQuery("INSERT INTO users (login, email) VALUES (:username, :email)", true)
                         .bind(admin)
-                        .executeUpdate().getKey<Long>(Long::class.java)
+                        .executeUpdate().getKey<Int>(Int::class.java)
 
                 admin.id = userId!!
 
-                connection.createQuery("INSERT INTO adminuser (id, password) VALUES (:id, :password)")
+                connection.createQuery("INSERT INTO adminuser (id) VALUES (:id)")
                         .bind(admin)
                         .executeUpdate()
             } else {
@@ -123,9 +133,9 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
                         .bind(admin)
                         .executeUpdate()
 
-                connection.createQuery("UPDATE adminuser SET password = :password WHERE id = :id")
-                        .bind(admin)
-                        .executeUpdate()
+//                connection.createQuery("UPDATE adminuser SET password = :password WHERE id = :id")
+//                        .bind(admin)
+//                        .executeUpdate()
             }
 
             connection.commit()

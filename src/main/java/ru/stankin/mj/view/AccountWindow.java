@@ -7,7 +7,7 @@ import com.vaadin.ui.*;
 import ru.stankin.mj.model.user.User;
 import ru.stankin.mj.model.Student;
 
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 /**
  * Created by nickl on 16.02.15.
@@ -16,13 +16,13 @@ public class AccountWindow extends Window {
 
     User user;
 
-    Consumer<User> save;
+    BiConsumer<User, String> save;
 
-    public AccountWindow(User user, Consumer<User> save) {
-        this(user, save, false);
+    public AccountWindow(User user, BiConsumer<User, String> save) {
+        this(user, save, false, false);
     }
 
-    public AccountWindow(User user, Consumer<User> save, boolean warn) {
+    public AccountWindow(User user, BiConsumer<User, String> save, boolean warn, boolean needChangePassword ) {
         super("Аккаунт: " + user.getUsername());
         this.user = user;
         this.save = save;
@@ -31,7 +31,7 @@ public class AccountWindow extends Window {
         this.setResizable(false);
         VerticalLayout vertical = new VerticalLayout();
         vertical.setMargin(true);
-        boolean warnPassword = warn && needChangePassword(user);
+        boolean warnPassword = warn && needChangePassword;
         if (warnPassword) {
             vertical.addComponent(new Label("ВНИМАНИЕ!"));
             vertical.addComponent(new Label("На вашем аккаунте используется пароль по умолчанию, пожалуйста, смените его!"));
@@ -40,7 +40,8 @@ public class AccountWindow extends Window {
         final FieldGroup binder = new FieldGroup(new BeanItem<>(user));
         content.addComponent(readOnlyField("Логин:", user.getUsername()));
         //content.addComponent(new TextField("Пароль:", new ));
-        Field<?> password = binder.buildAndBind("Пароль:", "password");
+        Field<String> password = new TextField("Пароль:", "");
+        //binder.buildAndBind("Пароль:", "password");
         //password.setRequired(true);
         if (warnPassword)
             password.addValidator(new AbstractStringValidator("Неправильный пароль") {
@@ -68,7 +69,7 @@ public class AccountWindow extends Window {
                                 } catch (FieldGroup.CommitException e1) {
                                     e1.printStackTrace();
                                 }
-                                this.save.accept(user);
+                                this.save.accept(user, password.getValue());
                                 this.close();
                             }
                         }),
@@ -79,9 +80,6 @@ public class AccountWindow extends Window {
         this.center();
     }
 
-    public static boolean needChangePassword(User user) {
-        return user instanceof Student && user.getUsername().equals(user.getPassword());
-    }
 
     private TextField readOnlyField(String caption, String value) {
         TextField filed = new TextField(caption, value);

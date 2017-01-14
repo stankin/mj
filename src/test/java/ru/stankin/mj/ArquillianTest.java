@@ -97,6 +97,9 @@ public class ArquillianTest {
     @Inject
     Sql2o sql2;
 
+    @Inject
+    AuthenticationsStore auths;
+
 
     private <T> T connect(Function<Connection, T> op) {
         try (Connection connection = sql2.open().setRollbackOnException(false)) {
@@ -112,7 +115,6 @@ public class ArquillianTest {
 
     private void refresh(Student s) {
         Student student = storage.getStudentById(s.id, s.getModules().get(0).getSubject().getSemester());
-        s.password = student.password;
         s.cardid = student.cardid;
         s.name = student.name;
         s.initials = student.initials;
@@ -177,8 +179,9 @@ public class ArquillianTest {
     @InSequence(5)
     public void testPasswordChange() throws Exception {
 
-        User idb1316Student = userDAO.getUserBy("114513", "114513"); // Богданова	Устина	Кирилловна
-        idb1316Student.setPassword("nonDefaultPassword");
+        User idb1316Student = userDAO.getUserBy("114513"); // Богданова	Устина	Кирилловна
+
+        auths.updatePassword(idb1316Student.getId(),"nonDefaultPassword" );
         userDAO.saveUser(idb1316Student);
 
         User idb1316StudentWithNewPassword = userDAO.getUserBy("114513", "nonDefaultPassword");
@@ -219,8 +222,7 @@ public class ArquillianTest {
         Assert.assertEquals("ИДБ-13-15", studentWithNewGroup.stgroup);
 
         Assert.assertEquals("Students have the same id", studentWithNewGroup.id, studentWithOldGroup.id);
-        Assert.assertEquals("Students have the same password", studentWithNewGroup.password, studentWithOldGroup.password);
-        Assert.assertEquals("And it is", "nonDefaultPassword", studentWithNewGroup.password);
+         Assert.assertTrue("And nonDefaultPassword", auths.acceptPassword(studentWithNewGroup.id, "nonDefaultPassword"));
         Assert.assertEquals("Student have both groups in history",
                 new TreeSet<>(asList("ИДБ-13-15", "ИДБ-13-16")),
                 studentWithNewGroup.getGroups().stream().map(s -> s.groupName).collect(Collectors.toCollection(TreeSet<String>::new)));

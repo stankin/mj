@@ -144,10 +144,6 @@ public class DatabaseStorage implements Storage {
 
         try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.INSTANCE.get())) { //TODO: на самом деле должны быть одна транзакция на всех студентов
 
-            if(student.password == null){
-                student.password = student.cardid;
-            }
-
             logger.trace("saving student {} at semester {}", student, semestr);
 
             if(student.id == 0){
@@ -160,8 +156,8 @@ public class DatabaseStorage implements Storage {
 
                 student.id = userId;
 
-                connection.createQuery("INSERT INTO student (id, password, stgroup) " +
-                        "VALUES (:id, :password, :stgroup)")
+                connection.createQuery("INSERT INTO student (id, stgroup) " +
+                        "VALUES (:id, :stgroup)")
                         .bind(student)
                         .executeUpdate();
             } else {
@@ -176,7 +172,7 @@ public class DatabaseStorage implements Storage {
                         .bind(student)
                         .executeUpdate();
 
-                connection.createQuery("UPDATE student SET password = :password, stgroup = :stgroup " +
+                connection.createQuery("UPDATE student SET stgroup = :stgroup " +
                         "WHERE id = :id")
                         .bind(student)
                         .executeUpdate();
@@ -229,7 +225,7 @@ public class DatabaseStorage implements Storage {
         Connection connection = sql2o.open();
         try {
             return toStream(connection
-                    .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id  WHERE surname || initials || stgroup ILIKE :pattern ORDER BY stgroup, surname;\n")
+                    .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id  WHERE surname || initials || stgroup || users.login ILIKE :pattern ORDER BY stgroup, surname;\n")
                     .addParameter("pattern", "%" + text + "%")
                     .throwOnMappingFailure(false)
                     .executeAndFetchLazy(Student.class), connection);

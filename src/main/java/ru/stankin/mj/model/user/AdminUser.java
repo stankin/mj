@@ -5,19 +5,17 @@ import java.io.Serializable;
 
 public class AdminUser implements Serializable, User {
 
-    private long id;
+    private int id;
 
     private String username = null;
-    private String password = null;
     private String email = null;
     private boolean isAdmin = true;
 
     public AdminUser() {
     }
 
-    public AdminUser(String username, String password, String email) {
+    public AdminUser(String username, String email) {
         this.username = username;
-        this.password = password;
         this.email = email;
     }
 
@@ -29,15 +27,6 @@ public class AdminUser implements Serializable, User {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getEmail() {
@@ -53,11 +42,11 @@ public class AdminUser implements Serializable, User {
         return isAdmin;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -77,7 +66,6 @@ public class AdminUser implements Serializable, User {
         return "AdminUser{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", isAdmin=" + isAdmin +
                 '}';

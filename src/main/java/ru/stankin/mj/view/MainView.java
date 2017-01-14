@@ -49,6 +49,9 @@ public class MainView extends CustomComponent implements View {
     private UserDAO userDao;
 
     @Inject
+    private AuthenticationsStore auth;
+
+    @Inject
     private Storage storage;
 
     @Inject
@@ -102,15 +105,21 @@ public class MainView extends CustomComponent implements View {
         //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
         content.setExpandRatio(blonk, 1);
 
+        boolean needChangePassword = auth.acceptPassword(user.getUser().getId(), user.getName());
+
         Button settings = new Button("Аккаунт: " + user.getName(), event1 -> {
             if(SecurityUtils.getSubject().isAuthenticated()) {
-                this.getUI().addWindow(new AccountWindow(user.getUser(), userDao::saveUser, true));
+                AccountWindow accountWindow = new AccountWindow(user.getUser(), userDao::saveUserAndPassword, true, needChangePassword);
+                this.getUI().addWindow(accountWindow);
             }
             else
                 this.getUI().getNavigator().navigateTo("login");
         });
-        if (AccountWindow.needChangePassword(user.getUser()))
+
+        if (needChangePassword){
             settings.click();
+        }
+
         //settings.setEnabled(false);
         content.addComponent(settings);
         content.setComponentAlignment(settings, Alignment.TOP_RIGHT);
@@ -550,7 +559,7 @@ public class MainView extends CustomComponent implements View {
 
         public StudentSettingsButton() {
             super("Редактировать");
-            this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao::saveUser)));
+            this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao::saveUserAndPassword)));
         }
 
     }

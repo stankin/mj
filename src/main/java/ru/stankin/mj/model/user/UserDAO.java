@@ -11,5 +11,7 @@ public interface UserDAO {
 
     public boolean saveUser(User user);
 
+    public boolean saveUserAndPassword(User user, String password);
+
     User getUserByPrincipal(Object principal);
 }

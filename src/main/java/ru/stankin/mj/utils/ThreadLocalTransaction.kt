@@ -17,6 +17,12 @@ object ThreadLocalTransaction {
 
     fun get(): ConnectionSource? = connection.get()?.jdbcConnection?.let { join(it) }
 
+    fun <T> joinOrNew(sql2o: Sql2o, f: () -> T): T =
+            if (connection.get() == null)
+                within(sql2o, f)
+            else
+                f()
+
 
     fun <T> within(sql2o: Sql2o, f: () -> T): T {
         val prev = connection.get()

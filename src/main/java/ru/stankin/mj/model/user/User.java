@@ -6,9 +6,7 @@ package ru.stankin.mj.model.user;
 public interface User {
     String getUsername();
 
-    String getPassword();
-
-    void setPassword(String password);
+    int getId();
 
     boolean isAdmin();
 

@@ -24,8 +24,6 @@ public class Student implements Serializable, User, Comparable {
     public String surname;
     public String initials;
 
-    public String password;
-
     private List<Module> modules = new ArrayList<>();
     public String name;
     public String patronym;
@@ -129,13 +127,8 @@ public class Student implements Serializable, User, Comparable {
     }
 
     @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public void setPassword(String password) {
-        this.password = password;
+    public int getId() {
+        return id;
     }
 
     @Override

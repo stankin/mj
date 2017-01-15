@@ -39,6 +39,7 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 
@@ -132,7 +133,9 @@ public class ArquillianTest {
         //        sql2.joinTransaction();
         mj.updateStudentsFromExcel("2014-осень", loadResource("/newEtalon-joinedGroups.xls"));
 
-        Assert.assertEquals(1750, storage.getStudents().count());
+        try (Stream<Student> students = storage.getStudents()) {
+            Assert.assertEquals(1750, students.count());
+        }
         Assert.assertEquals(1750, connectLong(c -> c.createQuery("SELECT count(g) FROM groupshistory g").executeScalar(Integer.class)));
         Assert.assertEquals(1750, connectLong(c -> c.createQuery("SELECT count(g) FROM groupshistory g WHERE g.semestr = '2014-осень'").executeScalar(Long.class)));
     }
@@ -145,7 +148,9 @@ public class ArquillianTest {
         //        sql2.joinTransaction();
         //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
 
-        Assert.assertEquals(1753, storage.getStudents().count());
+        try (Stream<Student> students = storage.getStudents()) {
+            Assert.assertEquals(1753, students.count());
+        }
         Assert.assertEquals(1753, connectLong(c -> c.createQuery("SELECT count(g) FROM groupshistory g").executeScalar(Long.class)));
         Assert.assertEquals(1753, connectLong(c -> c.createQuery("SELECT count(g) FROM groupshistory g WHERE g.semestr = '2014-осень'").executeScalar(Long.class)));
     }

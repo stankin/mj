@@ -101,10 +101,12 @@ public class ModuleJournalUploader {
 
             List<String> messages = new ArrayList<>();
 
-            storage.getStudents().filter(s -> !processedCards.contains(s.cardid)).forEach(s -> {
-                storage.deleteStudent(s);
-                messages.add("Удяляем студента:" + s.cardid + " " + s.getGroups().stream().map(g -> g.groupName).collect(joining(", ")) + " " + s.surname + " " + s.initials);
-            });
+            try (Stream<Student> students = storage.getStudents()) {
+                students.filter(s -> !processedCards.contains(s.cardid)).forEach(s -> {
+                    storage.deleteStudent(s);
+                    messages.add("Удяляем студента:" + s.cardid + " " + s.getGroups().stream().map(g -> g.groupName).collect(joining(", ")) + " " + s.surname + " " + s.initials);
+                });
+            }
 
             return messages;
         };

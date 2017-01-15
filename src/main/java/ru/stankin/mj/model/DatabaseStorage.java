@@ -49,7 +49,7 @@ public class DatabaseStorage implements Storage {
         String semester = studentModules.get(0).getSubject().getSemester();
         //logger.debug("saving student {} modules: {}", student.name, studentModules.size());
 
-        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.INSTANCE.get())) {
+        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.get())) {
 
             SubjectsCache subjectsCache = new SubjectsCache(connection);
 
@@ -132,7 +132,7 @@ public class DatabaseStorage implements Storage {
 
         logger.debug("deleting student {}", s);
 
-        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.INSTANCE.get())) {
+        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.get())) {
             connection.createQuery("DELETE FROM users WHERE id=:id;").addParameter("id", s.id).executeUpdate();
             connection.commit();
         }
@@ -142,7 +142,7 @@ public class DatabaseStorage implements Storage {
     @Override
     public void saveStudent(Student student, String semestr) {
 
-        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.INSTANCE.get())) { //TODO: на самом деле должны быть одна транзакция на всех студентов
+        try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.get())) {
 
             logger.trace("saving student {} at semester {}", student, semestr);
 
@@ -222,10 +222,10 @@ public class DatabaseStorage implements Storage {
         if (text == null)
             return getStudents();
 
-        Connection connection = sql2o.open();
+        Connection connection = sql2o.open(ThreadLocalTransaction.get());
         try {
             return toStream(connection
-                    .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id  WHERE surname || initials || stgroup || users.login ILIKE :pattern ORDER BY stgroup, surname;\n")
+                    .createQuery("SELECT users.id AS id, users.login AS cardid, * FROM users INNER JOIN student ON users.id = student.id  WHERE surname || initials || stgroup || users.login ILIKE :pattern ORDER BY stgroup, surname;\n")
                     .addParameter("pattern", "%" + text + "%")
                     .throwOnMappingFailure(false)
                     .executeAndFetchLazy(Student.class), connection);
@@ -234,6 +234,7 @@ public class DatabaseStorage implements Storage {
             connection.close();
             throw e;
         }
+
     }
 
 
@@ -363,7 +364,7 @@ public class DatabaseStorage implements Storage {
     @Override
     public Student getStudentByCardId(String cardid) {
 
-        try (Connection connection = sql2o.open(ThreadLocalTransaction.INSTANCE.get())) {
+        try (Connection connection = sql2o.open(ThreadLocalTransaction.get())) {
             Student student = connection
                     .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id" +
                             " WHERE login = :login")

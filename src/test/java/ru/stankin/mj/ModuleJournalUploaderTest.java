@@ -71,8 +71,9 @@ public class ModuleJournalUploaderTest {
 
         mj.updateMarksFromExcel("", ModuleJournalUploaderTest.class.getResourceAsStream(name));
 
-        Stream<Student> students = storage.getStudents();
-        return students.collect(Collectors.toList());
+        try (Stream<Student> students = storage.getStudents()) {
+            return students.collect(Collectors.toList());
+        }
     }
 
     @Test
@@ -85,7 +86,9 @@ public class ModuleJournalUploaderTest {
         mj.updateStudentsFromExcel("2014-1", ModuleJournalUploaderTest.class.getResourceAsStream("/newEtalon.xls"));
         //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
 
-        Assert.assertEquals(1753, storage.getStudents().count());
+        try (Stream<Student> students = storage.getStudents()) {
+            Assert.assertEquals(1753, students.count());
+        }
 
 
     }

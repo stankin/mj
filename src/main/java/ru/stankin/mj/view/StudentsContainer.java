@@ -14,6 +14,7 @@ import ru.stankin.mj.model.Student;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by nickl on 31.01.15.
@@ -81,9 +82,11 @@ public class StudentsContainer extends AbstractContainer implements Container, C
     }
 
     private void updateData() {
-        idis = this.storage.getStudentsFiltred(filter).map(s -> s.id).collect(Collectors.toList());
-        idisSet = idis.stream().collect(Collectors.toSet());
-        fireItemSetChange();
+        try (Stream<Integer> idStream = this.storage.getStudentsFiltred(filter).map(s -> s.id)) {
+            idis = idStream.collect(Collectors.toList());
+            idisSet = idis.stream().collect(Collectors.toSet());
+            fireItemSetChange();
+        }
     }
 
     @Override

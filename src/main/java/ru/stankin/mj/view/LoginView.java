@@ -25,11 +25,11 @@ import javax.servlet.http.HttpServletRequest;
 public class LoginView extends CustomComponent implements View {
 
 
-    private TextField usernameField;
-    private Label errorLabel;
-    private PasswordField passwordField;
-    private Button loginButton;
-    private CheckBox rememberMeCbx;
+    protected TextField usernameField;
+    protected Label errorLabel;
+    protected PasswordField passwordField;
+    protected Button loginButton;
+    protected CheckBox rememberMeCbx;
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -50,10 +50,6 @@ public class LoginView extends CustomComponent implements View {
         rememberMeCbx.setBuffered(true);
 
         VerticalLayout layout = new VerticalLayout();
-
-        //layout.setWidth("100%");
-
-
         layout.setSizeFull();
         layout.setMargin(true);
         layout.setSpacing(true);
@@ -63,8 +59,7 @@ public class LoginView extends CustomComponent implements View {
         layout.addComponent(errorLabel);
         layout.addComponent(passwordField);
         additionalButtons(layout);
-        layout.addComponent(loginButton);
-
+        layout.addComponent(getLoginButton());
 
         androidSuggest(layout);
 
@@ -74,7 +69,6 @@ public class LoginView extends CustomComponent implements View {
         VerticalLayout loginLayout = new VerticalLayout();
         loginLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
         loginLayout.addComponent(panel);
-
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setSizeFull();
@@ -89,6 +83,10 @@ public class LoginView extends CustomComponent implements View {
         setCompositionRoot(verticalLayout);
 
         //setCompositionRoot(loginLayout);
+    }
+
+    protected Component getLoginButton() {
+        return loginButton;
     }
 
     @NotNull

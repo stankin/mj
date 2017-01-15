@@ -40,8 +40,8 @@ class MjSecurityRealm(private val userService: UserDAO, private val authService:
 
     override fun doGetAuthenticationInfo(token: AuthenticationToken?): AuthenticationInfo? {
 
-        return when(token) {
-           is UsernamePasswordToken -> authenicateByUsernamePasswordToken(token)
+        return when (token) {
+            is UsernamePasswordToken -> authenicateByUsernamePasswordToken(token)
             else -> throw UnsupportedOperationException("unsupported token type ${token?.javaClass}")
         }
 
@@ -113,6 +113,6 @@ object MjRoles {
     const val ADMIN = "admin"
     const val STUDENT = "student"
 
-    public @JvmStatic fun getUser(): User? = SecurityUtils.getSubject().principals.oneByType(User::class.java)
+    @JvmStatic fun getUser(): User? = SecurityUtils.getSubject().principals?.oneByType(User::class.java)
 
 }

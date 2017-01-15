@@ -107,7 +107,7 @@ public class MainView extends CustomComponent implements View {
 
         Button settings = new Button("Аккаунт: " + MjRoles.getUser().getUsername(), event1 -> {
             if(SecurityUtils.getSubject().isAuthenticated()) {
-                AccountWindow accountWindow = new AccountWindow(MjRoles.getUser(), userDao::saveUserAndPassword, true, needChangePassword);
+                AccountWindow accountWindow = new AccountWindow(MjRoles.getUser(), userDao, auth, false);
                 this.getUI().addWindow(accountWindow);
             }
             else
@@ -556,7 +556,7 @@ public class MainView extends CustomComponent implements View {
 
         public StudentSettingsButton() {
             super("Редактировать");
-            this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao::saveUserAndPassword)));
+            this.addClickListener(event -> this.getUI().addWindow(new AccountWindow(student, userDao, auth, true)));
         }
 
     }

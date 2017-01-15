@@ -10,9 +10,7 @@ import com.vaadin.server.VaadinRequest
 import com.vaadin.server.VaadinService
 import com.vaadin.server.WrappedSession
 import com.vaadin.shared.ui.label.ContentMode
-import com.vaadin.ui.Label
-import com.vaadin.ui.UI
-import com.vaadin.ui.VerticalLayout
+import com.vaadin.ui.*
 import io.buji.pac4j.subject.Pac4jPrincipal
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -87,7 +85,7 @@ class BindOauthView():LoginView() {
     lateinit var auth:AuthenticationsStore
 
     override fun titleLabel(): Label = Label("Внешнаяя аутентификация не привязана ни к какому аккаунту.<br/>" +
-            "Введите логин и пароль чтобы осуществить привязку а аккаунту", ContentMode.HTML)
+            "Введите логин и пароль чтобы осуществить привязку к аккаунту", ContentMode.HTML)
 
 
     override fun doLogin(username: String?, password: String?) {
@@ -99,5 +97,14 @@ class BindOauthView():LoginView() {
 
     override fun androidSuggest(layout: VerticalLayout?) {}
 
-    override fun additionalButtons(layout: VerticalLayout?) {}
+    override fun additionalButtons(layout: VerticalLayout) {}
+
+    override fun getLoginButton(): Component {
+        return HorizontalLayout(
+                super.getLoginButton(),
+                Button("Отмена", { a ->
+                    SecurityUtils.getSubject().logout()
+                    this.ui.navigator.navigateTo("login")
+                }))
+    }
 }

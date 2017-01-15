@@ -118,4 +118,15 @@ open class AuthenticationsStore @Inject constructor(private val sql2o: Sql2o) {
 
     open fun getStoredPassword(id: Int): Any? = getAuthenicationValue(id, "password")?.let { it["password"]!! }
 
+    fun dropExternalAuths(userId: Int) {
+        sql2o.beginTransaction(ThreadLocalTransaction.get()).use { connection ->
+            connection.createQuery("DELETE FROM authentication WHERE user_id = :id AND method = :method")
+                    .addParameter("id", userId)
+                    .addParameter("method", "oauth")
+                    .executeUpdate()
+
+            connection.commit()
+        }
+    }
+
 }

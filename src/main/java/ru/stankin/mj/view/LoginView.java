@@ -10,11 +10,11 @@ import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.mgt.SecurityManager;
+import org.jetbrains.annotations.NotNull;
 import ru.stankin.mj.model.user.UserDAO;
 
 import javax.inject.Inject;
@@ -22,14 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 
 
 @CDIView("login")
-public class LoginView extends CustomComponent implements View, ClickListener {
+public class LoginView extends CustomComponent implements View {
 
-
-    @Inject
-    private UserDAO userDAO;
-
-    @Inject
-    private SecurityManager securityManager;
 
     private TextField usernameField;
     private Label errorLabel;
@@ -49,7 +43,7 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         passwordField = new PasswordField("Пароль");
         passwordField.addFocusListener(event1 -> {errorLabel.setVisible(false); passwordField.focus();});
         loginButton = new Button("Вход");
-        loginButton.addClickListener(this);
+        loginButton.addClickListener(this::loginButtonClick);
         loginButton.setClickShortcut(KeyCode.ENTER);
         setHeight("100%");
         rememberMeCbx = new CheckBox("Запомнить");
@@ -64,27 +58,15 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         layout.setMargin(true);
         layout.setSpacing(true);
         layout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
-        Label label = new Label("<b>Вход</b>",  ContentMode.HTML);
-        layout.addComponent(label);
+        layout.addComponent(titleLabel());
         layout.addComponent(usernameField);
         layout.addComponent(errorLabel);
         layout.addComponent(passwordField);
-        layout.addComponent(rememberMeCbx);
-        layout.addComponent(new Label("<a href='forceLogin?client_name=Google2Client'>Войти через Google</a>", ContentMode.HTML));
-        layout.addComponent(new Label("<a href='forceLogin?client_name=VkClient'>Войти через Vkontakte</a>", ContentMode.HTML));
-        layout.addComponent(new Label("<a href='forceLogin?client_name=YandexClient'>Войти через Яндекс</a>", ContentMode.HTML));
+        additionalButtons(layout);
         layout.addComponent(loginButton);
 
 
-        VaadinRequest request = VaadinService.getCurrentRequest();
-        if (request instanceof VaadinServletRequest) {
-            HttpServletRequest httpRequest = ((VaadinServletRequest)request).getHttpServletRequest();
-            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
-            if (userAgent.contains("android")) {
-                layout.addComponent(new Label("<a href=\"https://play.google.com/store/apps/details?id=ru.modulejournal\">Приложение для Android</a>",  ContentMode.HTML));
-            }
-
-        }
+        androidSuggest(layout);
 
         Panel panel = new Panel();
         panel.setWidthUndefined();
@@ -109,14 +91,38 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         //setCompositionRoot(loginLayout);
     }
 
-    @Override
-    public void buttonClick(ClickEvent event) {
+    @NotNull
+    protected Label titleLabel() {
+        return new Label("<b>Вход</b>",  ContentMode.HTML);
+    }
+
+    protected void androidSuggest(VerticalLayout layout) {
+        VaadinRequest request = VaadinService.getCurrentRequest();
+        if (request instanceof VaadinServletRequest) {
+            HttpServletRequest httpRequest = ((VaadinServletRequest)request).getHttpServletRequest();
+            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
+            if (userAgent.contains("android")) {
+                layout.addComponent(new Label("<a href=\"https://play.google.com/store/apps/details?id=ru.modulejournal\">Приложение для Android</a>",  ContentMode.HTML));
+            }
+
+        }
+    }
+
+    protected void additionalButtons(VerticalLayout layout) {
+        layout.addComponent(rememberMeCbx);
+        layout.addComponent(new Label("<a href='forceLogin?client_name=Google2Client'>Войти через Google</a>", ContentMode.HTML));
+        layout.addComponent(new Label("<a href='forceLogin?client_name=VkClient'>Войти через Vkontakte</a>", ContentMode.HTML));
+        layout.addComponent(new Label("<a href='forceLogin?client_name=YandexClient'>Войти через Яндекс</a>", ContentMode.HTML));
+    }
+
+
+    public void loginButtonClick(ClickEvent event) {
         String username = usernameField.getValue();
         String password = passwordField.getValue();
 
 
         try {
-            SecurityUtils.getSubject().login(new UsernamePasswordToken(username, password, rememberMeCbx.getValue()));
+            doLogin(username, password);
             this.getUI().getNavigator().navigateTo("");
 
         } catch (AuthenticationException e){
@@ -124,5 +130,9 @@ public class LoginView extends CustomComponent implements View, ClickListener {
                 errorLabel.setVisible(true);
         }
 
+    }
+
+    protected void doLogin(String username, String password) {
+        SecurityUtils.getSubject().login(new UsernamePasswordToken(username, password, rememberMeCbx.getValue()));
     }
 }

@@ -3,15 +3,21 @@ package ru.stankin.mj.view
 import com.vaadin.annotations.Theme
 import com.vaadin.annotations.Widgetset
 import com.vaadin.cdi.CDIUI
+import com.vaadin.cdi.CDIView
 import com.vaadin.cdi.CDIViewProvider
 import com.vaadin.navigator.Navigator
 import com.vaadin.server.VaadinRequest
 import com.vaadin.server.VaadinService
 import com.vaadin.server.WrappedSession
+import com.vaadin.shared.ui.label.ContentMode
+import com.vaadin.ui.Label
 import com.vaadin.ui.UI
+import com.vaadin.ui.VerticalLayout
+import io.buji.pac4j.subject.Pac4jPrincipal
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.apache.shiro.SecurityUtils
+import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.model.user.UserDAO
 import ru.stankin.mj.rested.security.MjRoles
@@ -59,6 +65,11 @@ class MjVaadinEntryPoint : UI() {
         val navigator = Navigator(this, UI.getCurrent())
         navigator.addProvider(viewProvider)
 
+        if (SecurityUtils.getSubject().hasRole(MjRoles.UNBINDED_OAUTH)) {
+            navigator.navigateTo("bindoauth")
+            return
+        }
+
         if (!SecurityUtils.getSubject().hasRole(MjRoles.USER)) {
             navigator.navigateTo("login")
             return
@@ -66,4 +77,27 @@ class MjVaadinEntryPoint : UI() {
         navigator.navigateTo("")
     }
 
+}
+
+
+@CDIView("bindoauth")
+class BindOauthView():LoginView() {
+
+    @Inject
+    lateinit var auth:AuthenticationsStore
+
+    override fun titleLabel(): Label = Label("Внешнаяя аутентификация не привязана ни к какому аккаунту.<br/>" +
+            "Введите логин и пароль чтобы осуществить привязку а аккаунту", ContentMode.HTML)
+
+
+    override fun doLogin(username: String?, password: String?) {
+
+        val pac4jPrincipal = SecurityUtils.getSubject().principals.oneByType(Pac4jPrincipal::class.java)
+        super.doLogin(username, password)
+        auth.assignProfileToUser(MjRoles.getUser()!!.id, pac4jPrincipal.profile)
+    }
+
+    override fun androidSuggest(layout: VerticalLayout?) {}
+
+    override fun additionalButtons(layout: VerticalLayout?) {}
 }

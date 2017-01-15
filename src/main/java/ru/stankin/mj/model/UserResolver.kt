@@ -160,6 +160,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
     override fun getUserByPrincipal(principal: Any): User? {
         return when (principal) {
             is String -> getUserBy(principal)
+            is User -> principal
             is Pac4jPrincipal -> auth.findUserByOauth(principal.profile)?.let {
                 (storage.getStudentById(it, null) as User?) ?: getAdminUser(it)
             }

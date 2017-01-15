@@ -15,22 +15,15 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.mgt.SecurityManager;
-import ru.stankin.mj.model.user.User;
 import ru.stankin.mj.model.user.UserDAO;
-import ru.stankin.mj.model.user.UserInfo;
 
 import javax.inject.Inject;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Objects;
-import java.util.UUID;
 
 
 @CDIView("login")
 public class LoginView extends CustomComponent implements View, ClickListener {
 
-    @Inject
-    private UserInfo user;
 
     @Inject
     private UserDAO userDAO;
@@ -124,10 +117,6 @@ public class LoginView extends CustomComponent implements View, ClickListener {
 
         try {
             SecurityUtils.getSubject().login(new UsernamePasswordToken(username, password, rememberMeCbx.getValue()));
-
-            User loginUser = Objects.requireNonNull(userDAO.getUserBy(username, password), "user cant be null") ;
-
-            user.setUser(loginUser);
             this.getUI().getNavigator().navigateTo("");
 
         } catch (AuthenticationException e){

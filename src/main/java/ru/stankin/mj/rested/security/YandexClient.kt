@@ -58,8 +58,9 @@ class YandexProfile() : OAuth20Profile() {
         }
     }
 
-
     override fun getAttributesDefinition(): AttributesDefinition = YandexAttributesDefinition
+
+    override fun getEmail(): String = getAttribute("display_name", String::class.java)
 }
 
 object YandexAttributesDefinition : AttributesDefinition() {

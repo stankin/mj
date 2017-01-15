@@ -2,6 +2,7 @@ package ru.stankin.mj.rested.security
 
 import io.buji.pac4j.subject.Pac4jPrincipal
 import org.apache.logging.log4j.LogManager
+import org.apache.shiro.SecurityUtils
 import org.apache.shiro.authc.*
 import org.apache.shiro.authc.credential.PasswordMatcher
 import org.apache.shiro.authz.AuthorizationException
@@ -12,6 +13,7 @@ import org.apache.shiro.realm.Realm
 import org.apache.shiro.subject.PrincipalCollection
 import org.apache.shiro.subject.SimplePrincipalCollection
 import ru.stankin.mj.model.AuthenticationsStore
+import ru.stankin.mj.model.user.User
 import ru.stankin.mj.model.user.UserDAO
 import java.util.*
 
@@ -30,11 +32,10 @@ class MjSecurityRealm(private val userService: UserDAO, private val authService:
         return token is UsernamePasswordToken
     }
 
-    override fun doGetAuthorizationInfo(p0: PrincipalCollection?): AuthorizationInfo {
-        if(p0 == null)
-            throw AuthorizationException("PrincipalCollection method argument cannot be null.")
-
-        return SimpleAuthorizationInfo()
+    override fun doGetAuthorizationInfo(p0: PrincipalCollection): AuthorizationInfo {
+        return userService.getUserByPrincipal(p0.primaryPrincipal)?.let {
+            SimpleAuthorizationInfo(setOf(if (it.isAdmin) MjRoles.ADMIN else MjRoles.STUDENT, MjRoles.USER))
+        } ?: SimpleAuthorizationInfo()
     }
 
     override fun doGetAuthenticationInfo(token: AuthenticationToken?): AuthenticationInfo? {
@@ -50,7 +51,7 @@ class MjSecurityRealm(private val userService: UserDAO, private val authService:
 
         val user = userService.getUserBy(userPassToken.username)
         if (user != null) {
-            return SimpleAuthenticationInfo(user.username, authService.getStoredPassword(user.id), name)
+            return SimpleAuthenticationInfo(user, authService.getStoredPassword(user.id), name)
         } else
             throw IncorrectCredentialsException()
     }
@@ -81,11 +82,11 @@ class MjOauthSecurityRealm(private val userService: UserDAO,
 
         val pac4jPrincipal = otherAuthInfo.principals.first() as Pac4jPrincipal
 
-        val login: String? = userService.getUserByPrincipal(pac4jPrincipal)?.username
+        val user = userService.getUserByPrincipal(pac4jPrincipal)
 
         val elems = ArrayList<Any>(2)
-        if (login != null)
-            elems.add(login)
+        if (user != null)
+            elems.add(user)
         elems.add(pac4jPrincipal)
         val principals = SimplePrincipalCollection(elems, this.javaClass.simpleName)
 
@@ -93,11 +94,25 @@ class MjOauthSecurityRealm(private val userService: UserDAO,
         return SimpleAuthenticationInfo(principals, otherAuthInfo.credentials)
     }
 
-    override fun doGetAuthorizationInfo(principals: PrincipalCollection?): AuthorizationInfo {
-        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun doGetAuthorizationInfo(principals: PrincipalCollection): AuthorizationInfo {
+
+        if (principals.primaryPrincipal is Pac4jPrincipal)
+            return SimpleAuthorizationInfo(setOf(MjRoles.UNBINDED_OAUTH))
+        else
+            return SimpleAuthorizationInfo()
     }
 
     private val realms = realms.asList()
 
 }
 
+object MjRoles {
+
+    const val UNBINDED_OAUTH = "unbindedOauth"
+    const val USER = "user"
+    const val ADMIN = "admin"
+    const val STUDENT = "student"
+
+    public @JvmStatic fun getUser(): User? = SecurityUtils.getSubject().principals.oneByType(User::class.java)
+
+}

@@ -9,6 +9,7 @@ import org.apache.shiro.web.mgt.WebSecurityManager
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.AdminUser
+import ru.stankin.mj.rested.security.MjRoles
 import ru.stankin.mj.rested.security.YandexProfile
 import ru.stankin.mj.testutils.InWeldTest
 
@@ -36,7 +37,8 @@ class AuthTest : InWeldTest() {
             val info = DelegatingSubject(sm).apply { login(UsernamePasswordToken("admin", "1234")) }
 
 
-            info.principal shouldBe "admin"
+            info.principal should be a AdminUser::class
+            (info.principal as AdminUser).username shouldBe "admin"
         }
 
         test("login with pac4j") {
@@ -44,6 +46,10 @@ class AuthTest : InWeldTest() {
             val info = DelegatingSubject(sm).apply {
                 login(Pac4jToken(linkedMapOf("YandexKey" to YandexProfile("testYandex", mapOf())), false))
             }
+
+            info.hasRole(MjRoles.UNBINDED_OAUTH) shouldBe true
+            info.hasRole(MjRoles.ADMIN) shouldBe false
+            info.hasRole(MjRoles.USER) shouldBe false
 
             val pac4jPrincipal = info.principal as Pac4jPrincipal
             checkNotNull(pac4jPrincipal)
@@ -63,7 +69,12 @@ class AuthTest : InWeldTest() {
                 login(Pac4jToken(linkedMapOf("YandexKey" to yandexProfile), false))
             }
 
-            info.principal shouldBe "admin"
+            info.hasRole(MjRoles.UNBINDED_OAUTH) shouldBe false
+            info.hasRole(MjRoles.ADMIN) shouldBe true
+            info.hasRole(MjRoles.USER) shouldBe true
+
+            info.principal should be a AdminUser::class
+            (info.principal as AdminUser).username shouldBe "admin"
 
             val pac4jPrincipal = info.principals.oneByType(Pac4jPrincipal::class.java)
             checkNotNull(pac4jPrincipal)

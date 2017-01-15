@@ -20,7 +20,7 @@ import org.vaadin.easyuploads.MultiFileUpload;
 import org.vaadin.easyuploads.UploadField;
 import ru.stankin.mj.model.*;
 import ru.stankin.mj.model.user.UserDAO;
-import ru.stankin.mj.model.user.UserInfo;
+import ru.stankin.mj.rested.security.MjRoles;
 
 import javax.inject.Inject;
 import java.io.BufferedInputStream;
@@ -42,8 +42,6 @@ public class MainView extends CustomComponent implements View {
     private static final Logger logger = LogManager.getLogger(MainView.class);
     private static final String ADD_SEMESTER_LABEL = "Добавить семестр";
 
-    @Inject
-    private UserInfo user;
 
     @Inject
     private UserDAO userDao;
@@ -93,10 +91,10 @@ public class MainView extends CustomComponent implements View {
 
         content.addComponent(createSemestrCbx());
         content.addComponent(ratingRulesButton());
-        if (!user.isAdmin()) {
+        if (!SecurityUtils.getSubject().hasRole(MjRoles.ADMIN)) {
             StudentRatingButton studentRatingButton = new StudentRatingButton();
             content.addComponent(studentRatingButton);
-            Student student = (Student) user.getUser();
+            Student student = (Student) MjRoles.getUser();
             studentRatingButton.setStudent(storage.getStudentById(student.id, getCurrentSemester()));
         }
 
@@ -105,11 +103,11 @@ public class MainView extends CustomComponent implements View {
         //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
         content.setExpandRatio(blonk, 1);
 
-        boolean needChangePassword = auth.acceptPassword(user.getUser().getId(), user.getName());
+        boolean needChangePassword = auth.acceptPassword(MjRoles.getUser().getId(), MjRoles.getUser().getUsername());
 
-        Button settings = new Button("Аккаунт: " + user.getName(), event1 -> {
+        Button settings = new Button("Аккаунт: " + MjRoles.getUser().getUsername(), event1 -> {
             if(SecurityUtils.getSubject().isAuthenticated()) {
-                AccountWindow accountWindow = new AccountWindow(user.getUser(), userDao::saveUserAndPassword, true, needChangePassword);
+                AccountWindow accountWindow = new AccountWindow(MjRoles.getUser(), userDao::saveUserAndPassword, true, needChangePassword);
                 this.getUI().addWindow(accountWindow);
             }
             else
@@ -125,7 +123,6 @@ public class MainView extends CustomComponent implements View {
         content.setComponentAlignment(settings, Alignment.TOP_RIGHT);
         Button exit = new Button("Выход");
         exit.addClickListener(event1 -> {
-            user.setUser(null);
             SecurityUtils.getSubject().logout();
             VaadinService.getCurrentRequest().getWrappedSession().invalidate();
             this.getUI().getPage().reload();
@@ -140,11 +137,11 @@ public class MainView extends CustomComponent implements View {
         verticalLayout.addComponent(pael1);
 
         Component mainPanel;
-        if (user.isAdmin())
+        if (SecurityUtils.getSubject().hasRole(MjRoles.ADMIN))
             mainPanel = genUploadAndGrids();
         else {
             mainPanel = genMarks();
-            Student student = (Student) user.getUser();
+            Student student = (Student) MjRoles.getUser();
             setWorkingStudent(student.id, getCurrentSemester());
             //marks.fillMarks(storage.getStudentById(student.id, getCurrentSemester()));
         }
@@ -160,7 +157,7 @@ public class MainView extends CustomComponent implements View {
         semestrCbx = new ComboBox();
         //semestrCbx.setContainerDataSource(new IndexedContainer(Arrays.asList("2014/2015 весна", "2014/2015 осень")));
 
-        if (user.isAdmin()) {
+        if (SecurityUtils.getSubject().hasRole(MjRoles.ADMIN)) {
             ArrayList<String> semesters = new ArrayList<>(storage.getKnownSemesters());
             semesters.add(ADD_SEMESTER_LABEL);
             IndexedContainer indexedContainer = new IndexedContainer(semesters);
@@ -185,7 +182,7 @@ public class MainView extends CustomComponent implements View {
             if (size > 1)
                 semestrCbx.select(indexedContainer.getItemIds().get(size - 2));
         } else {
-            Student student = (Student) user.getUser();
+            Student student = (Student) MjRoles.getUser();
             semestrCbx.setContainerDataSource(new IndexedContainer(storage.getStudentSemestersWithMarks(student.id)));
             semestrCbx.addValueChangeListener(event -> setWorkingStudent(lastWorkingStudent, (String) event.getProperty().getValue()));
             int size = semestrCbx.getItemIds().size();

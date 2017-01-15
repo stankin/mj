@@ -51,7 +51,7 @@ class AccountWindow @JvmOverloads constructor(
         val removeAuths = CheckBox("Сбросить вход через внешние сервисы")
 
         val oldPassword = if(!adminMode) PasswordField("Старый Пароль:", "").apply {
-            description = "Оставьте поле пустым если не хотите менять пароль или сбрасывать внешний сервисы"
+            description = "Оставьте поле пустым если не хотите менять пароль или сбрасывать внешние сервисы"
             addValidator(object : AbstractStringValidator("Необходимо указать верный старый пароль") {
                 override fun isValidValue(value: String): Boolean = when {
                     password.value.isEmpty() && !removeAuths.value -> true

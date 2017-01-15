@@ -107,10 +107,10 @@ public class LoginView extends CustomComponent implements View {
     }
 
     protected void additionalButtons(VerticalLayout layout) {
-        layout.addComponent(rememberMeCbx);
-        layout.addComponent(new Label("<a href='forceLogin?client_name=Google2Client'>Войти через Google</a>", ContentMode.HTML));
-        layout.addComponent(new Label("<a href='forceLogin?client_name=VkClient'>Войти через Vkontakte</a>", ContentMode.HTML));
-        layout.addComponent(new Label("<a href='forceLogin?client_name=YandexClient'>Войти через Яндекс</a>", ContentMode.HTML));
+        //layout.addComponent(rememberMeCbx);
+        layout.addComponent(new Label("Войти через: <br/><a href='forceLogin?client_name=Google2Client'>Google</a>" +
+                " <a href='forceLogin?client_name=VkClient'>ВКонтакте</a>" +
+                " <a href='forceLogin?client_name=YandexClient'>Яндекс</a>", ContentMode.HTML));
     }
 
 

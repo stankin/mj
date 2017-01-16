@@ -94,4 +94,28 @@ public class Module implements Cloneable, Serializable {
     public boolean disabled() {
         return getColor() == BLACK_MODULE;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Module)) return false;
+
+        Module module = (Module) o;
+
+        if (value != module.value) return false;
+        if (color != module.color) return false;
+        if (studentId != module.studentId) return false;
+        if (subject.getId() != module.subject.getId()) return false;
+        return num.equals(module.num);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = subject.hashCode();
+        result = 31 * result + num.hashCode();
+        result = 31 * result + value;
+        result = 31 * result + color;
+        result = 31 * result + studentId;
+        return result;
+    }
 }

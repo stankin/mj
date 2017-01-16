@@ -461,6 +461,7 @@ public class MainView extends CustomComponent implements View {
                 if (checkWrongSemestr()) return;
                 String msg = "Модульный журнал " + fileName + " загружен";
                 try {
+                    logger.debug("uploading file {} {} at semester {}", fileName, file, getCurrentSemester());
                     backupUpload(file, fileName);
                     BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
                     List<String> messages = moduleJournalUploader.updateMarksFromExcel(getCurrentSemester(), is);

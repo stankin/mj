@@ -29,7 +29,7 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public synchronized void updateModules(Student student) {
+    public synchronized ModulesUpdateStat updateModules(Student student) {
         //System.out.println("updateModules:"+student);
         if (!addStudent(student)) {
             Student floor = students.floor(student);
@@ -38,6 +38,7 @@ public class MemoryStorage implements Storage {
         }
 
         //logger.debug("studentscount: {}",students.size());
+        return new ModulesUpdateStat(0, 0, 0);
     }
 
     private synchronized boolean addStudent(Student student) {

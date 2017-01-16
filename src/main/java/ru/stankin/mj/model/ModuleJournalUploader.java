@@ -143,6 +143,8 @@ public class ModuleJournalUploader {
 
             List<String> messages = new ArrayList<>();
 
+            ModulesUpdateStat modulesUpdateStat = new ModulesUpdateStat(0, 0, 0);
+
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
                 if (sheet.getPhysicalNumberOfRows() > 4) {
@@ -213,7 +215,7 @@ public class ModuleJournalUploader {
                                     }
                                 }
 
-                                storage.updateModules(student);
+                                modulesUpdateStat.plusAssign(storage.updateModules(student));
 
                                 //logger.debug("Student: {}", student);
                             }
@@ -232,6 +234,11 @@ public class ModuleJournalUploader {
 //                }
                 }
             }
+
+            messages.add(0, "Модулей: добавлено: " + modulesUpdateStat.added +
+                    ", обновлено: " + modulesUpdateStat.updated +
+                    ", удалено:" + modulesUpdateStat.deleted);
+
 
             return messages;
 
@@ -378,6 +385,14 @@ public class ModuleJournalUploader {
             public Module buildModule(String group) {
                 return new Module(storage.getOrCreateSubject(semester, group, subjColumnInfo.subjName, subjColumnInfo.factor), moduleName);
             }
+
+            @Override
+            public String toString() {
+                return "ModulePrototype{" +
+                        subjColumnInfo +
+                        ", '" + moduleName + '\'' +
+                        '}';
+            }
         }
 
         private final SubjectColumnInfo rating = new SubjectColumnInfo(RATING, 0.0);
@@ -391,6 +406,14 @@ public class ModuleJournalUploader {
             public SubjectColumnInfo(String subjName, double factor) {
                 this.subjName = subjName;
                 this.factor = factor;
+            }
+
+            @Override
+            public String toString() {
+                return "SubjectColumnInfo{" +
+                        "\'" + subjName + '\'' +
+                        ", " + factor +
+                        '}';
             }
         }
     }

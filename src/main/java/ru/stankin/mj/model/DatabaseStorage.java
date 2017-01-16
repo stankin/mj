@@ -9,7 +9,6 @@ import org.sql2o.ResultSetIterable;
 import org.sql2o.Sql2o;
 import ru.stankin.mj.utils.ThreadLocalTransaction;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -41,13 +40,13 @@ public class DatabaseStorage implements Storage {
     }
 
     @Override
-    public void updateModules(Student student0) {
+    public ModulesUpdateStat updateModules(Student student0) {
 
         Student student = /*em.merge(*/student0/*)*/;
         //Student student = em.merge(student0);
         List<Module> studentModules = new ArrayList<>(student.getModules());
         String semester = studentModules.get(0).getSubject().getSemester();
-        //logger.debug("saving student {} modules: {}", student.name, studentModules.size());
+        logger.debug("saving student {} at {} modules: {}", student.cardid, semester, studentModules.size());
 
         try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.get())) {
 
@@ -62,20 +61,26 @@ public class DatabaseStorage implements Storage {
                     .map(subjectsCache::loadSubject)
                     .collect(Collectors.toList());
 
+            int added = 0;
+            int updated = 0;
+            int deleted = 0;
+
             for (Module module : studentModules) {
                 Optional<Module> existigModule = currentModules.stream().filter(cur ->
                         cur.getSubject().equals(module.getSubject()) && cur.getNum().equals(module.getNum())).findAny();
 
-                if(existigModule.isPresent()){
+                existigModule.ifPresent(currentModules::remove);
+
+                if (existigModule.isPresent() && !existigModule.get().equals(module)) {
+
                     connection
                             .createQuery("UPDATE modules SET color = :color, value = :value WHERE id = :id")
                             .addParameter("color", module.getColor())
                             .addParameter("value", module.getValue())
                             .addParameter("id", existigModule.get().getId())
                             .executeUpdate();
-
-                    currentModules.remove(existigModule.get());
-                } else {
+                    updated++;
+                } else if (!existigModule.isPresent()) {
                     connection
                             .createQuery("INSERT INTO modules (color, num, value, student_id, subject_id) VALUES (" +
                                     ":color, :num, :value, :studentId, :subjectId)")
@@ -83,6 +88,7 @@ public class DatabaseStorage implements Storage {
                             .addParameter("studentId", student.id)
                             .addParameter("subjectId", module.getSubject().getId())
                             .executeUpdate();
+                    added++;
                 }
 
 
@@ -94,9 +100,13 @@ public class DatabaseStorage implements Storage {
                         .createQuery("DELETE FROM modules WHERE id IN (:ids)")
                         .addParameter("ids", currentModules.stream().map(Module::getId).collect(Collectors.toList()))
                         .executeUpdate();
+                deleted += currentModules.size();
             }
 
             connection.commit();
+            ModulesUpdateStat updateStat = new ModulesUpdateStat(added, updated, deleted);
+            logger.debug("update stat: " + updateStat);
+            return updateStat;
         }
 
     }

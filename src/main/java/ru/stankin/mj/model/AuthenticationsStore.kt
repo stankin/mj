@@ -71,7 +71,6 @@ open class AuthenticationsStore @Inject constructor(private val sql2o: Sql2o) {
                 "attributes" to profile.attributes
         )
 
-
         sql2o.beginTransaction(ThreadLocalTransaction.get()).use { connection ->
             connection.createQuery("INSERT INTO authentication (user_id, method, creation_date, value) VALUES (:id, :method, now() AT TIME ZONE 'MSK',cast(:value AS JSONB))  ")
                     .addParameter("id", userId)
@@ -123,6 +122,32 @@ open class AuthenticationsStore @Inject constructor(private val sql2o: Sql2o) {
             connection.createQuery("DELETE FROM authentication WHERE user_id = :id AND method = :method")
                     .addParameter("id", userId)
                     .addParameter("method", "oauth")
+                    .executeUpdate()
+
+            connection.commit()
+        }
+    }
+
+    fun markUsed(userId: Int, profile: CommonProfile) {
+
+        sql2o.beginTransaction(ThreadLocalTransaction.get()).use { connection ->
+            connection.createQuery("UPDATE authentication SET lastused_date = now() AT TIME ZONE 'MSK' " +
+                    "WHERE user_id = :id AND authentication.value @> cast(:json AS JSONB)")
+                    .addParameter("id", userId)
+                    .addParameter("json", "{\"id\": \"${profile.id!!}\" , \"provider\": \"${profile.clientName!!}\"}")
+                    .executeUpdate()
+            connection.commit()
+        }
+    }
+
+    fun markUsedPassword(userId: Int) {
+
+        sql2o.beginTransaction(ThreadLocalTransaction.get()).use {
+            connection ->
+
+            connection.createQuery("UPDATE authentication SET lastused_date = now() AT TIME ZONE 'MSK' WHERE user_id = :id AND method = :method")
+                    .addParameter("id", userId)
+                    .addParameter("method", "password")
                     .executeUpdate()
 
             connection.commit()

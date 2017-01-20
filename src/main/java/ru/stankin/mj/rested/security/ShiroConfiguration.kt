@@ -1,13 +1,20 @@
 package ru.stankin.mj.rested.security
 
+import io.buji.pac4j.subject.Pac4jPrincipal
 import org.apache.logging.log4j.LogManager
+import org.apache.shiro.authc.AuthenticationException
+import org.apache.shiro.authc.AuthenticationInfo
+import org.apache.shiro.authc.AuthenticationListener
+import org.apache.shiro.authc.AuthenticationToken
 import org.apache.shiro.authc.credential.PasswordService
+import org.apache.shiro.authc.pam.ModularRealmAuthenticator
 import org.apache.shiro.mgt.AbstractRememberMeManager
 import org.apache.shiro.mgt.DefaultSubjectDAO
 import org.apache.shiro.realm.Realm
 import org.apache.shiro.session.Session
 import org.apache.shiro.session.SessionListener
 import org.apache.shiro.session.mgt.eis.MemorySessionDAO
+import org.apache.shiro.subject.PrincipalCollection
 import org.apache.shiro.web.filter.mgt.FilterChainResolver
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager
 import org.apache.shiro.web.mgt.WebSecurityManager
@@ -23,6 +30,7 @@ import org.pac4j.core.client.Clients
 import org.pac4j.oauth.client.Google2Client
 import org.pac4j.oauth.client.VkClient
 import ru.stankin.mj.model.AuthenticationsStore
+import ru.stankin.mj.model.user.User
 import ru.stankin.mj.model.user.UserDAO
 import java.util.*
 
@@ -49,10 +57,14 @@ class ShiroConfiguration {
             MjOauthSecurityRealm(userService, authenticationsStore, io.buji.pac4j.realm.Pac4jRealm())
     )
     ).apply {
+        authorizer
+        (authenticator as ModularRealmAuthenticator).apply {
+            this.authenticationListeners.add(succesfulAuthenticationsLogger)
+        }
         subjectFactory = io.buji.pac4j.subject.Pac4jSubjectFactory()
         sessionManager = ServletContainerSessionManager().apply {
             val cipher = System.getenv("SHIRO_CIPHER_KEY")
-            if(cipher != null)
+            if (cipher != null)
                 (rememberMeManager as AbstractRememberMeManager).cipherKey = cipher.toByteArray()
             subjectDAO = DefaultSubjectDAO().apply {
                 sessionStorageEvaluator = DefaultWebSessionStorageEvaluator().apply {
@@ -106,5 +118,30 @@ class ShiroConfiguration {
         return PathMatchingFilterChainResolver().apply { filterChainManager = fcMan }
     }
 
+    private val succesfulAuthenticationsLogger = object : AuthenticationListener {
+        override fun onSuccess(token: AuthenticationToken, info: AuthenticationInfo) {
+            logger.debug("authenticated token {} info {}", token, info)
+            try {
+                val user = info.principals.oneByType(User::class.java)
+                if (user != null) {
+                    val pac4jprincipals = info.principals.byType(Pac4jPrincipal::class.java)
+                    if (!pac4jprincipals.isEmpty())
+                        for (principal in pac4jprincipals) {
+                            authenticationsStore.markUsed(user.id, principal.profile)
+                        }
+                    else
+                        authenticationsStore.markUsedPassword(user.id)
+                }
+            } catch (e: Exception) {
+                logger.warn("succesfulAuthenticationsLogger exception:", e)
+            }
+
+        }
+
+        override fun onFailure(token: AuthenticationToken?, ae: AuthenticationException?) {}
+
+        override fun onLogout(principals: PrincipalCollection?) {}
+    }
 
 }
+

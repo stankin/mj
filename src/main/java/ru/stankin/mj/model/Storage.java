@@ -1,7 +1,5 @@
 package ru.stankin.mj.model;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -10,7 +8,7 @@ import java.util.stream.Stream;
  */
 
 public interface Storage {
-    void updateModules(Student student);
+    ModulesUpdateStat updateModules(Student student);
 
     Stream<Student> getStudents();
 

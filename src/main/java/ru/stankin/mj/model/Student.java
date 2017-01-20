@@ -1,8 +1,7 @@
 package ru.stankin.mj.model;
 
-import ru.stankin.mj.User;
+import ru.stankin.mj.model.user.User;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -10,11 +9,7 @@ import java.util.stream.Collectors;
 /**
  * Created by nickl on 08.01.15.
  */
-@Entity
-@Table(name = "Student", indexes = {
-        @Index(columnList = "stgroup, surname, initials") ,
-        @Index(columnList = "cardid")
-})
+
 public class Student implements Serializable, User, Comparable {
 
     private static final long serialVersionUID = 1L;
@@ -23,30 +18,22 @@ public class Student implements Serializable, User, Comparable {
             .thenComparing(s -> s.initials)
             .thenComparing(s -> s.cardid);
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     public int id = 0;
 
     public String stgroup;
     public String surname;
     public String initials;
 
-    public String password;
-
-    //@ElementCollection
-    @Transient
-    //@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, mappedBy = "student")
     private List<Module> modules = new ArrayList<>();
     public String name;
     public String patronym;
 
-    @Column(unique = true)
     public String cardid;
+
 
     public Student() {
     }
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "student")
     private List<StudentHistoricalGroup> groups = new ArrayList<>();
 
     public Student(String group, String surname, String initials) {
@@ -140,13 +127,8 @@ public class Student implements Serializable, User, Comparable {
     }
 
     @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public void setPassword(String password) {
-        this.password = password;
+    public int getId() {
+        return id;
     }
 
     @Override
@@ -162,4 +144,5 @@ public class Student implements Serializable, User, Comparable {
     public void setGroups(List<StudentHistoricalGroup> groups) {
         this.groups = groups;
     }
+
 }

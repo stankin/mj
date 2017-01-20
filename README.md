@@ -8,12 +8,35 @@
 
 Для сборки из исходников необходим [maven](http://maven.apache.org/) и [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
 
+Перед сборкой самого проекта нужно собрать Sql2o:
+
+```text
+cd sql2o
+mvn --projects core -pl extensions/postgres clean install -DskipTests
+cd ..
+```
+
 Сборку можно осуществить командой:
 ```text
 mvn clean install -DskipTests
 ```
 
 Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.2.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.2.Final/wildfly-9.0.2.Final.zip).
+
+### Конфигурация
+
+В папке `${jboss.server.config.dir}` (например, `$JBOSS_HOME/standalone/configuration`) должен находиться файл `mj.properties` следующего содержания :
+
+```properties
+oauth.google.clientid=клинет_ид_приложения_в_google
+oauth.google.secret=секрет_приложения_в_google
+oauth.vk.clientid=клинет_ид_приложения_в_vk
+oauth.vk.secret=секрет_приложения_в_vk
+oauth.yandex.clientid=клинет_ид_приложения_в_yandex
+oauth.yandex.secret=секрет_приложения_в_yandex
+oauth.callbackurl=http://localhost:8080/mj/callback (или другой при развертывании на сервере)
+```
+
 
 ### Postgres
 
@@ -35,7 +58,7 @@ mvn clean install -DskipTests
 ```xml
         <subsystem xmlns="urn:jboss:domain:datasources:4.0">
             <datasources>
-                <datasource jndi-name="java:jboss/datasources/mj2" pool-name="mj-pg-datasource" enabled="true" use-java-context="true">
+                <datasource jndi-name="java:jboss/datasources/mj2" jta="false" pool-name="mj-pg-datasource" enabled="true" use-java-context="true">
                     <connection-url>jdbc:postgresql://localhost:5432/mj</connection-url>
                     <driver>postgres</driver>
                     <security>

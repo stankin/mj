@@ -8,14 +8,13 @@ import ru.stankin.mj.model.*;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ModuleJournalUploaderTest {
 
     @Test
-    public void testProcessIncomingData1() throws Exception {
+    public void testProcessIncomingDate1() throws Exception {
 
         Collection<Student> students = getStudentMarks("/information_items_property_2349.xls");
         // Collection<Student> studentso = getStudentMarks("/Модули/information_items_property_2349.xls");
@@ -39,21 +38,6 @@ public class ModuleJournalUploaderTest {
 
     }
 
-    @Test
-    public void testMasters() throws Exception {
-
-        Collection<Student> students = getStudentMarks("/master-practics.xls");
-
-        for (Student student : students) {
-            System.out.println("student:" + student);
-        }
-
-
-        Assert.assertEquals(35, (long) students.size());
-        Integer collect = students.stream().mapToInt(s -> s.getModules().size()).sum();
-        Assert.assertEquals(660, collect.intValue());
-
-    }
 
     @Test
     public void testProcessIncomingData4withBlack() throws Exception {
@@ -85,10 +69,11 @@ public class ModuleJournalUploaderTest {
         Storage storage = new MemoryStorage(true);
         mj.setStorage(storage);
 
-        mj.updateMarksFromExcel("", Objects.requireNonNull(ModuleJournalUploaderTest.class.getResourceAsStream(name), "resource " + name + " shoud exist"));
+        mj.updateMarksFromExcel("", ModuleJournalUploaderTest.class.getResourceAsStream(name));
 
-        Stream<Student> students = storage.getStudents();
-        return students.collect(Collectors.toList());
+        try (Stream<Student> students = storage.getStudents()) {
+            return students.collect(Collectors.toList());
+        }
     }
 
     @Test
@@ -101,7 +86,9 @@ public class ModuleJournalUploaderTest {
         mj.updateStudentsFromExcel("2014-1", ModuleJournalUploaderTest.class.getResourceAsStream("/newEtalon.xls"));
         //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
 
-        Assert.assertEquals(1753, storage.getStudents().count());
+        try (Stream<Student> students = storage.getStudents()) {
+            Assert.assertEquals(1753, students.count());
+        }
 
 
     }

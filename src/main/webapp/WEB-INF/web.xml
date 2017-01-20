@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
     <!--<filter>-->
         <!--<filter-name>LocalFilter</filter-name>-->
-        <!--<filter-class>ru.stankin.mj.LocalFilter</filter-class>-->
+        <!--<filter-class>ru.stankin.mj.http.LocalFilter</filter-class>-->
     <!--</filter>-->
     <!--<filter-mapping>-->
         <!--<filter-name>LocalFilter</filter-name>-->
@@ -32,7 +32,7 @@
 
         <init-param>
             <param-name>UI</param-name>
-            <param-value>ru.stankin.mj.view.MyVaadinUI</param-value>
+            <param-value>ru.stankin.mj.view.MjVaadinEntryPoint</param-value>
         </init-param>
 
         <!-- If not using the default widget set-->
@@ -62,5 +62,18 @@
     <!--<servlet-name>vaadinServlet</servlet-name>-->
     <!--<url-pattern>/*</url-pattern>-->
     <!--</servlet-mapping>-->
+
+    <filter>
+        <filter-name>ShiroFilter</filter-name>
+        <filter-class>org.apache.shiro.web.servlet.ShiroFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>ShiroFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>INCLUDE</dispatcher>
+        <dispatcher>ERROR</dispatcher>
+    </filter-mapping>
 
 </web-app>

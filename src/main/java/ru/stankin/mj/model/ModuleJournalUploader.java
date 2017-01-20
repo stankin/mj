@@ -1,12 +1,15 @@
 package ru.stankin.mj.model;
 
 
+import kotlin.jvm.functions.Function0;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.sql2o.Sql2o;
+import ru.stankin.mj.utils.ThreadLocalTransaction;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -30,24 +33,25 @@ public class ModuleJournalUploader {
     @Inject
     private Storage storage;
 
+    @Inject
+    private Sql2o sql2o;
+
     private static Set<String> markTypes = Stream.of("М1", "М2", "З", "Э", "К").collect(Collectors.toSet());
 
     public List<String> updateMarksFromExcel(String semester, InputStream is) throws IOException, InvalidFormatException {
         Workbook workbook = WorkbookFactory.create(is);
-        List<String> strings = new MarksWorkbookReader(semester, workbook, storage).writeToStorage();
-        is.close();
+        try {
 
-//        ObjectOutputStream outputStream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream
-//                ("students.bin")));
-//
-//        outputStream.writeObject(studentList);
-//
-//        outputStream.close();
+            Function0<List<String>> modulesUpdateTransaction = () -> new MarksWorkbookReader(semester, workbook, storage).writeToStorage();
 
-        return strings;
+            return sql2o != null ?
+                    ThreadLocalTransaction.INSTANCE.within(sql2o, modulesUpdateTransaction)
+                    : modulesUpdateTransaction.invoke();
+        } finally {
+            is.close();
+        }
     }
 
-    @javax.transaction.Transactional
     public List<String> updateStudentsFromExcel(String semestr, InputStream inputStream) throws IOException, InvalidFormatException {
 
         Workbook workbook = WorkbookFactory.create(inputStream);
@@ -59,50 +63,61 @@ public class ModuleJournalUploader {
 
         Set<String> processedCards = new HashSet<>();
 
-        for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
+        Function0<List<String>> studentUpdateTransaction = () -> {
 
-            Row row = sheet.getRow(i);
-            if (row == null)
-                continue;
+            for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
+
+                Row row = sheet.getRow(i);
+                if (row == null)
+                    continue;
 
 
-            String surname = stringValue(row.getCell(0));
-            String name = stringValue(row.getCell(1));
-            String patronym = stringValue(row.getCell(2));
-            String cardid = stringValue(row.getCell(3));
-            String group = stringValue(row.getCell(5));
-            if (surname == null || surname.isEmpty())
-                continue;
+                String surname = stringValue(row.getCell(0));
+                String name = stringValue(row.getCell(1));
+                String patronym = stringValue(row.getCell(2));
+                String cardid = stringValue(row.getCell(3));
+                String group = stringValue(row.getCell(5));
+                if (surname == null || surname.isEmpty())
+                    continue;
 
-            Student student = null;
-            student = storage.getStudentByCardId(cardid);
-            processedCards.add(cardid);
-            if (student == null)
-                student = new Student();
+                Student student = null;
+                student = storage.getStudentByCardId(cardid);
+                processedCards.add(cardid);
+                if (student == null)
+                    student = new Student();
 
-            student.surname = surname;
-            student.name = name;
-            student.patronym = patronym;
-            student.cardid = cardid;
-            student.stgroup = group;
-            student.initials = null;
-            //logger.debug("initi student {}", student);
-            student.initialsFromNP();
-            //logger.debug("Saving student {}", student);
-            storage.saveStudent(student, semestr);
+                student.surname = surname;
+                student.name = name;
+                student.patronym = patronym;
+                student.cardid = cardid;
+                student.stgroup = group;
+                student.initials = null;
+                //logger.debug("initi student {}", student);
+                student.initialsFromNP();
+                //logger.debug("Saving student {}", student);
+                storage.saveStudent(student, semestr);
 
-        }
+            }
 
-        List<String> messages = new ArrayList<>();
+            List<String> messages = new ArrayList<>();
 
-        storage.getStudents().filter(s -> !processedCards.contains(s.cardid)).forEach(s -> {
-            storage.deleteStudent(s);
-            messages.add("Удяляем студента:" + s.cardid + " " + s.getGroups().stream().map(g -> g.groupName).collect(joining(", ")) + " " + s.surname + " " + s.initials);
-        });
+            try (Stream<Student> students = storage.getStudents()) {
+                students.filter(s -> !processedCards.contains(s.cardid)).forEach(s -> {
+                    storage.deleteStudent(s);
+                    messages.add("Удяляем студента:" + s.cardid + " " + s.getGroups().stream().map(g -> g.groupName).collect(joining(", ")) + " " + s.surname + " " + s.initials);
+                });
+            }
 
+            return messages;
+        };
+
+
+        List<String> messagess = sql2o != null ?
+                ThreadLocalTransaction.INSTANCE.within(sql2o, studentUpdateTransaction)
+                : studentUpdateTransaction.invoke();
 
         inputStream.close();
-        return messages;
+        return messagess;
     }
 
     static class MarksWorkbookReader {
@@ -127,6 +142,8 @@ public class ModuleJournalUploader {
         List<String> writeToStorage() {
 
             List<String> messages = new ArrayList<>();
+
+            ModulesUpdateStat modulesUpdateStat = new ModulesUpdateStat(0, 0, 0);
 
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
@@ -198,7 +215,7 @@ public class ModuleJournalUploader {
                                     }
                                 }
 
-                                storage.updateModules(student);
+                                modulesUpdateStat.plusAssign(storage.updateModules(student));
 
                                 //logger.debug("Student: {}", student);
                             }
@@ -217,6 +234,11 @@ public class ModuleJournalUploader {
 //                }
                 }
             }
+
+            messages.add(0, "Модулей: добавлено: " + modulesUpdateStat.added +
+                    ", обновлено: " + modulesUpdateStat.updated +
+                    ", удалено:" + modulesUpdateStat.deleted);
+
 
             return messages;
 
@@ -363,6 +385,14 @@ public class ModuleJournalUploader {
             public Module buildModule(String group) {
                 return new Module(storage.getOrCreateSubject(semester, group, subjColumnInfo.subjName, subjColumnInfo.factor), moduleName);
             }
+
+            @Override
+            public String toString() {
+                return "ModulePrototype{" +
+                        subjColumnInfo +
+                        ", '" + moduleName + '\'' +
+                        '}';
+            }
         }
 
         private final SubjectColumnInfo rating = new SubjectColumnInfo(RATING, 0.0);
@@ -376,6 +406,14 @@ public class ModuleJournalUploader {
             public SubjectColumnInfo(String subjName, double factor) {
                 this.subjName = subjName;
                 this.factor = factor;
+            }
+
+            @Override
+            public String toString() {
+                return "SubjectColumnInfo{" +
+                        "\'" + subjName + '\'' +
+                        ", " + factor +
+                        '}';
             }
         }
     }

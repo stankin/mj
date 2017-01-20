@@ -1,41 +1,35 @@
 package ru.stankin.mj.view;
 
-import com.vaadin.annotations.Push;
-import com.vaadin.cdi.CDIUI;
 import com.vaadin.cdi.CDIView;
-import com.vaadin.event.FieldEvents;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.UserError;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import ru.stankin.mj.User;
-import ru.stankin.mj.UserDAO;
-import ru.stankin.mj.UserInfo;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.mgt.SecurityManager;
+import org.jetbrains.annotations.NotNull;
+import ru.stankin.mj.model.user.UserDAO;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 
 @CDIView("login")
-public class LoginView extends CustomComponent implements View, ClickListener {
+public class LoginView extends CustomComponent implements View {
 
-    @Inject
-    private UserInfo user;
 
-    @Inject
-    private UserDAO userDAO;
-
-    private TextField usernameField;
-    private Label errorLabel;
-    private PasswordField passwordField;
-    private Button loginButton;
+    protected TextField usernameField;
+    protected Label errorLabel;
+    protected PasswordField passwordField;
+    protected Button loginButton;
+    protected CheckBox rememberMeCbx;
 
     @Override
     public void enter(ViewChangeEvent event) {
@@ -49,36 +43,25 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         passwordField = new PasswordField("Пароль");
         passwordField.addFocusListener(event1 -> {errorLabel.setVisible(false); passwordField.focus();});
         loginButton = new Button("Вход");
-        loginButton.addClickListener(this);
+        loginButton.addClickListener(this::loginButtonClick);
         loginButton.setClickShortcut(KeyCode.ENTER);
         setHeight("100%");
+        rememberMeCbx = new CheckBox("Запомнить");
+        rememberMeCbx.setBuffered(true);
 
         VerticalLayout layout = new VerticalLayout();
-
-        //layout.setWidth("100%");
-
-
         layout.setSizeFull();
         layout.setMargin(true);
         layout.setSpacing(true);
         layout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
-        Label label = new Label("<b>Вход</b>",  ContentMode.HTML);
-        layout.addComponent(label);
+        layout.addComponent(titleLabel());
         layout.addComponent(usernameField);
         layout.addComponent(errorLabel);
         layout.addComponent(passwordField);
-        layout.addComponent(loginButton);
+        additionalButtons(layout);
+        layout.addComponent(getLoginButton());
 
-
-        VaadinRequest request = VaadinService.getCurrentRequest();
-        if (request instanceof VaadinServletRequest) {
-            HttpServletRequest httpRequest = ((VaadinServletRequest)request).getHttpServletRequest();
-            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
-            if (userAgent.contains("android")) {
-                layout.addComponent(new Label("<a href=\"https://play.google.com/store/apps/details?id=ru.modulejournal\">Приложение для Android</a>",  ContentMode.HTML));
-            }
-
-        }
+        androidSuggest(layout);
 
         Panel panel = new Panel();
         panel.setWidthUndefined();
@@ -86,7 +69,6 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         VerticalLayout loginLayout = new VerticalLayout();
         loginLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
         loginLayout.addComponent(panel);
-
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setSizeFull();
@@ -103,23 +85,52 @@ public class LoginView extends CustomComponent implements View, ClickListener {
         //setCompositionRoot(loginLayout);
     }
 
-    @Override
-    public void buttonClick(ClickEvent event) {
+    protected Component getLoginButton() {
+        return loginButton;
+    }
+
+    @NotNull
+    protected Label titleLabel() {
+        return new Label("<b>Вход</b>",  ContentMode.HTML);
+    }
+
+    protected void androidSuggest(VerticalLayout layout) {
+        VaadinRequest request = VaadinService.getCurrentRequest();
+        if (request instanceof VaadinServletRequest) {
+            HttpServletRequest httpRequest = ((VaadinServletRequest)request).getHttpServletRequest();
+            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
+            if (userAgent.contains("android")) {
+                layout.addComponent(new Label("<a href=\"https://play.google.com/store/apps/details?id=ru.modulejournal\">Приложение для Android</a>",  ContentMode.HTML));
+            }
+
+        }
+    }
+
+    protected void additionalButtons(VerticalLayout layout) {
+        //layout.addComponent(rememberMeCbx);
+        layout.addComponent(new Label("Войти через: <br/><a href='forceLogin?client_name=Google2Client'>Google</a>" +
+                " <a href='forceLogin?client_name=VkClient'>ВКонтакте</a>" +
+                " <a href='forceLogin?client_name=YandexClient'>Яндекс</a>", ContentMode.HTML));
+    }
+
+
+    public void loginButtonClick(ClickEvent event) {
         String username = usernameField.getValue();
         String password = passwordField.getValue();
 
-        User loginUser = userDAO.getUserBy(username, password);
-        if (loginUser == null) {
-            errorLabel.setValue("Неверный пароль.\nОбратитесь в деканат, если не знаете пароль.");
-            errorLabel.setVisible(true);
-//            passwordField.setComponentError(new UserError("Неверный пароль"));
-//            new Notification("Неверный пароль", Notification.TYPE_ERROR_MESSAGE)
-//                    .show(getUI().getPage());
-            return;
+
+        try {
+            doLogin(username, password);
+            this.getUI().getNavigator().navigateTo("");
+
+        } catch (AuthenticationException e){
+                errorLabel.setValue("Неверный пароль.\nОбратитесь в деканат, если не знаете пароль.");
+                errorLabel.setVisible(true);
         }
 
-        user.setUser(loginUser);
-        this.getUI().getNavigator().navigateTo("");
+    }
 
+    protected void doLogin(String username, String password) {
+        SecurityUtils.getSubject().login(new UsernamePasswordToken(username, password, rememberMeCbx.getValue()));
     }
 }

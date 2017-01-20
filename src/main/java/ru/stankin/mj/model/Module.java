@@ -1,38 +1,27 @@
 package ru.stankin.mj.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
-@Entity
-@Table(name = "Modules")
 public class Module implements Cloneable, Serializable {
 
     public static final int BLACK_MODULE = 3355443;
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+
     private int id = 0;
 
-    @ManyToOne
-    @JoinColumn(name = "subject_id")
+
     private Subject subject = null;
 
     private String num = "";
     private int value = -1;
     private int color = 0;
 
-    @ManyToOne()
-    @JoinColumn(name = "student_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
-    private Student student;
+    public int studentId;
 
     @Override
     public Module clone()  {
@@ -94,14 +83,6 @@ public class Module implements Cloneable, Serializable {
         this.color = color;
     }
 
-    public Student getStudent() {
-        return student;
-    }
-
-    public void setStudent(Student student) {
-        this.student = student;
-    }
-
     public void setSubject(Subject subject) {
         this.subject = subject;
     }
@@ -112,5 +93,29 @@ public class Module implements Cloneable, Serializable {
 
     public boolean disabled() {
         return getColor() == BLACK_MODULE;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Module)) return false;
+
+        Module module = (Module) o;
+
+        if (value != module.value) return false;
+        if (color != module.color) return false;
+        if (studentId != module.studentId) return false;
+        if (subject.getId() != module.subject.getId()) return false;
+        return num.equals(module.num);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = subject.hashCode();
+        result = 31 * result + num.hashCode();
+        result = 31 * result + value;
+        result = 31 * result + color;
+        result = 31 * result + studentId;
+        return result;
     }
 }

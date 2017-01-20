@@ -29,7 +29,7 @@ public class MemoryStorage implements Storage {
     }
 
     @Override
-    public synchronized void updateModules(Student student) {
+    public synchronized ModulesUpdateStat updateModules(Student student) {
         //System.out.println("updateModules:"+student);
         if (!addStudent(student)) {
             Student floor = students.floor(student);
@@ -38,6 +38,7 @@ public class MemoryStorage implements Storage {
         }
 
         //logger.debug("studentscount: {}",students.size());
+        return new ModulesUpdateStat(0, 0, 0);
     }
 
     private synchronized boolean addStudent(Student student) {
@@ -117,7 +118,7 @@ public class MemoryStorage implements Storage {
         String id = semester + "-" + group + "-" + name;
         Subject subject = stringSubjectMap.get(id);
         if(subject == null){
-            subject = new Subject(semester, group, name, factor);
+            subject = new Subject(0, semester, group, name, factor);
             stringSubjectMap.put(id, subject);
         }
         return subject;
@@ -137,4 +138,5 @@ public class MemoryStorage implements Storage {
     public void deleteStudent(Student s) {
         throw new UnsupportedOperationException("deleteStudent");
     }
+
 }

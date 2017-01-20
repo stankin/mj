@@ -1,0 +1,177 @@
+Index: src/test/java/ru/stankin/mj/testutils/InWeldTest.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/test/java/ru/stankin/mj/testutils/InWeldTest.kt	(revision Local version)
++++ src/test/java/ru/stankin/mj/testutils/InWeldTest.kt	(revision Shelved version)
+@@ -9,7 +9,9 @@
+ import org.jboss.weld.injection.spi.ResourceInjectionServices
+ import org.jboss.weld.resources.spi.ResourceLoader
+ import ru.stankin.mj.UtilProducer
++import ru.stankin.mj.utils.ConnectionTracingDatasource
+ import java.util.*
++import javax.sql.DataSource
+ 
+ abstract class InWeldTest : FunSpec() {
+ 
+@@ -43,6 +45,7 @@
+     }
+ 
+     override fun afterAll() {
++        check(bean<ConnectionTracingDatasource>().connectionCount.get() == 0)
+         container.shutdown()
+     }
+ 
+Index: src/main/java/ru/stankin/mj/utils/ConnectionTracingDatasource.kt
+===================================================================
+--- src/main/java/ru/stankin/mj/utils/ConnectionTracingDatasource.kt	(revision Shelved version)
++++ src/main/java/ru/stankin/mj/utils/ConnectionTracingDatasource.kt	(revision Shelved version)
+@@ -0,0 +1,102 @@
++package ru.stankin.mj.utils
++
++import org.apache.logging.log4j.LogManager
++import org.sql2o.connectionsources.WrappedConnection
++import java.io.PrintWriter
++import java.sql.Connection
++import java.util.*
++import java.util.concurrent.ConcurrentSkipListSet
++import java.util.concurrent.atomic.AtomicInteger
++import java.util.logging.Logger
++import javax.sql.DataSource
++import kotlin.concurrent.fixedRateTimer
++
++/**
++ * Created by nickl on 15.01.17.
++ */
++class ConnectionTracingDatasource(var wrapped: DataSource) : DataSource {
++
++    val log = LogManager.getLogger(ConnectionTracingDatasource::class.java)
++
++    val connectionCount = AtomicInteger(0)
++
++    private val listOfConnections = Collections.synchronizedSet(mutableSetOf<CountedConnection>())
++
++    init {
++        fixedRateTimer(daemon = true, period = 5000) {
++            logUnreleased()
++        }
++    }
++
++    private fun logUnreleased() {
++        if (connectionCount.get() > 0) {
++            for (connection in listOfConnections) {
++                log.debug("unreleasedConnection from", connection.createdTrace)
++            }
++        }
++    }
++
++
++    override fun getConnection(): Connection {
++        return CountedConnection(wrapped.connection)
++    }
++
++    override fun getConnection(username: String?, password: String?): Connection {
++        return CountedConnection(wrapped.getConnection(username, password))
++    }
++
++
++    private val debugEachOpen: Boolean = false
++
++    private inner class CountedConnection(connection: Connection) : WrappedConnection(connection) {
++
++        val createdTrace = Exception("stacktrace")
++
++        init {
++            val conn = connectionCount.incrementAndGet()
++            listOfConnections.add(this)
++            if (debugEachOpen)
++                log.debug("connectionOpened ${conn}")
++
++        }
++
++        override fun close() {
++            super.close()
++            val conn = connectionCount.decrementAndGet()
++            if (debugEachOpen)
++                log.debug("connectionClosed ${conn}")
++            listOfConnections.remove(this)
++        }
++    }
++
++
++    override fun setLogWriter(out: PrintWriter?) {
++        wrapped.logWriter = out
++    }
++
++    override fun setLoginTimeout(seconds: Int) {
++        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
++    }
++
++    override fun isWrapperFor(iface: Class<*>?): Boolean {
++        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
++    }
++
++    override fun <T : Any?> unwrap(iface: Class<T>?): T {
++        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
++    }
++
++    override fun getParentLogger(): Logger {
++        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
++    }
++
++    override fun getLogWriter(): PrintWriter {
++        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
++    }
++
++    override fun getLoginTimeout(): Int {
++        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
++    }
++
++
++}
+\ No newline at end of file
+Index: src/main/java/ru/stankin/mj/UtilProducer.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/ru/stankin/mj/UtilProducer.kt	(revision Local version)
++++ src/main/java/ru/stankin/mj/UtilProducer.kt	(revision Shelved version)
+@@ -5,6 +5,7 @@
+ import org.apache.logging.log4j.Logger
+ import org.flywaydb.core.Flyway
+ import org.sql2o.Sql2o
++import ru.stankin.mj.utils.ConnectionTracingDatasource
+ import ru.stankin.mj.utils.FlywayMigrations
+ 
+ import javax.annotation.PostConstruct
+@@ -38,22 +39,25 @@
+     @PostConstruct
+     open fun initDatabase() = initDatabase(null)
+ 
+-    open fun initDatabase(properties: Properties?) = FlywayMigrations.process(dataSource, properties)
++    open fun initDatabase(properties: Properties?) = FlywayMigrations.process(connectionTracingDataSource, properties)
+ 
+ 
+     @Resource(lookup = "java:jboss/datasources/mj2")
+     private lateinit var dataSource: DataSource
+ 
++    private val connectionTracingDataSource: DataSource by lazy { ConnectionTracingDatasource(dataSource) }
++
++
+ 
+     @Produces
+     open fun defaultExecutorService(): ExecutorService = executorService
+ 
+     @Produces
+     @Default
+-    open fun defaultDataSource(): DataSource = dataSource
++    open fun defaultDataSource(): DataSource = connectionTracingDataSource
+ 
+     @Produces
+-    open fun defaultSql2o(): Sql2o = Sql2o(dataSource)
++    open fun defaultSql2o(): Sql2o = Sql2o(connectionTracingDataSource)
+ 
+     @Produces
+     open fun defaultApplicationProperties(): Properties  {

@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.sql2o.Connection;
+import org.sql2o.Query;
 import org.sql2o.ResultSetIterable;
 import org.sql2o.Sql2o;
 import ru.stankin.mj.utils.ThreadLocalTransaction;
@@ -53,7 +54,7 @@ public class DatabaseStorage implements Storage {
             SubjectsCache subjectsCache = new SubjectsCache(connection);
 
             List<Module> currentModules = connection
-                    .createQuery("select *, modules.id as id from modules JOIN subjects ON modules.subject_id = subjects.id WHERE student_id = :id AND semester = :semester")
+                    .createQuery("select *, student_id as studentId, subject_id as subjectId from modules JOIN subjects ON modules.subject_id = subjects.id WHERE student_id = :id AND semester = :semester")
                     .addParameter("id", student.id)
                     .addParameter("semester", semester)
                     .throwOnMappingFailure(false)
@@ -74,10 +75,13 @@ public class DatabaseStorage implements Storage {
                 if (existigModule.isPresent() && !existigModule.get().equals(module)) {
 
                     connection
-                            .createQuery("UPDATE modules SET color = :color, value = :value WHERE id = :id")
+                            .createQuery("UPDATE modules SET color = :color, value = :value " +
+                                    "WHERE student_id = :student AND subject_id = :subject AND num = :num")
                             .addParameter("color", module.getColor())
                             .addParameter("value", module.getValue())
-                            .addParameter("id", existigModule.get().getId())
+                            .addParameter("student", existigModule.get().studentId)
+                            .addParameter("subject", existigModule.get().getSubject().getId())
+                            .addParameter("num", existigModule.get().getNum())
                             .executeUpdate();
                     updated++;
                 } else if (!existigModule.isPresent()) {
@@ -96,10 +100,19 @@ public class DatabaseStorage implements Storage {
 
             if (!currentModules.isEmpty()) {
                 logger.debug("removing modules {}", currentModules);
-                connection
-                        .createQuery("DELETE FROM modules WHERE id IN (:ids)")
-                        .addParameter("ids", currentModules.stream().map(Module::getId).collect(Collectors.toList()))
-                        .executeUpdate();
+
+
+                Query query = connection.createQuery("DELETE FROM modules " +
+                        "WHERE student_id = :student AND subject_id = :subject AND num = :num");
+
+                for (Module module : currentModules) {
+                    query.addParameter("student", module.studentId)
+                            .addParameter("subject", module.getSubject().getId())
+                            .addParameter("num", module.getNum())
+                            .addToBatch();
+                }
+
+                query.executeUpdate();
                 deleted += currentModules.size();
             }
 
@@ -273,7 +286,7 @@ public class DatabaseStorage implements Storage {
     private List<Module> getStudentModules(Connection connection, String semester, int studentid) {
         SubjectsCache subjectsCache = new SubjectsCache(connection);
         return connection
-                .createQuery("SELECT * from modules WHERE student_id = :id and subject_id in (SELECT subjects.id from subjects WHERE semester = :semester)")
+                .createQuery("SELECT *, student_id as studentId, subject_id as subjectId from modules WHERE student_id = :id and subject_id in (SELECT subjects.id from subjects WHERE semester = :semester)")
                 .addParameter("id", studentid)
                 .addParameter("semester", semester)
                 .throwOnMappingFailure(false)

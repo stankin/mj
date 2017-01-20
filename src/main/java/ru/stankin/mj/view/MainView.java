@@ -585,37 +585,6 @@ public class MainView extends CustomComponent implements View {
 
     }
 
-    private class StudentDeleteModulesButton extends StudentButton {
-
-        private List<Module> oldModules = null;
-
-        public StudentDeleteModulesButton() {
-            super("Удалить Модули");
-            this.addClickListener(event -> {
-                int studentId = student.id;
-                if (oldModules == null) {
-                    storage.deleteStudentModules(student, getCurrentSemester());
-                    oldModules = student.getModules();
-                    oldModules.forEach(m -> m.setId(0));
-                    setCaption("Восстановить Модули");
-                } else {
-                    storage.updateModules(student);
-                    student = null;
-                }
-                setWorkingStudent(studentId, MainView.this.getCurrentSemester());
-            });
-        }
-
-        @Override
-        public void setStudent(Student student) {
-            if (student == null || this.student == null || this.student.id != student.id) {
-                setCaption("Удалить Модули");
-                oldModules = null;
-                super.setStudent(student);
-            }
-        }
-    }
-
 
 }
 

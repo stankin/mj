@@ -11,9 +11,6 @@ public class Module implements Cloneable, Serializable {
     private static final long serialVersionUID = 1L;
 
 
-    private int id = 0;
-
-
     private Subject subject = null;
 
     private String num = "";
@@ -22,6 +19,9 @@ public class Module implements Cloneable, Serializable {
 
     @JsonIgnore
     public int studentId;
+
+    @JsonIgnore
+    public int subjectId;
 
     @Override
     public Module clone()  {
@@ -49,14 +49,6 @@ public class Module implements Cloneable, Serializable {
                 ", " + getValue() +
                 ", color=" + getColor() +
                 '}';
-    }
-    
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getNum() {

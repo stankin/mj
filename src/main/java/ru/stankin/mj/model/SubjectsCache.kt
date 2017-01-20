@@ -10,36 +10,24 @@ open class SubjectsCache(private val connection: Connection) {
     private val log = LogManager.getLogger(SubjectsCache::class.java);
 
     private val moduleSubjectCache = HashMap<Int, Subject>()
-    private val subjectIdentityCache = HashMap<Int, Subject>()
 
 
     @Synchronized
-    fun moduleSubject(moduleId: Int): Subject =
-            moduleSubjectCache.computeIfAbsent(moduleId, { moduleId ->
+    fun subject(subjectId: Int): Subject =
+            moduleSubjectCache.computeIfAbsent(subjectId, { subjectId ->
                 val subject0 = connection
-                        .createQuery("SELECT * from subjects WHERE subjects.id in (SELECT subject_id FROM modules WHERE modules.id = :id)")
-                        .addParameter("id", moduleId)
+                        .createQuery("SELECT * from subjects WHERE subjects.id = :id")
+                        .addParameter("id", subjectId)
                         .throwOnMappingFailure(false)
-                        .executeAndFetchFirst(Subject::class.java) ?: throw NoSuchElementException("no subject for module ${moduleId}")
+                        .executeAndFetchFirst(Subject::class.java) ?: throw NoSuchElementException("no subject for id ${subjectId}")
 
-                log.trace("loaded for moduleid {} subject is {}", moduleId, subject0)
+                log.trace("loaded for subject id {} subject is {}", subjectId, subject0)
 
-                val subject = subjectIdentityCache.computeIfAbsent(subject0.id, { i -> subject0 })
-
-                val allModules = connection
-                        .createQuery("select id FROM modules WHERE subject_id = :id")
-                        .addParameter("id", subject.id)
-                        .executeScalarList(Int::class.java)
-
-                for (m in allModules) {
-                    moduleSubjectCache.put(m, subject)
-                }
-
-                subject
+                subject0
             })
 
     fun loadSubject(module: Module): Module {
-        module.subject = moduleSubject(module.id)
+        module.subject = subject(module.subjectId)
         return module
     }
 

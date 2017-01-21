@@ -1,6 +1,8 @@
 package ru.stankin.mj.model
 
 
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
 import kotlinx.support.jdk8.collections.stream
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -16,6 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import java.util.stream.StreamSupport
@@ -33,6 +36,8 @@ class DatabaseStorage
 @Inject
 constructor(private val sql2o: Sql2o) {
 
+    private val logger = LogManager.getLogger(DatabaseStorage::class.java)
+
     fun updateModules(student: Student): ModulesUpdateStat {
 
         val studentModules = ArrayList(student.modules)
@@ -41,15 +46,13 @@ constructor(private val sql2o: Sql2o) {
 
         sql2o.beginTransaction(ThreadLocalTransaction.get()).use { connection ->
 
-            val subjectsCache = SubjectsCache(connection)
-
             val currentModules = connection
                     .createQuery("select *, student_id as studentId, subject_id as subjectId from modules JOIN subjects ON modules.subject_id = subjects.id WHERE student_id = :id AND semester = :semester")
                     .addParameter("id", student.id)
                     .addParameter("semester", semester)
                     .throwOnMappingFailure(false)
                     .executeAndFetch(Module::class.java).stream()
-                    .map{ subjectsCache.loadSubject(it) }
+                    .map { loadSubject(it) }
                     .collect(Collectors.toList<Module>())
 
             var added = 0
@@ -57,8 +60,7 @@ constructor(private val sql2o: Sql2o) {
             var deleted = 0
 
             for (module in studentModules) {
-                val un = module.subject
-                module.subject = getOrCreateSubject(un.semester, un.stgroup, un.title, un.factor)
+                module.subject = persistedSubject(module.subject)
 
                 val existigModule = currentModules.stream().filter({ cur -> cur.getSubject() == module.subject && cur.getNum() == module.num }).findAny()
 
@@ -90,7 +92,6 @@ constructor(private val sql2o: Sql2o) {
 
             if (!currentModules.isEmpty()) {
                 logger.debug("removing modules {}", currentModules)
-
 
                 val query = connection.createQuery("DELETE FROM modules " + "WHERE student_id = :student AND subject_id = :subject AND num = :num")
 
@@ -138,14 +139,11 @@ constructor(private val sql2o: Sql2o) {
     }
 
     fun deleteStudent(s: Student) {
-
         logger.debug("deleting student {}", s)
-
         sql2o.beginTransaction(ThreadLocalTransaction.get()).use { connection ->
             connection.createQuery("DELETE FROM users WHERE id=:id;").addParameter("id", s.id).executeUpdate()
             connection.commit()
         }
-
     }
 
     fun saveStudent(student: Student, semestr: String?) {
@@ -261,14 +259,13 @@ constructor(private val sql2o: Sql2o) {
     }
 
     private fun getStudentModules(connection: Connection, semester: String, studentid: Int): List<Module> {
-        val subjectsCache = SubjectsCache(connection)
         return connection
                 .createQuery("SELECT *, student_id as studentId, subject_id as subjectId from modules WHERE student_id = :id and subject_id in (SELECT subjects.id from subjects WHERE semester = :semester)")
                 .addParameter("id", studentid)
                 .addParameter("semester", semester)
                 .throwOnMappingFailure(false)
                 .executeAndFetch(Module::class.java).stream()
-                .map({ subjectsCache.loadSubject(it) }).collect(Collectors.toList<Module>())
+                .map({ loadSubject(it) }).collect(Collectors.toList<Module>())
     }
 
     private fun getStudentHistoricalGroups(connection: Connection, studentid: Int): List<StudentHistoricalGroup> {
@@ -299,33 +296,33 @@ constructor(private val sql2o: Sql2o) {
                     .collect(Collectors.toCollection( { TreeSet<String>() }))
         }
 
-    fun getOrCreateSubject(semester: String, group: String, name: String, factor: Double): Subject {
+    private fun getOrCreateSubject(subjData: SubjData): Subject {
 
         sql2o.beginTransaction().use { connection ->
             val subject = connection.createQuery("SELECT * FROM subjects WHERE semester = :semester AND stgroup = :group AND subjects.title = :title LIMIT 1")
-                    .addParameter("semester", semester)
-                    .addParameter("group", group)
-                    .addParameter("title", name)
+                    .addParameter("semester", subjData.semester)
+                    .addParameter("group", subjData.group)
+                    .addParameter("title", subjData.name)
                     .executeAndFetchFirst(Subject::class.java)
-            if (subject != null && Math.abs(subject.factor - factor) < 0.001) {
+            if (subject != null && Math.abs(subject.factor - subjData.factor) < 0.001) {
                 return subject
             } else if (subject == null) {
                 val id = connection
                         .createQuery("INSERT INTO subjects (factor, stgroup, title, semester) VALUES (:factor, :group, :title, :semester)")
-                        .addParameter("semester", semester)
-                        .addParameter("group", group)
-                        .addParameter("title", name)
-                        .addParameter("factor", factor)
+                        .addParameter("semester", subjData.semester)
+                        .addParameter("group", subjData.group)
+                        .addParameter("title", subjData.name)
+                        .addParameter("factor", subjData.factor)
                         .executeUpdate().getKey<Int>(Int::class.java)
                 connection.commit()
-                return Subject(id, semester, group, name, factor)
+                return Subject(id, subjData.semester, subjData.group, subjData.name, subjData.factor)
             } else {
                 connection
                         .createQuery("UPDATE subjects SET factor = :factor WHERE id = :id")
-                        .addParameter("factor", factor)
+                        .addParameter("factor", subjData.factor)
                         .addParameter("id", subject.id)
                         .executeUpdate()
-                subject.factor = factor
+                subject.factor = subjData.factor
                 connection.commit()
                 return subject
             }
@@ -371,6 +368,30 @@ constructor(private val sql2o: Sql2o) {
         }
     }
 
+    private val subjectsCacheById = CacheBuilder.newBuilder()
+            .expireAfterAccess(30, TimeUnit.SECONDS)
+            .build<Int, Subject>(CacheLoader.from { id ->
+                sql2o.open(ThreadLocalTransaction.get()).use { connection ->
+                    connection
+                            .createQuery("SELECT * FROM subjects WHERE subjects.id = :id")
+                            .addParameter("id", id)
+                            .throwOnMappingFailure(false)
+                            .executeAndFetchFirst(Subject::class.java) ?: throw NoSuchElementException("no subject for id ${id}")
+
+                }
+            })
+
+    private fun loadSubject(module: Module) = module.apply { subject = subjectsCacheById.get(this.subjectId) }
+
+    private data class SubjData(val semester: String, val group: String, val name: String, val factor: Double)
+
+    private val subjectsCacheBySubjData = CacheBuilder.newBuilder()
+            .expireAfterAccess(30, TimeUnit.SECONDS)
+            .build<SubjData, Subject>(CacheLoader.from { inf ->  getOrCreateSubject(inf!!)})
+
+    private fun persistedSubject(un: Subject) = subjectsCacheBySubjData.get(SubjData(un.semester, un.stgroup, un.title, un.factor))
+
+
     private fun <T> toStream(resultSet: ResultSetIterable<T>, connection: Connection): Stream<T> {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(resultSet.iterator(),
                 Spliterator.DISTINCT or Spliterator.NONNULL or
@@ -379,11 +400,6 @@ constructor(private val sql2o: Sql2o) {
             resultSet.close()
             connection.close()
         }
-    }
-
-    companion object {
-
-        private val logger = LogManager.getLogger(DatabaseStorage::class.java)
     }
 
 }

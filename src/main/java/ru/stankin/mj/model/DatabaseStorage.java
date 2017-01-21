@@ -28,7 +28,7 @@ import java.util.stream.StreamSupport;
 //@javax.inject.Singleton
 @Default
 //@Lock(LockType.READ)
-public class DatabaseStorage implements Storage {
+public class DatabaseStorage {
 
     private static final Logger logger = LogManager.getLogger(DatabaseStorage.class);
 
@@ -40,7 +40,6 @@ public class DatabaseStorage implements Storage {
         this.sql2o = sql2o;
     }
 
-    @Override
     public ModulesUpdateStat updateModules(Student student) {
 
         List<Module> studentModules = new ArrayList<>(student.getModules());
@@ -125,7 +124,6 @@ public class DatabaseStorage implements Storage {
 
     }
 
-    @Override
     public void deleteStudentModules(Student student, String semester) {
 
         try (Connection connection = sql2o.beginTransaction().setRollbackOnClose(false)) {
@@ -139,7 +137,6 @@ public class DatabaseStorage implements Storage {
 
     }
 
-    @Override
     public void deleteAllModules(String semester) {
         try (Connection connection = sql2o.beginTransaction().setRollbackOnClose(false)) {
 
@@ -151,7 +148,6 @@ public class DatabaseStorage implements Storage {
         }
     }
 
-    @Override
     public void deleteStudent(Student s) {
 
         logger.debug("deleting student {}", s);
@@ -163,7 +159,6 @@ public class DatabaseStorage implements Storage {
 
     }
 
-    @Override
     public void saveStudent(Student student, String semestr) {
 
         try (Connection connection = sql2o.beginTransaction(ThreadLocalTransaction.get())) {
@@ -235,12 +230,10 @@ public class DatabaseStorage implements Storage {
     }
 
 
-    @Override
     public Stream<Student> getStudents() {
         return getStudentsFiltred("");
     }
 
-    @Override
     public Stream<Student> getStudentsFiltred(String text) {
         logger.debug("getStudentsFiltred '{}'", text);
         if (text == null)
@@ -262,7 +255,6 @@ public class DatabaseStorage implements Storage {
     }
 
 
-    @Override
     public Student getStudentById(int id, String semester) {
 
         try (Connection connection = sql2o.open()) {
@@ -303,7 +295,6 @@ public class DatabaseStorage implements Storage {
                 .executeAndFetch(StudentHistoricalGroup.class);
     }
 
-    @Override
     public Set<String> getStudentSemestersWithMarks(int student) {
         try (Connection connection = sql2o.open()) {
             return connection.createQuery("SELECT DISTINCT semester FROM subjects WHERE subjects.id in (SELECT DISTINCT subject_id FROM modules WHERE student_id = :studentId)")
@@ -315,7 +306,6 @@ public class DatabaseStorage implements Storage {
         }
     }
 
-    @Override
     public Set<String> getKnownSemesters() {
         try (Connection connection = sql2o.open()) {
             return connection.createQuery("SELECT DISTINCT semester FROM subjects WHERE subjects.id in (SELECT DISTINCT subject_id FROM modules)")
@@ -326,7 +316,6 @@ public class DatabaseStorage implements Storage {
         }
     }
 
-    @Override
     public Subject getOrCreateSubject(String semester, String group, String name, double factor) {
 
         try (Connection connection = sql2o.beginTransaction()) {
@@ -360,7 +349,6 @@ public class DatabaseStorage implements Storage {
         }
     }
 
-    @Override
     public Student getStudentByGroupSurnameInitials(String semester, String group, String surname, String initials) {
 
         try (Connection connection = sql2o.open()) {
@@ -385,7 +373,6 @@ public class DatabaseStorage implements Storage {
     }
 
 
-    @Override
     public Student getStudentByCardId(String cardid) {
 
         try (Connection connection = sql2o.open(ThreadLocalTransaction.get())) {

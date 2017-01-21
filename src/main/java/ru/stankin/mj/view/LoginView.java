@@ -15,7 +15,6 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.mgt.SecurityManager;
 import org.jetbrains.annotations.NotNull;
-import ru.stankin.mj.model.user.UserDAO;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;

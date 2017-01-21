@@ -19,7 +19,6 @@ import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.MultiFileUpload;
 import org.vaadin.easyuploads.UploadField;
 import ru.stankin.mj.model.*;
-import ru.stankin.mj.model.user.UserDAO;
 import ru.stankin.mj.rested.security.MjRoles;
 
 import javax.inject.Inject;
@@ -44,13 +43,13 @@ public class MainView extends CustomComponent implements View {
 
 
     @Inject
-    private UserDAO userDao;
+    private UserResolver userDao;
 
     @Inject
     private AuthenticationsStore auth;
 
     @Inject
-    private Storage storage;
+    private DatabaseStorage storage;
 
     @Inject
     private ModuleJournalUploader moduleJournalUploader;

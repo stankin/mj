@@ -17,7 +17,6 @@ import org.apache.logging.log4j.Logger
 import org.apache.shiro.SecurityUtils
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.user.User
-import ru.stankin.mj.model.user.UserDAO
 import ru.stankin.mj.rested.security.MjRoles
 
 import javax.inject.Inject

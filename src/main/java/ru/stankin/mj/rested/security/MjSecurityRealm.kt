@@ -13,12 +13,12 @@ import org.apache.shiro.realm.Realm
 import org.apache.shiro.subject.PrincipalCollection
 import org.apache.shiro.subject.SimplePrincipalCollection
 import ru.stankin.mj.model.AuthenticationsStore
+import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.User
-import ru.stankin.mj.model.user.UserDAO
 import java.util.*
 
 
-class MjSecurityRealm(private val userService: UserDAO, private val authService: AuthenticationsStore) : AuthorizingRealm() {
+class MjSecurityRealm(private val userService: UserResolver, private val authService: AuthenticationsStore) : AuthorizingRealm() {
 
 
 
@@ -62,7 +62,7 @@ class MjSecurityRealm(private val userService: UserDAO, private val authService:
 
 }
 
-class MjOauthSecurityRealm(private val userService: UserDAO,
+class MjOauthSecurityRealm(private val userService: UserResolver,
                            private val authService: AuthenticationsStore,
                            vararg realms: Realm) : AuthorizingRealm() {
 

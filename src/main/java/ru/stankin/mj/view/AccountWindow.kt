@@ -9,7 +9,7 @@ import com.vaadin.ui.*
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.model.Student
-import ru.stankin.mj.model.user.UserDAO
+import ru.stankin.mj.model.UserResolver
 
 import java.util.function.BiConsumer
 
@@ -18,7 +18,7 @@ import java.util.function.BiConsumer
  */
 class AccountWindow @JvmOverloads constructor(
         internal var user: User,
-        internal var userDAO: UserDAO,
+        internal var userDAO: UserResolver,
         internal var auth: AuthenticationsStore,
         adminMode: Boolean = false) : Window("Аккаунт: " + user.username) {
 

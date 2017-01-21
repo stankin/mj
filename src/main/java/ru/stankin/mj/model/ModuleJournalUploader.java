@@ -28,7 +28,7 @@ public class ModuleJournalUploader {
 
 
     @Inject
-    private Storage storage;
+    private DatabaseStorage storage;
 
     @Inject
     private Sql2o sql2o;
@@ -149,11 +149,5 @@ public class ModuleJournalUploader {
 
     }
 
-    public Storage getStorage() {
-        return storage;
-    }
 
-    public void setStorage(Storage storage) {
-        this.storage = storage;
-    }
 }

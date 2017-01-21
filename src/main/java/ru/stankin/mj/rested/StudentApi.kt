@@ -1,6 +1,5 @@
 package ru.stankin.mj.rested
 
-import ru.stankin.mj.model.user.UserDAO
 import javax.annotation.Resource
 import javax.inject.Inject
 import javax.sql.DataSource

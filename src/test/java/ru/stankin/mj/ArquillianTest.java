@@ -23,7 +23,6 @@ import ru.stankin.mj.rested.security.ShiroConfiguration;
 import ru.stankin.mj.testutils.InWeldTest;
 import ru.stankin.mj.utils.FlywayMigrations;
 import ru.stankin.mj.view.AccountWindow;
-import ru.stankin.mj.model.user.UserDAO;
 
 import javax.inject.Inject;
 import java.io.*;
@@ -94,7 +93,7 @@ public class ArquillianTest {
     ModuleJournalUploader mj;
 
     @Inject
-    Storage storage;
+    DatabaseStorage storage;
 
     @Inject
     Sql2o sql2;
@@ -179,7 +178,7 @@ public class ArquillianTest {
     }
 
     @Inject
-    UserDAO userDAO;
+    UserResolver userDAO;
 
     @Test
     @InSequence(5)

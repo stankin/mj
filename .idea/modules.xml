@@ -3,17 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/sql2o/extensions/extensions-parent.iml" filepath="$PROJECT_DIR$/sql2o/extensions/extensions-parent.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sql2o/extensions/extensions-parent.iml" filepath="$PROJECT_DIR$/sql2o/extensions/extensions-parent.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules-journal.iml" filepath="$PROJECT_DIR$/modules-journal.iml" />
       <module fileurl="file://$PROJECT_DIR$/sql2o/core/sql2o.iml" filepath="$PROJECT_DIR$/sql2o/core/sql2o.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sql2o/core/sql2o.iml" filepath="$PROJECT_DIR$/sql2o/core/sql2o.iml" />
       <module fileurl="file://$PROJECT_DIR$/sql2o/extensions/db2/sql2o-db2.iml" filepath="$PROJECT_DIR$/sql2o/extensions/db2/sql2o-db2.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sql2o/extensions/db2/sql2o-db2.iml" filepath="$PROJECT_DIR$/sql2o/extensions/db2/sql2o-db2.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sql2o/extensions/oracle/sql2o-oracle.iml" filepath="$PROJECT_DIR$/sql2o/extensions/oracle/sql2o-oracle.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sql2o/extensions/oracle-joda-time/sql2o-oracle-joda-time.iml" filepath="$PROJECT_DIR$/sql2o/extensions/oracle-joda-time/sql2o-oracle-joda-time.iml" />
       <module fileurl="file://$PROJECT_DIR$/sql2o/sql2o-parent.iml" filepath="$PROJECT_DIR$/sql2o/sql2o-parent.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sql2o/sql2o-parent.iml" filepath="$PROJECT_DIR$/sql2o/sql2o-parent.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sql2o/extensions/postgres/sql2o-postgres.iml" filepath="$PROJECT_DIR$/sql2o/extensions/postgres/sql2o-postgres.iml" />
       <module fileurl="file://$PROJECT_DIR$/sql2o/extensions/postgres/sql2o-postgres.iml" filepath="$PROJECT_DIR$/sql2o/extensions/postgres/sql2o-postgres.iml" />
     </modules>
   </component>

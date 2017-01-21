@@ -30,8 +30,8 @@ import org.pac4j.core.client.Clients
 import org.pac4j.oauth.client.Google2Client
 import org.pac4j.oauth.client.VkClient
 import ru.stankin.mj.model.AuthenticationsStore
+import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.User
-import ru.stankin.mj.model.user.UserDAO
 import java.util.*
 
 
@@ -43,7 +43,7 @@ class ShiroConfiguration {
     private val logger = LogManager.getLogger(ShiroConfiguration::class.java)
 
     @Inject
-    lateinit var userService: UserDAO
+    lateinit var userService: UserResolver
 
     @Inject
     lateinit var authenticationsStore: AuthenticationsStore

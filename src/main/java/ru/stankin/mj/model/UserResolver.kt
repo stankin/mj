@@ -6,7 +6,6 @@ import org.apache.logging.log4j.LogManager
 import org.sql2o.Sql2o
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.model.user.User
-import ru.stankin.mj.model.user.UserDAO
 import ru.stankin.mj.utils.ThreadLocalTransaction
 import javax.annotation.PostConstruct
 import javax.enterprise.context.ApplicationScoped
@@ -19,11 +18,12 @@ import javax.inject.Singleton
  * Created by nickl on 16.02.15.
  */
 @ApplicationScoped
-open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO {
+open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
 
+    constructor():this(Sql2o())
 
     @Inject
-    private lateinit var storage: Storage
+    private lateinit var storage: DatabaseStorage
 
     @Inject
     private lateinit var auth: AuthenticationsStore
@@ -59,8 +59,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
     }
 
 
-
-    override fun getUserBy(username: String, password: String): User? {
+    open fun getUserBy(username: String, password: String): User? {
         val result: User? = getUserBy(username)
         if (result == null)
             return null
@@ -71,7 +70,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
         return result
     }
 
-    override fun getUserBy(username: String): User? {
+    open fun getUserBy(username: String): User? {
         var result: User? = storage.getStudentByCardId(username)
         if (result == null)
             result = getAdminUser(username)
@@ -105,7 +104,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
     }
 
 
-    override fun saveUser(user: User): Boolean {
+    open fun saveUser(user: User): Boolean {
         log.debug("saving user {}", user)
         if (user is Student)
             storage.saveStudent(user, null)
@@ -115,7 +114,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
         return true
     }
 
-    override fun saveUserAndPassword(user: User, password: String): Boolean {
+    open fun saveUserAndPassword(user: User, password: String): Boolean {
         ThreadLocalTransaction.joinOrNew(sql2o) { ->
             saveUser(user)
             if (!password.isNullOrBlank())
@@ -157,7 +156,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) : UserDAO 
     }
 
 
-    override fun getUserByPrincipal(principal: Any): User? {
+    open fun getUserByPrincipal(principal: Any): User? {
         return when (principal) {
             is String -> getUserBy(principal)
             is User -> principal

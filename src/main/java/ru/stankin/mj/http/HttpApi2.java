@@ -6,15 +6,15 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.stankin.mj.model.Storage;
+import ru.stankin.mj.model.DatabaseStorage;
 import ru.stankin.mj.model.Student;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import ru.stankin.mj.model.Module;
+import ru.stankin.mj.model.UserResolver;
 import ru.stankin.mj.model.user.User;
-import ru.stankin.mj.model.user.UserDAO;
 
 @Path("/api2")
 public class HttpApi2 {
@@ -22,10 +22,10 @@ public class HttpApi2 {
 //for testing with Curl curl -X POST -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" --data "student=114496&password=114496&semester=2015-%D0%B2%D0%B5%D1%81%D0%BD%D0%B0" http://localhost:8080/mj/webapi/api2/marks
 
     @Inject
-    private Storage storage;
+    private DatabaseStorage storage;
 
     @Inject
-    private UserDAO userDAO;
+    private UserResolver userDAO;
 
     private final Response error401 = Response.status(401).build();
 

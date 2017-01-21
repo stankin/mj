@@ -9,7 +9,7 @@ import com.vaadin.data.util.filter.UnsupportedFilterException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.stankin.mj.model.Storage;
+import ru.stankin.mj.model.DatabaseStorage;
 import ru.stankin.mj.model.Student;
 
 import java.util.*;
@@ -24,7 +24,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 {
     private static final Logger logger = LogManager.getLogger(StudentsContainer.class);
 
-    Storage storage;
+    DatabaseStorage storage;
 
     List<String> properiesNames = Arrays.asList("id","Группа","Фамилия","ИО","Логин");
 
@@ -76,7 +76,7 @@ public class StudentsContainer extends AbstractContainer implements Container, C
 
     private StudentItem sampleItem = new StudentItem(new Student("","",""));
 
-    public StudentsContainer(Storage storage) {
+    public StudentsContainer(DatabaseStorage storage) {
         this.storage = storage;
         updateData();
     }

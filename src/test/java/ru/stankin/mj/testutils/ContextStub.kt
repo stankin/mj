@@ -6,7 +6,7 @@ import javax.naming.*
 /**
  * Created by nickl on 13.01.17.
  */
-class ContextStub(var src: MutableMap<String, Any>):Context {
+class ContextStub(val src: MutableMap<String, Any>):Context {
 
     constructor():this(mutableMapOf())
 

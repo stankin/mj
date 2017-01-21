@@ -20,6 +20,7 @@ import ru.stankin.mj.http.HttpApi2;
 import ru.stankin.mj.model.*;
 import ru.stankin.mj.model.user.User;
 import ru.stankin.mj.rested.security.ShiroConfiguration;
+import ru.stankin.mj.testutils.InWeldTest;
 import ru.stankin.mj.utils.FlywayMigrations;
 import ru.stankin.mj.view.AccountWindow;
 import ru.stankin.mj.model.user.UserDAO;
@@ -376,7 +377,7 @@ public class ArquillianTest {
     }
 
     public InputStream loadResource(String name) {
-        return ModuleJournalUploaderTest.class.getResourceAsStream(name);
+        return ArquillianTest.class.getResourceAsStream(name);
     }
 
 }

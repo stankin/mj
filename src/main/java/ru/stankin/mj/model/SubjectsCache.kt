@@ -33,3 +33,25 @@ open class SubjectsCache(private val connection: Connection) {
 
 
 }
+
+//open class PersistingSubjectsCache constructor(val persist: (data: SubjData) -> Subject) {
+//
+//    //constructor(loader:  (String, String, String, Double) -> Subject) : this({e -> loader(e.semester, e.group, e.name, e.factor)})
+//
+//    private val moduleSubjectCache = HashMap<SubjData, Subject>()
+//
+//
+//    @Synchronized
+//    fun persisted(semester: String, group: String, name: String, factor: Double): Subject {
+//        val data = SubjData(semester, group, name, factor)
+//        return moduleSubjectCache.computeIfAbsent(data, persist)
+//    }
+//
+//    fun persisted(unsafeSubject: Subject) = persisted(unsafeSubject.getSemester(),
+//            unsafeSubject.getStgroup(),
+//            unsafeSubject.getTitle(), unsafeSubject.getFactor())
+//
+//
+//    data class SubjData(val semester: String, val group: String, val name: String, val factor: Double)
+//
+//}

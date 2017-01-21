@@ -8,10 +8,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.stankin.mj.model.Module;
-import ru.stankin.mj.model.ModuleJournalUploader;
-import ru.stankin.mj.model.Student;
-import ru.stankin.mj.model.Subject;
+import ru.stankin.mj.model.*;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -60,8 +57,8 @@ public class MarksTable extends Table {
         modulesGrouped = student.getModulesGrouped();
         //logger.debug("modulesGrouped:{} ", modulesGrouped);
 
-        rating = removeByTitle(modulesGrouped, ModuleJournalUploader.RATING);
-        accumulatedRating = removeByTitle(modulesGrouped, ModuleJournalUploader.ACCOUMULATED_RATING);
+        rating = removeByTitle(modulesGrouped, MarksWorkbookReader.RATING);
+        accumulatedRating = removeByTitle(modulesGrouped, MarksWorkbookReader.ACCOUMULATED_RATING);
 
         modulesGrouped.entrySet().stream()
                 .sorted(Comparator.comparing(e -> e.getKey().getTitle()))
@@ -85,8 +82,8 @@ public class MarksTable extends Table {
                             i.incrementAndGet());
                 });
 
-        addSummary(ModuleJournalUploader.RATING, rating, i);
-        addSummary(ModuleJournalUploader.ACCOUMULATED_RATING, accumulatedRating, i);
+        addSummary(MarksWorkbookReader.RATING, rating, i);
+        addSummary(MarksWorkbookReader.ACCOUMULATED_RATING, accumulatedRating, i);
 
     }
 

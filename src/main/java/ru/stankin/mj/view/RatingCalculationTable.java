@@ -7,10 +7,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.stankin.mj.model.Module;
-import ru.stankin.mj.model.ModuleJournalUploader;
-import ru.stankin.mj.model.Student;
-import ru.stankin.mj.model.Subject;
+import ru.stankin.mj.model.*;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,9 +34,9 @@ public class RatingCalculationTable extends MarksTable {
             return super.drawModuleMark(module);
         }
 
-        if (module.getSubject().getTitle().equals(ModuleJournalUploader.ACCOUMULATED_RATING))
+        if (module.getSubject().getTitle().equals(MarksWorkbookReader.ACCOUMULATED_RATING))
             return super.drawModuleMark(module);
-        if (module.getSubject().getTitle().equals(ModuleJournalUploader.RATING)) {
+        if (module.getSubject().getTitle().equals(MarksWorkbookReader.RATING)) {
             ratingLabel = new Label(
                     (module.getValue() != 0 ? module.getValue() + "" : "&nbsp;&nbsp;"), ContentMode.HTML
             );

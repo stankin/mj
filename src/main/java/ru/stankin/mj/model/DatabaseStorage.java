@@ -41,10 +41,8 @@ public class DatabaseStorage implements Storage {
     }
 
     @Override
-    public ModulesUpdateStat updateModules(Student student0) {
+    public ModulesUpdateStat updateModules(Student student) {
 
-        Student student = /*em.merge(*/student0/*)*/;
-        //Student student = em.merge(student0);
         List<Module> studentModules = new ArrayList<>(student.getModules());
         String semester = studentModules.get(0).getSubject().getSemester();
         logger.debug("saving student {} at {} modules: {}", student.cardid, semester, studentModules.size());
@@ -67,6 +65,9 @@ public class DatabaseStorage implements Storage {
             int deleted = 0;
 
             for (Module module : studentModules) {
+                Subject un = module.getSubject();
+                module.setSubject(getOrCreateSubject(un.getSemester(), un.getStgroup(), un.getTitle(), un.getFactor()));
+
                 Optional<Module> existigModule = currentModules.stream().filter(cur ->
                         cur.getSubject().equals(module.getSubject()) && cur.getNum().equals(module.getNum())).findAny();
 
@@ -107,7 +108,7 @@ public class DatabaseStorage implements Storage {
 
                 for (Module module : currentModules) {
                     query.addParameter("student", module.studentId)
-                            .addParameter("subject", module.getSubject().getId())
+                            .addParameter("persisted", module.getSubject().getId())
                             .addParameter("num", module.getNum())
                             .addToBatch();
                 }

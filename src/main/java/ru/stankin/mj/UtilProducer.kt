@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger
 import org.flywaydb.core.Flyway
 import org.sql2o.Sql2o
 import ru.stankin.mj.utils.FlywayMigrations
+import ru.stankin.mj.utils.requireSysProp
 
 import javax.annotation.PostConstruct
 import javax.annotation.Resource
@@ -57,7 +58,7 @@ open class UtilProducer {
 
     @Produces
     open fun defaultApplicationProperties(): Properties  {
-        val fileName = System.getProperty("jboss.server.config.dir")!! + "/mj.properties"
+        val fileName = requireSysProp("jboss.server.config.dir") + "/mj.properties"
 
         return Properties().apply {
             FileInputStream(fileName).use { fis -> this.load(fis) }

@@ -131,6 +131,7 @@
     <orderEntry type="library" name="java" level="project" />
     <orderEntry type="library" name="ironjacamar-jdbc-1.3.4.Final" level="project" />
     <orderEntry type="library" name="org.postgresql:postgresql:9.4.1212" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: com.google.guava:guava:18.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.enterprise:cdi-api:1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.el:el-api:2.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.spec.javax.interceptor:jboss-interceptors-api_1.1_spec:1.0.0.Beta1" level="project" />

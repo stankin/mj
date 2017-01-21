@@ -39,11 +39,11 @@ class AccountWindow @JvmOverloads constructor(
         //content.addComponent(new TextField("Пароль:", new ));
 
 
-        val password = PasswordField("Пароль:", "").apply {
+        val password = (if(adminMode) TextField("Пароль:", "") else PasswordField("Пароль:", "")).apply {
             description = "Оставьте поле пустым если не хотите менять пароль"
             addValidator(object : AbstractStringValidator("Пароль не должен совпадать с логином") {
                 override fun isValidValue(value: String): Boolean {
-                    return value != user.username
+                    return adminMode || value != user.username
                 }
             })
         }

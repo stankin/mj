@@ -23,7 +23,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
     constructor():this(Sql2o())
 
     @Inject
-    private lateinit var storage: DatabaseStorage
+    private lateinit var storage: StudentsStorage
 
     @Inject
     private lateinit var auth: AuthenticationsStore

@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.stankin.mj.model.DatabaseStorage;
+import ru.stankin.mj.model.StudentsStorage;
 import ru.stankin.mj.model.Student;
 
 import javax.inject.Inject;
@@ -22,7 +22,7 @@ public class HttpApi2 {
 //for testing with Curl curl -X POST -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" --data "student=114496&password=114496&semester=2015-%D0%B2%D0%B5%D1%81%D0%BD%D0%B0" http://localhost:8080/mj/webapi/api2/marks
 
     @Inject
-    private DatabaseStorage storage;
+    private StudentsStorage storage;
 
     @Inject
     private UserResolver userDAO;

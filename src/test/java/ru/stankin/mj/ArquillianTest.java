@@ -11,7 +11,6 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.sql2o.Connection;
@@ -20,7 +19,6 @@ import ru.stankin.mj.http.HttpApi2;
 import ru.stankin.mj.model.*;
 import ru.stankin.mj.model.user.User;
 import ru.stankin.mj.rested.security.ShiroConfiguration;
-import ru.stankin.mj.testutils.InWeldTest;
 import ru.stankin.mj.utils.FlywayMigrations;
 import ru.stankin.mj.view.AccountWindow;
 
@@ -35,8 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,7 +89,10 @@ public class ArquillianTest {
     ModuleJournalUploader mj;
 
     @Inject
-    DatabaseStorage storage;
+    StudentsStorage storage;
+
+    @Inject
+    ModulesStorage modules;
 
     @Inject
     Sql2o sql2;
@@ -272,7 +271,7 @@ public class ArquillianTest {
     @Test
     @InSequence(7)
     public void testUploadNewSemesterModules() throws Exception {
-        storage.deleteAllModules("2014-2");
+        modules.deleteAllModules("2014-2");
 //        sql2.joinTransaction();
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
@@ -301,7 +300,7 @@ public class ArquillianTest {
             Student s1 = storage.getStudentById(s0.id, "2014-осень");
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
-        storage.deleteAllModules("2014-2");
+        modules.deleteAllModules("2014-2");
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("2014-осень", "ИДБ-13-14", "Наумова", "Р.В.");
             Student s1 = storage.getStudentById(s0.id, "2014-осень");

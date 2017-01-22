@@ -1,11 +1,9 @@
 package ru.stankin.mj.model;
 
 
-import kotlin.jvm.functions.Function0;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.*;
 import org.sql2o.Sql2o;
 import ru.stankin.mj.utils.ThreadLocalTransaction;
 
@@ -13,9 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.joining;
 import static ru.stankin.mj.model.MarksWorkbookReader.YELLOW_MODULE;
@@ -28,7 +24,10 @@ public class ModuleJournalUploader {
 
 
     @Inject
-    private DatabaseStorage storage;
+    private StudentsStorage storage;
+
+    @Inject
+    private ModulesStorage modules;
 
     @Inject
     private Sql2o sql2o;
@@ -75,7 +74,7 @@ public class ModuleJournalUploader {
                                     }
                                 }
 
-                                modulesUpdateStat.plusAssign(storage.updateModules(student));
+                                modulesUpdateStat.plusAssign(modules.updateModules(student));
 
                             });
 

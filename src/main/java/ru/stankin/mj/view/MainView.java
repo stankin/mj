@@ -49,7 +49,10 @@ public class MainView extends CustomComponent implements View {
     private AuthenticationsStore auth;
 
     @Inject
-    private DatabaseStorage storage;
+    private StudentsStorage storage;
+
+    @Inject
+    private ModulesStorage modules;
 
     @Inject
     private ModuleJournalUploader moduleJournalUploader;
@@ -221,7 +224,7 @@ public class MainView extends CustomComponent implements View {
                             " Вам придется перезалить журналы, чтобы модули опять стали доступны"),
                     "Удалить", "Отмена", dialog -> {
                         if (dialog.isConfirmed()) {
-                            storage.deleteAllModules(getCurrentSemester());
+                            modules.deleteAllModules(getCurrentSemester());
                             setWorkingStudent(null, getCurrentSemester());
                         }
                     });

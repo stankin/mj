@@ -119,6 +119,7 @@ public class Student implements Serializable, User, Comparable {
 
     public void setModules(List<Module> modules) {
         this.modules = modules;
+        modules.forEach(m -> m.studentId = this.id);
     }
 
     @Override

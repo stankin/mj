@@ -52,7 +52,7 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
             for (module in studentModules) {
                 module.subject = subjects.persistedSubject(module.subject)
 
-                val existigModule = currentModules.stream().filter({ cur -> cur.getSubject() == module.subject && cur.getNum() == module.num }).findAny()
+                val existigModule = currentModules.stream().filter({ cur -> cur.getSubject().id == module.subject.id && cur.getNum() == module.num }).findAny()
 
                 existigModule.ifPresent{ currentModules.remove(it) }
 
@@ -87,7 +87,7 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
 
                 for (module in currentModules) {
                     query.addParameter("student", module.studentId)
-                            .addParameter("persisted", module.getSubject().getId())
+                            .addParameter("subject", module.getSubject().getId())
                             .addParameter("num", module.getNum())
                             .addToBatch()
                 }

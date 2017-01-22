@@ -142,23 +142,22 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.resteasy:jaxrs-api:3.0.12.Final" level="project" />
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.1" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin:vaadin-server:7.3.7" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin:vaadin-sass-compiler:0.9.10" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin.external.flute:flute:1.3.0.gg2" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin:vaadin-shared:7.3.7" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin.external.streamhtmlparser:streamhtmlparser-jsilver:0.0.10.vaadin1" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin.external.google:guava:16.0.1.vaadin1" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin.external.json:json:0.0.20080701" level="project" />
-    <orderEntry type="library" name="Maven: org.jsoup:jsoup:1.6.3" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.vaadin:vaadin-client:7.3.7" level="project" />
+    <orderEntry type="library" name="Maven: com.vaadin:vaadin-server:7.7.6" level="project" />
+    <orderEntry type="library" name="Maven: com.vaadin:vaadin-sass-compiler:0.9.13" level="project" />
     <orderEntry type="library" name="Maven: org.w3c.css:sac:1.3" level="project" />
+    <orderEntry type="library" name="Maven: com.vaadin.external.flute:flute:1.3.0.gg2" level="project" />
+    <orderEntry type="library" name="Maven: com.vaadin:vaadin-shared:7.7.6" level="project" />
+    <orderEntry type="library" name="Maven: org.jsoup:jsoup:1.8.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.vaadin:vaadin-client:7.7.6" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.vaadin.external.gwt:gwt-elemental:2.7.0.vaadin4" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.vaadin.external.gwt:gwt-user:2.7.0.vaadin4" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.validation:validation-api:1.1.0.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.validation:validation-api:sources:1.0.0.GA" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.vaadin:vaadin-client-compiled:7.3.7" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin:vaadin-push:7.3.7" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin.external.atmosphere:atmosphere-runtime:2.1.2.vaadin6" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.vaadin:vaadin-client-compiled:7.7.6" level="project" />
+    <orderEntry type="library" name="Maven: com.vaadin:vaadin-push:7.7.6" level="project" />
+    <orderEntry type="library" name="Maven: com.vaadin.external.atmosphere:atmosphere-runtime:2.2.9.vaadin2" level="project" />
     <orderEntry type="library" name="Maven: com.vaadin.external.slf4j:vaadin-slf4j-jdk14:1.6.1" level="project" />
-    <orderEntry type="library" name="Maven: com.vaadin:vaadin-themes:7.3.7" level="project" />
+    <orderEntry type="library" name="Maven: com.vaadin:vaadin-themes:7.7.6" level="project" />
     <orderEntry type="library" name="Maven: com.vaadin:vaadin-cdi:1.0.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.deltaspike.core:deltaspike-core-api:1.0.3" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.deltaspike.core:deltaspike-core-impl:1.0.3" level="project" />
@@ -167,11 +166,12 @@
     <orderEntry type="library" name="Maven: org.apache.poi:poi-ooxml-schemas:3.11" level="project" />
     <orderEntry type="library" name="Maven: org.apache.xmlbeans:xmlbeans:2.6.0" level="project" />
     <orderEntry type="library" name="Maven: stax:stax-api:1.0.1" level="project" />
-    <orderEntry type="library" name="Maven: org.vaadin.addon:easyuploads:7.3.4" level="project" />
-    <orderEntry type="library" name="Maven: org.peimari:maddon:1.20" level="project" />
-    <orderEntry type="library" name="Maven: org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.vaadin.addon:easyuploads:7.4.10" level="project" />
+    <orderEntry type="library" name="Maven: org.vaadin:viritin:1.53" level="project" />
+    <orderEntry type="library" name="Maven: org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.1" level="project" />
     <orderEntry type="library" name="Maven: commons-io:commons-io:2.4" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.3.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.4" level="project" />
+    <orderEntry type="library" name="Maven: javax.el:javax.el-api:2.2.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.11" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:1.3" level="project" />
     <orderEntry type="library" name="Maven: org.vaadin.addon:confirmdialog:2.1.2" level="project" />

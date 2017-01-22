@@ -1,6 +1,6 @@
 package ru.stankin.mj.view;
 
-import com.google.gwt.thirdparty.guava.common.io.Files;
+import com.google.common.io.Files;
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;

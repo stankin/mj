@@ -157,8 +157,19 @@ public class ArquillianTest {
     @Test
     @InSequence(3)
     public void uploadSemesterModules() throws Exception {
-        //        sql2.joinTransaction();
-        mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349.xls"));
+        assertLogUpdate(mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349.xls")), 4067, 0, 0);
+        assertUploaded();
+
+    }
+
+    @Test
+    @InSequence(4)
+    public void uploadSemesterModulesAgain() throws Exception {
+        assertLogUpdate(mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349.xls")), 0, 0, 0);
+        assertUploaded();
+    }
+
+    private void assertUploaded() {
         Assert.assertEquals(4067, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m").executeScalar(Long.class)));
         Assert.assertEquals(4067, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m JOIN subjects s ON m.subject_id = s.id WHERE s.semester = '2014-осень'").executeScalar(Long.class)));
         {
@@ -168,12 +179,6 @@ public class ArquillianTest {
             Assert.assertEquals(30, s1.getModules().size());
             Assert.assertEquals(30, s1.getModules().stream().filter(m -> m.getSubject().getSemester().equals("2014-осень")).count());
         }
-    }
-
-    @Test
-    @InSequence(4)
-    public void uploadSemesterModulesAgain() throws Exception {
-        uploadSemesterModules();
     }
 
     @Inject
@@ -239,10 +244,10 @@ public class ArquillianTest {
 
         // Uploading updated Marks for previous and new semester
         List<String> updateMarksFromExcelReport = mj.updateMarksFromExcel("2014-осень", loadResource("/information_items_property_2349_idb-13-16-updated.xls"));
-
+        assertLogUpdate(updateMarksFromExcelReport, 0, 10, 0);
         Optional<String> reportAboutStudent = updateMarksFromExcelReport.stream().filter(s -> s.contains(oldSemestrStudent.surname)).findAny();
         Assert.assertFalse("not expect any errors about " + oldSemestrStudent.surname + " but got: " + reportAboutStudent, reportAboutStudent.isPresent());
-        mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls"));
+        assertLogUpdate(mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls")), 3573, 0, 0);
 
         Assert.assertEquals("old semester uploaded but without some students", 3977, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject_id IN (SELECT id FROM subjects WHERE semester = '2014-осень')").executeScalar(Long.class)));
         Assert.assertEquals("new semester uploaded", 3573, connectLong(c -> c.createQuery("SELECT count(m) FROM modules m WHERE m.subject_id IN (SELECT id FROM subjects WHERE semester = '2014-2')").executeScalar(Long.class)));
@@ -286,7 +291,7 @@ public class ArquillianTest {
         }
 
         //        sql2.joinTransaction();
-        mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls"));
+        assertLogUpdate(mj.updateMarksFromExcel("2014-2", loadResource("/2 курс II семестр 2014-2015.xls")), 3573, 0, 0);
         {
             Student s0 = storage.getStudentByGroupSurnameInitials("2014-2", "ИДБ-13-14", "Наумова", "Р.В.");
             Student s2 = storage.getStudentByGroupSurnameInitials("2014-2", "ИДБ-13-14", "Новикова", "Х.Ф.");
@@ -325,12 +330,12 @@ public class ArquillianTest {
         }
         {
             HttpURLConnection connection = (HttpURLConnection) new URL(url + "/VAADIN/vaadinBootstrap.js").openConnection();
-            Assert.assertEquals(1671, connection.getContentLength());
+            Assert.assertEquals(1783, connection.getContentLength());
             connection.disconnect();
         }
         {
             HttpURLConnection connection = (HttpURLConnection) new URL(url + "/VAADIN/widgetsets/ru.stankin.mj.WidgetSet/ru.stankin.mj.WidgetSet.nocache.js").openConnection();
-            Assert.assertEquals(1707, connection.getContentLength());
+            Assert.assertEquals(1819, connection.getContentLength());
             connection.disconnect();
         }
 
@@ -376,6 +381,25 @@ public class ArquillianTest {
 
     public InputStream loadResource(String name) {
         return ArquillianTest.class.getResourceAsStream(name);
+    }
+
+    private void assertLogUpdate(List<String> strings, int added, int updated, int deleted) {
+        String expectedString = "Модулей: добавлено: " + added + ", обновлено: " + updated + ", удалено: " + deleted + "";
+        Optional<String> stringOptional = strings.stream().filter(str -> {
+            return str.equals(expectedString);
+        }).findAny();
+
+        if (stringOptional.isPresent())
+            return;
+
+        Optional<String> stringOptional1 = strings.stream().filter(str -> str.contains("Модулей: добавлено:")).findAny();
+
+        if (stringOptional1.isPresent()) {
+            Assert.assertEquals(expectedString, stringOptional1.get());
+        } else {
+            Assert.fail(expectedString + " was not found: "+strings.stream().collect(Collectors.joining(", ")));
+        }
+
     }
 
 }

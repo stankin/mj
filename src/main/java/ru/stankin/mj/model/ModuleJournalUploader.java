@@ -80,7 +80,7 @@ public class ModuleJournalUploader {
 
                             messages.add(0, "Модулей: добавлено: " + modulesUpdateStat.added +
                                     ", обновлено: " + modulesUpdateStat.updated +
-                                    ", удалено:" + modulesUpdateStat.deleted);
+                                    ", удалено: " + modulesUpdateStat.deleted);
 
                         } catch (IOException | InvalidFormatException e) {
                             throw new RuntimeException(e);

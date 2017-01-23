@@ -27,6 +27,10 @@ public class Subject implements Serializable {
         this.factor = factor;
     }
 
+    public Subject(String semester, String stgroup, String title, double factor) {
+        this(0, semester, stgroup, title, factor);
+    }
+
     public Subject() {
     }
 

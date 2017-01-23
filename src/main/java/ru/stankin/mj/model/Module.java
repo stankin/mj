@@ -36,7 +36,14 @@ public class Module implements Cloneable, Serializable {
     public Module(Subject subject, String num) {
         this.setSubject(subject);
         this.setNum(num);
+        this.subjectId = subject.getId();
     }
+
+    public Module(Subject subject, int studentId, String num) {
+       this(subject, num);
+       this.studentId = studentId;
+    }
+
 
     public Module() {
     }

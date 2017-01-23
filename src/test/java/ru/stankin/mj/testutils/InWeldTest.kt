@@ -2,6 +2,12 @@ package ru.stankin.mj.testutils
 
 import com.vaadin.cdi.CDIViewProvider
 import io.kotlintest.specs.FunSpec
+import org.apache.shiro.subject.PrincipalCollection
+import org.apache.shiro.subject.SimplePrincipalCollection
+import org.apache.shiro.subject.support.DelegatingSubject
+import org.apache.shiro.subject.support.SubjectThreadState
+import org.apache.shiro.util.ThreadContext
+import org.apache.shiro.web.mgt.WebSecurityManager
 import org.jboss.weld.bootstrap.api.CDI11Bootstrap
 import org.jboss.weld.bootstrap.spi.Deployment
 import org.jboss.weld.environment.se.Weld
@@ -44,6 +50,38 @@ abstract class InWeldTest : FunSpec() {
 
     override fun afterAll() {
         container.shutdown()
+    }
+
+    fun <T> runAs(vararg principals: Any, f: () -> T): T = runAs(SimplePrincipalCollection(principals.asList(), "InWeldTest"), f)
+
+    fun <T> runAs(principals: PrincipalCollection, f: () -> T): T {
+
+        val sm = bean<WebSecurityManager>()
+        ThreadContext.bind(sm)
+        try {
+            val delegatingSubject = org.apache.shiro.subject.Subject.Builder()
+                    .authenticated(true)
+                    .principals(principals)
+                    .buildSubject()
+
+            return withSubject(delegatingSubject, f)
+
+        } finally {
+            ThreadContext.unbindSecurityManager()
+        }
+
+    }
+
+    fun <T> withSubject(subj: org.apache.shiro.subject.Subject, f: () -> T): T {
+
+        val sts = SubjectThreadState(subj)
+        sts.bind()
+        try {
+            return f()
+        } finally {
+            sts.restore()
+        }
+
     }
 
 }

@@ -29,6 +29,8 @@ class SubjectsStorage @Inject constructor(private val sql2o: Sql2o) {
                 }
             })
 
+    fun byId(id: Int): Subject = subjectsCacheById.get(id)
+
     fun loadSubject(module: Module) = module.apply { subject = subjectsCacheById.get(this.subjectId) }
 
     private data class SubjData(val semester: String, val group: String, val name: String, val factor: Double)

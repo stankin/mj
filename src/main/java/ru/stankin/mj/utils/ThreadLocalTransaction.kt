@@ -15,7 +15,7 @@ object ThreadLocalTransaction {
     private val connection = ThreadLocal<Connection>()
 
 
-    @JvmStatic fun get(): ConnectionSource? = connection.get()?.jdbcConnection?.let { join(it) }
+    @JvmStatic fun get(): ConnectionSource? = getSql2oConnection()?.jdbcConnection?.let { join(it) }
 
     fun <T> joinOrNew(sql2o: Sql2o, f: () -> T): T =
             if (connection.get() == null)
@@ -39,6 +39,8 @@ object ThreadLocalTransaction {
             connection.set(prev)
         }
     }
+
+    @JvmStatic fun getSql2oConnection(): Connection? = connection.get()
 
 
 }

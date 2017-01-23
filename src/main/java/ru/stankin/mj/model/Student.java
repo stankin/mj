@@ -42,6 +42,15 @@ public class Student implements Serializable, User, Comparable {
         this.initials = initials;
     }
 
+    public Student(String cardid, String group, String surname, String initials) {
+        this(group, surname, initials);
+        this.cardid = cardid;
+    }
+
+    public Student(String cardid) {
+        this(cardid, "", "", "");
+    }
+
     public Optional<StudentHistoricalGroup> getHistoricalGroup(String semester) {
         return getGroups().stream().filter(g -> g.semestr.equals(semester)).findAny();
     }

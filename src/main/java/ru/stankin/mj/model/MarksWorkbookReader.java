@@ -63,12 +63,9 @@ public class MarksWorkbookReader {
                         String initials = row.getCell(2).getStringCellValue().trim();
                         String cardid = stringValue(row.getCell(3)).trim();
                         //Student student = storage.getStudentByGroupSurnameInitials(semester, group, surname, initials);
-                        Student student = new Student(group, surname, initials);
-                        student.cardid = cardid;
-
+                        Student student = new Student(cardid, group, surname, initials);
 
                         student.setModules(new ArrayList<>());
-
 
                         for (Map.Entry<Integer, ModulePrototype> entry : modulePrototypesMap.entrySet()) {
                             Module module = entry.getValue().buildModule(group);
@@ -253,7 +250,7 @@ public class MarksWorkbookReader {
 
         public Module buildModule(String group) {
 
-            Subject subject = new Subject(0, semester, group, subjColumnInfo.subjName, subjColumnInfo.factor);
+            Subject subject = new Subject(semester, group, subjColumnInfo.subjName, subjColumnInfo.factor);
 
             return new Module(subject, moduleName);
         }

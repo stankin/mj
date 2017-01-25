@@ -72,6 +72,7 @@ class AuthTest : InWeldTest() {
             info.hasRole(MjRoles.UNBINDED_OAUTH) shouldBe false
             info.hasRole(MjRoles.ADMIN) shouldBe true
             info.hasRole(MjRoles.USER) shouldBe true
+            info.hasRole(MjRoles.PASSWORDRECOVERY) shouldBe false
 
             info.principal should be a AdminUser::class
             (info.principal as AdminUser).username shouldBe "admin"

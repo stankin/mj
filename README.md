@@ -21,7 +21,7 @@ cd ..
 mvn clean install -DskipTests
 ```
 
-Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 9.0.2.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/9.0.2.Final/wildfly-9.0.2.Final.zip).
+Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 10.1.0.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/10.1.0.Final/wildfly-10.1.0.Final.zip.
 
 ### Конфигурация
 
@@ -35,7 +35,8 @@ oauth.vk.secret=секрет_приложения_в_vk
 oauth.yandex.clientid=клинет_ид_приложения_в_yandex
 oauth.yandex.secret=секрет_приложения_в_yandex
 oauth.callbackurl=http://localhost:8080/mj/callback (или другой при развертывании на сервере)
-serviceemail=почтовый ящик с которого сервер будет отправлять письма
+service.email=почтовый ящик с которого сервер будет отправлять письма
+service.recoveryurl=http://localhost:8080/mj/recovery
 ```
 
 

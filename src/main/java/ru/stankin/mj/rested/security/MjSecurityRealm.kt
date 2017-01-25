@@ -14,6 +14,7 @@ import org.apache.shiro.subject.PrincipalCollection
 import org.apache.shiro.subject.SimplePrincipalCollection
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.UserResolver
+import ru.stankin.mj.model.user.PasswordRecoveryService
 import ru.stankin.mj.model.user.User
 import java.util.*
 
@@ -74,23 +75,16 @@ class MjOauthSecurityRealm(private val userService: UserResolver,
         val otherAuthInfo = realms.asSequence()
                 .filter { it.supports(token) }
                 .mapNotNull { realm -> realm.getAuthenticationInfo(token) }.firstOrNull()
-
         if (otherAuthInfo == null)
             return null;
-
         log.debug("otherAuthInfo = " + otherAuthInfo)
-
         val pac4jPrincipal = otherAuthInfo.principals.first() as Pac4jPrincipal
-
         val user = userService.getUserByPrincipal(pac4jPrincipal)
-
         val elems = ArrayList<Any>(2)
         if (user != null)
             elems.add(user)
         elems.add(pac4jPrincipal)
         val principals = SimplePrincipalCollection(elems, this.javaClass.simpleName)
-
-
         return SimpleAuthenticationInfo(principals, otherAuthInfo.credentials)
     }
 
@@ -106,12 +100,45 @@ class MjOauthSecurityRealm(private val userService: UserResolver,
 
 }
 
+
+class PasswordRecoveryRealm(private val userService: UserResolver,
+                            private val pws: PasswordRecoveryService) : AuthorizingRealm() {
+
+    val log = LogManager.getLogger(PasswordRecoveryRealm::class.java)
+
+    override fun supports(token: AuthenticationToken?): Boolean = token is Token
+
+    override fun doGetAuthenticationInfo(token: AuthenticationToken?): AuthenticationInfo? {
+        val token1 = token as? Token ?: return null
+        log.debug("token1 = " + token1)
+        val userId = pws.getUserIdByToken(token1.token) ?: return null
+        val user = userService.getUserById(userId) ?: return null
+        val principals = SimplePrincipalCollection(listOf(user, token), this.javaClass.simpleName)
+        return SimpleAuthenticationInfo(principals, token.credentials)
+    }
+
+    override fun doGetAuthorizationInfo(principals: PrincipalCollection): AuthorizationInfo {
+        if (principals.oneByType(Token::class.java) != null)
+            return SimpleAuthorizationInfo(setOf(MjRoles.PASSWORDRECOVERY))
+        else
+            return SimpleAuthorizationInfo()
+    }
+
+
+    class Token(val token: String) : AuthenticationToken {
+        override fun getCredentials(): Any = token
+        override fun getPrincipal(): Any = token
+    }
+
+}
+
 object MjRoles {
 
     const val UNBINDED_OAUTH = "unbindedOauth"
     const val USER = "user"
     const val ADMIN = "admin"
     const val STUDENT = "student"
+    const val PASSWORDRECOVERY = "passwordRecovery"
 
     @JvmStatic fun getUser(): User? = SecurityUtils.getSubject().principals?.oneByType(User::class.java)
 

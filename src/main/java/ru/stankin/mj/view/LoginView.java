@@ -46,7 +46,10 @@ public class LoginView extends CustomComponent implements View {
     public void enter(ViewChangeEvent event) {
 
         usernameField = new TextField("Логин");
-        usernameField.addFocusListener(event1 -> errorLabel.setVisible(false));
+        usernameField.addFocusListener(event1 -> {
+            errorLabel.setVisible(false);
+            usernameField.setComponentError(null);
+        });
         errorLabel = new Label();
         errorLabel.addStyleName("err-label");
         errorLabel.setVisible(false);
@@ -107,10 +110,21 @@ public class LoginView extends CustomComponent implements View {
             return;
         }
         recoveryService.sendRecovery(user);
+
+        Notification notification = new Notification("Выполнено",
+                "Если вы указывали почту, то ссылка для восстановления пароля была отправлена на неё." +
+                        " В противном случае обратитесь в деканат.",
+                Notification.Type.HUMANIZED_MESSAGE);
+
+        notification.setDelayMsec(10000);
+        notification.show(this.getUI().getPage());
     }
 
     protected Component getLoginButton() {
-        return new HorizontalLayout(recoveryButton, loginButton);
+        VerticalLayout components = new VerticalLayout();
+        components.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        components.addComponents(loginButton, recoveryButton);
+        return components;
     }
 
     @NotNull

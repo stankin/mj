@@ -31,6 +31,7 @@ import org.pac4j.oauth.client.Google2Client
 import org.pac4j.oauth.client.VkClient
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.UserResolver
+import ru.stankin.mj.model.user.PasswordRecoveryService
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.utils.requireProperty
 import java.util.*
@@ -50,12 +51,16 @@ class ShiroConfiguration {
     lateinit var authenticationsStore: AuthenticationsStore
 
     @Inject
+    lateinit var pwr: PasswordRecoveryService
+
+    @Inject
     lateinit var properties: Properties
 
     @Produces
     fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(mutableListOf<Realm>(
             MjSecurityRealm(userService, authenticationsStore),
-            MjOauthSecurityRealm(userService, authenticationsStore, io.buji.pac4j.realm.Pac4jRealm())
+            MjOauthSecurityRealm(userService, authenticationsStore, io.buji.pac4j.realm.Pac4jRealm()),
+            PasswordRecoveryRealm(userService, pwr)
     )
     ).apply {
         authorizer
@@ -110,9 +115,11 @@ class ShiroConfiguration {
             addFilter("forceLoginFilter", ForceLoginFilter().apply {
                 config = pacConfig
             })
-            createChain("/webapi/api3/**", "basic");
-            createChain("/callback", "callbackFilter");
-            createChain("/forceLogin", "forceLoginFilter");
+            addFilter("passwordRecovery", PasswordRecoveryFilter())
+            createChain("/webapi/api3/**", "basic")
+            createChain("/callback", "callbackFilter")
+            createChain("/forceLogin", "forceLoginFilter")
+            createChain("/recovery", "passwordRecovery")
         }
 
 

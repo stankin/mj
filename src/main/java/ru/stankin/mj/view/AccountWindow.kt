@@ -36,6 +36,10 @@ class AccountWindow @JvmOverloads constructor(
         val content = FormLayout()
         val binder = FieldGroup(BeanItem(user))
         content.addComponent(readOnlyField("Логин:", user.username))
+        val email = binder.buildAndBind("email", "email")
+        if(user.email == null)
+            (email as TextField).value = ""
+        content.addComponent(email)
         //content.addComponent(new TextField("Пароль:", new ));
 
 

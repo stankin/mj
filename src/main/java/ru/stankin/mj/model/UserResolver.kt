@@ -17,8 +17,8 @@ import javax.inject.Singleton
 /**
  * Created by nickl on 16.02.15.
  */
-@ApplicationScoped
-open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
+@Singleton
+class UserResolver @Inject constructor(private val sql2o: Sql2o) {
 
     constructor():this(Sql2o())
 
@@ -30,7 +30,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
 
 
     @PostConstruct
-    open fun initIfRequired() {
+    fun initIfRequired() {
 
         ThreadLocalTransaction.within(sql2o) { ->
 
@@ -59,7 +59,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
     }
 
 
-    open fun getUserBy(username: String, password: String): User? {
+    fun getUserBy(username: String, password: String): User? {
         val result: User? = getUserBy(username)
         if (result == null)
             return null
@@ -70,7 +70,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
         return result
     }
 
-    open fun getUserBy(username: String): User? {
+    fun getUserBy(username: String): User? {
         var result: User? = storage.getStudentByCardId(username)
         if (result == null)
             result = getAdminUser(username)
@@ -104,7 +104,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
     }
 
 
-    open fun saveUser(user: User): Boolean {
+    fun saveUser(user: User): Boolean {
         log.debug("saving user {}", user)
         if (user is Student)
             storage.saveStudent(user, null)
@@ -114,7 +114,7 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
         return true
     }
 
-    open fun saveUserAndPassword(user: User, password: String): Boolean {
+    fun saveUserAndPassword(user: User, password: String): Boolean {
         ThreadLocalTransaction.joinOrNew(sql2o) { ->
             saveUser(user)
             if (!password.isNullOrBlank())
@@ -156,16 +156,16 @@ open class UserResolver @Inject constructor(private val sql2o: Sql2o) {
     }
 
 
-    open fun getUserByPrincipal(principal: Any): User? {
+    fun getUserByPrincipal(principal: Any): User? {
         return when (principal) {
             is String -> getUserBy(principal)
             is User -> principal
-            is Pac4jPrincipal -> auth.findUserByOauth(principal.profile)?.let {
-                (storage.getStudentById(it, null) as User?) ?: getAdminUser(it)
-            }
+            is Pac4jPrincipal -> auth.findUserByOauth(principal.profile)?.let { getUserById(it) }
             else -> throw UnsupportedOperationException("principals of type " + principal.javaClass.name + " are not suported")
         }
     }
+
+    fun getUserById(id: Int): User? = storage.getStudentById(id, null) ?: getAdminUser(id)
 
     companion object {
 

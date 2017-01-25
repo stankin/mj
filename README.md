@@ -35,6 +35,7 @@ oauth.vk.secret=секрет_приложения_в_vk
 oauth.yandex.clientid=клинет_ид_приложения_в_yandex
 oauth.yandex.secret=секрет_приложения_в_yandex
 oauth.callbackurl=http://localhost:8080/mj/callback (или другой при развертывании на сервере)
+serviceemail=почтовый ящик с которого сервер будет отправлять письма
 ```
 
 
@@ -68,6 +69,28 @@ oauth.callbackurl=http://localhost:8080/mj/callback (или другой при 
                 </datasource>
                 ...
 ```
+
+### Почта
+
+Для отправки почты почтовый сервер должен быть указан в конфигурации Wildfly:
+
+```xml
+<subsystem xmlns="urn:jboss:domain:mail:2.0">
+    <mail-session name="default" jndi-name="java:jboss/mail/Default">
+        <smtp-server outbound-socket-binding-ref="mail-smtp" ssl="true" username="..." password="..."/>
+    </mail-session>
+</subsystem>
+```
+и, например:
+```xml
+    <socket-binding-group name="standard-sockets" default-interface="public" port-offset="${jboss.socket.binding.port-offset:0}">
+        ...
+        <outbound-socket-binding name="mail-smtp">
+            <remote-destination host="smtp.yandex.ru" port="465"/>
+        </outbound-socket-binding>
+    </socket-binding-group>
+```
+
 
 ### Запуск
 

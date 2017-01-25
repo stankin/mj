@@ -100,10 +100,11 @@ class BindOauthView():LoginView() {
 
     override fun getLoginButton(): Component {
         return HorizontalLayout(
-                super.getLoginButton(),
+                loginButton,
                 Button("Отмена", { a ->
                     SecurityUtils.getSubject().logout()
                     this.ui.navigator.navigateTo("login")
+                    this.ui.page.reload()
                 }))
     }
 }

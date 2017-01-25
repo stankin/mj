@@ -23,6 +23,8 @@ abstract class InWeldTest : FunSpec() {
 
     inline fun <reified T : Any> bean() = container.select<T>(T::class.java).get()
 
+    val jndiResourceInjectionServices = JNDIResourceInjectionServices()
+
     override fun beforeAll() {
         try {
 
@@ -31,7 +33,7 @@ abstract class InWeldTest : FunSpec() {
             val weld = object : Weld() {
                 override fun createDeployment(resourceLoader: ResourceLoader?, bootstrap: CDI11Bootstrap?): Deployment {
                     val deployment = super.createDeployment(resourceLoader, bootstrap)
-                    deployment.services.add(ResourceInjectionServices::class.java, JNDIResourceInjectionServices())
+                    deployment.services.add(ResourceInjectionServices::class.java, jndiResourceInjectionServices)
                     return deployment
                 }
             }.apply {

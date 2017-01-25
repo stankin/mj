@@ -352,11 +352,6 @@
             <version>${pac4jVersion}</version>
         </dependency>
         <dependency>
-            <groupId>org.pac4j</groupId>
-            <artifactId>pac4j-gae</artifactId>
-            <version>${pac4jVersion}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>21.0</version>
@@ -373,6 +368,13 @@
             <version>2.4.1.Final</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail-standalone</artifactId>
+            <version>1.5.3</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

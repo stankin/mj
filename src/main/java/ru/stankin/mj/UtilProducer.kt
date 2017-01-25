@@ -21,13 +21,14 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 import java.io.FileInputStream
-
+import javax.annotation.PreDestroy
+import javax.inject.Singleton
 
 
 /**
  * Created by nickl on 07.01.15.
  */
-@ApplicationScoped
+@Singleton
 open class UtilProducer {
 
     private var log = LogManager.getLogger(UtilProducer::class.java)
@@ -37,9 +38,9 @@ open class UtilProducer {
 
 
     @PostConstruct
-    open fun initDatabase() = initDatabase(null)
+    fun initDatabase() = initDatabase(null)
 
-    open fun initDatabase(properties: Properties?) = FlywayMigrations.process(dataSource, properties)
+    fun initDatabase(properties: Properties?) = FlywayMigrations.process(dataSource, properties)
 
 
     @Resource(lookup = "java:jboss/datasources/mj2")
@@ -47,23 +48,29 @@ open class UtilProducer {
 
 
     @Produces
-    open fun defaultExecutorService(): ExecutorService = executorService
+    fun defaultExecutorService(): ExecutorService = executorService
 
     @Produces
     @Default
-    open fun defaultDataSource(): DataSource = dataSource
+    fun defaultDataSource(): DataSource = dataSource
 
     @Produces
-    open fun defaultSql2o(): Sql2o = Sql2o(dataSource)
+    fun defaultSql2o(): Sql2o = Sql2o(dataSource)
 
     @Produces
-    open fun defaultApplicationProperties(): Properties  {
+    fun defaultApplicationProperties(): Properties  {
         val fileName = requireSysProp("jboss.server.config.dir") + "/mj.properties"
 
         return Properties().apply {
             FileInputStream(fileName).use { fis -> this.load(fis) }
         }
     }
+
+    @PreDestroy
+    fun close(){
+        executorService.shutdown()
+    }
+
 
 
 }

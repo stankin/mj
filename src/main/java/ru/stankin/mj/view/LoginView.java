@@ -4,17 +4,22 @@ import com.vaadin.cdi.CDIView;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.UserError;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.themes.BaseTheme;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.mgt.SecurityManager;
 import org.jetbrains.annotations.NotNull;
+import ru.stankin.mj.model.UserResolver;
+import ru.stankin.mj.model.user.PasswordRecoveryService;
+import ru.stankin.mj.model.user.User;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -23,11 +28,18 @@ import javax.servlet.http.HttpServletRequest;
 @CDIView("login")
 public class LoginView extends CustomComponent implements View {
 
+    @Inject
+    protected PasswordRecoveryService recoveryService;
+
+    @Inject
+    protected UserResolver userResolver;
+
 
     protected TextField usernameField;
     protected Label errorLabel;
     protected PasswordField passwordField;
     protected Button loginButton;
+    protected Button recoveryButton;
     protected CheckBox rememberMeCbx;
 
     @Override
@@ -41,6 +53,9 @@ public class LoginView extends CustomComponent implements View {
         errorLabel.setWidth(146,Unit.PIXELS);
         passwordField = new PasswordField("Пароль");
         passwordField.addFocusListener(event1 -> {errorLabel.setVisible(false); passwordField.focus();});
+        recoveryButton = new Button("Восстановить пароль");
+        recoveryButton.addStyleName(BaseTheme.BUTTON_LINK);
+        recoveryButton.addClickListener(this::recoveryButtonClick);
         loginButton = new Button("Вход");
         loginButton.addClickListener(this::loginButtonClick);
         loginButton.setClickShortcut(KeyCode.ENTER);
@@ -84,8 +99,18 @@ public class LoginView extends CustomComponent implements View {
         //setCompositionRoot(loginLayout);
     }
 
+    private void recoveryButtonClick(ClickEvent clickEvent) {
+        User user = userResolver.getUserBy(usernameField.getValue());
+        if(user == null)
+        {
+            usernameField.setComponentError(new UserError("Пользователь не найден"));
+            return;
+        }
+        recoveryService.sendRecovery(user);
+    }
+
     protected Component getLoginButton() {
-        return loginButton;
+        return new HorizontalLayout(recoveryButton, loginButton);
     }
 
     @NotNull

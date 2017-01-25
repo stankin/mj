@@ -30,6 +30,8 @@ public class Student implements Serializable, User, Comparable {
 
     public String cardid;
 
+    public String email;
+
 
     public Student() {
     }
@@ -155,4 +157,12 @@ public class Student implements Serializable, User, Comparable {
         this.groups = groups;
     }
 
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }

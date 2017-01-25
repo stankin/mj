@@ -32,6 +32,7 @@ import org.pac4j.oauth.client.VkClient
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.User
+import ru.stankin.mj.utils.requireProperty
 import java.util.*
 
 
@@ -82,18 +83,18 @@ class ShiroConfiguration {
         val pacConfig = org.pac4j.core.config.Config().apply {
             clients = Clients(
                     Google2Client(
-                            properties.getProperty("oauth.google.clientid")!!,
-                            properties.getProperty("oauth.google.secret")!!
+                            properties.requireProperty("oauth.google.clientid"),
+                            properties.requireProperty("oauth.google.secret")
                     ).apply {
                        callbackUrl = properties.getProperty("oauth.callbackurl")
                     },
-                    VkClient(properties.getProperty("oauth.vk.clientid")!!,
-                            properties.getProperty("oauth.vk.secret")!!)
+                    VkClient(properties.requireProperty("oauth.vk.clientid"),
+                            properties.requireProperty("oauth.vk.secret"))
                             .apply {
                         callbackUrl = properties.getProperty("oauth.callbackurl")
                             },
-                    YandexClient(properties.getProperty("oauth.yandex.clientid")!!,
-                            properties.getProperty("oauth.yandex.secret")!!).apply {
+                    YandexClient(properties.requireProperty("oauth.yandex.clientid"),
+                            properties.requireProperty("oauth.yandex.secret")).apply {
                         callbackUrl = properties.getProperty("oauth.callbackurl")
                     }
 

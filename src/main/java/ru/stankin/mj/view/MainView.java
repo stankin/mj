@@ -105,11 +105,13 @@ public class MainView extends CustomComponent implements View {
         //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
         content.setExpandRatio(blonk, 1);
 
-        boolean needChangePassword = auth.acceptPassword(MjRoles.getUser().getId(), MjRoles.getUser().getUsername());
+        boolean recoveryMode = SecurityUtils.getSubject().hasRole(MjRoles.PASSWORDRECOVERY);
+
+        boolean needChangePassword = recoveryMode || auth.acceptPassword(MjRoles.getUser().getId(), MjRoles.getUser().getUsername());
 
         Button settings = new Button("Аккаунт: " + MjRoles.getUser().getUsername(), event1 -> {
             if(SecurityUtils.getSubject().isAuthenticated()) {
-                AccountWindow accountWindow = new AccountWindow(MjRoles.getUser(), userDao, auth, false);
+                AccountWindow accountWindow = new AccountWindow(MjRoles.getUser(), userDao, auth, false, !recoveryMode);
                 this.getUI().addWindow(accountWindow);
             }
             else

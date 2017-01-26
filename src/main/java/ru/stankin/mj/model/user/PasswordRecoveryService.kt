@@ -1,10 +1,14 @@
 package ru.stankin.mj.model.user
 
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
 import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.sql2o.Sql2o
+import ru.stankin.mj.UserActionException
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.Student
+import ru.stankin.mj.model.Subject
 import ru.stankin.mj.utils.JSON
 import ru.stankin.mj.utils.ThreadLocalTransaction
 import ru.stankin.mj.utils.requireProperty
@@ -15,6 +19,8 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import javax.annotation.PreDestroy
 import javax.annotation.Resource
 import javax.inject.Inject
@@ -43,7 +49,20 @@ class PasswordRecoveryService @Inject constructor(private val sql2o: Sql2o) {
     private val senderThread = Executors.newSingleThreadExecutor()
 
 
+    private val atemptsCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(600, TimeUnit.SECONDS)
+            .build<String, AtomicInteger>(CacheLoader.from { id -> AtomicInteger(0) })
+
+    @Throws(UserActionException::class)
     fun sendRecovery(user: User): CompletableFuture<Void> {
+
+        if (user.email.isNullOrEmpty())
+            throw UserActionException("Адрес электронной почты не установлен для пользователя. Обратитесть в деканат для восстановления пароля.")
+
+        if(atemptsCache.get(user.username).incrementAndGet() > 3)
+            throw UserActionException("Ссылка для восстановления уже была отправлена. Вы сможете повторить попытку через некоторое время")
+
+
         log.debug("ordering password recovering for user {}", user)
         val future = CompletableFuture.runAsync(Runnable { doSend(user) }, senderThread)
         future.whenCompleteAsync { r, throwable ->
@@ -61,8 +80,6 @@ class PasswordRecoveryService @Inject constructor(private val sql2o: Sql2o) {
     private fun doSend(user: User) {
         val message = MimeMessage(mailSession)
         message.setFrom(InternetAddress(properties.requireProperty("service.email"), "Stankin MJ"))
-
-        check(!user.email.isNullOrEmpty(), { "user email should not be empty" })
 
         val token = createToken(user)
 

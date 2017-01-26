@@ -17,6 +17,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.mgt.SecurityManager;
 import org.jetbrains.annotations.NotNull;
+import ru.stankin.mj.UserActionException;
 import ru.stankin.mj.model.UserResolver;
 import ru.stankin.mj.model.user.PasswordRecoveryService;
 import ru.stankin.mj.model.user.User;
@@ -107,17 +108,34 @@ public class LoginView extends CustomComponent implements View {
         if(user == null)
         {
             usernameField.setComponentError(new UserError("Пользователь не найден"));
+            Notification notification = new Notification("Не выполнено",
+                    "Укажите в поле \"Логин\" имя пользователя (номер студенческого билета) ",
+                    Notification.Type.WARNING_MESSAGE);
+
+            notification.setDelayMsec(10000);
+            notification.show(this.getUI().getPage());
             return;
         }
-        recoveryService.sendRecovery(user);
 
-        Notification notification = new Notification("Выполнено",
-                "Если вы указывали почту, то ссылка для восстановления пароля была отправлена на неё." +
-                        " В противном случае обратитесь в деканат.",
-                Notification.Type.HUMANIZED_MESSAGE);
+        try {
+            recoveryService.sendRecovery(user);
+            Notification notification = new Notification("Выполнено",
+                    "Cсылка для восстановления пароля была отправлена на почту." +
+                            " Если что-то пошло не так - обратитесь в деканат.",
+                    Notification.Type.HUMANIZED_MESSAGE);
 
-        notification.setDelayMsec(10000);
-        notification.show(this.getUI().getPage());
+            notification.setDelayMsec(10000);
+            notification.show(this.getUI().getPage());
+        } catch (UserActionException e) {
+            Notification notification = new Notification("Не выполнено",
+                    e.getLocalizedMessage(),
+                    Notification.Type.WARNING_MESSAGE);
+
+            notification.setDelayMsec(10000);
+            notification.show(this.getUI().getPage());
+        }
+
+
     }
 
     protected Component getLoginButton() {

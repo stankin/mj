@@ -86,7 +86,7 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
             if (!currentModules.isEmpty()) {
                 logger.debug("removing modules {}", currentModules)
 
-                val query = connection.createQuery("DELETE FROM modules " + "WHERE student_id = :student AND subject_id = :subject AND num = :num")
+                val query = connection.createQuery("DELETE FROM modules WHERE student_id = :student AND subject_id = :subject AND num = :num")
 
                 for (module in currentModules) {
                     query
@@ -95,7 +95,7 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
                             .addParameter("num", module.getNum())
                             .addToBatch()
                 }
-                query.executeUpdate()
+                query.executeBatch()
 
                 val query1 = connection
                         .createQuery("INSERT INTO moduleshistory (color, num, value, student_id, subject_id, transaction)  VALUES (0,:num, -1, :studentId, :subjectId, :transaction)")
@@ -108,7 +108,7 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
                             .addParameter("transaction", ModifyingTransactions.modifyingTransaction().id)
                             .addToBatch()
                 }
-                query1.executeUpdate()
+                query1.executeBatch()
 
 
 

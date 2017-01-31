@@ -100,16 +100,6 @@ service.recoveryurl=http://localhost:8080/mj/recovery
 mvn wildfly:deploy -DskipTests -Dwildfly.hostname=адрес_сервера
 ```
 
-При первом запуске, для автоматического создания схемы в базе данных необходимо установить в файле
-`src/main/resources/META-INF/persistence.xml` значение `hibernate.hbm2ddl.auto` равным `update`:
-
-```xml
-    <property name="hibernate.hbm2ddl.auto" value="update"/>
-```
-
-Так же его имеет смысл сохранить равным `update` если планируется изменять схему базы данных
-
-
 
 ### Тестирование ###
 

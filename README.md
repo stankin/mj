@@ -21,7 +21,7 @@ cd ..
 mvn clean install -DskipTests
 ```
 
-Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 10.1.0.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/10.1.0.Final/wildfly-10.1.0.Final.zip.
+Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 10.1.0.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/10.1.0.Final/wildfly-10.1.0.Final.zip).
 
 ### Конфигурация
 

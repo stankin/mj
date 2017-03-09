@@ -49,6 +49,12 @@ public class Student implements Serializable, User, Comparable {
         this.cardid = cardid;
     }
 
+    public Student(String cardid, String group, String surname, String name, String patronym) {
+        this(cardid, group, surname, initialsFromNames(name, patronym));
+        this.name = name;
+        this.patronym = patronym;
+    }
+
     public Student(String cardid) {
         this(cardid, "", "", "");
     }

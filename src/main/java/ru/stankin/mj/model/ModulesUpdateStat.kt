@@ -5,9 +5,9 @@ package ru.stankin.mj.model
  */
 data class ModulesUpdateStat(@JvmField var added: Int, @JvmField var updated: Int, @JvmField var deleted: Int) {
 
-    fun plus(o: ModulesUpdateStat): ModulesUpdateStat = ModulesUpdateStat(added + o.added, updated + o.updated, deleted + o.deleted)
+    operator fun plus(o: ModulesUpdateStat): ModulesUpdateStat = ModulesUpdateStat(added + o.added, updated + o.updated, deleted + o.deleted)
 
-    fun plusAssign(o: ModulesUpdateStat): Unit {
+    operator fun plusAssign(o: ModulesUpdateStat): Unit {
         added += o.added
         updated += o.updated
         deleted += o.deleted

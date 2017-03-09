@@ -22,9 +22,7 @@ import ru.stankin.mj.model.*;
 import ru.stankin.mj.rested.security.MjRoles;
 
 import javax.inject.Inject;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -33,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 
 @CDIView("")
@@ -56,6 +55,9 @@ public class MainView extends CustomComponent implements View {
 
     @Inject
     private ModuleJournalUploader moduleJournalUploader;
+
+    @Inject
+    private ModulesJournalXMLUploader moduleJournalXMLUploader;
 
     @Inject
     private ExecutorService ecs;
@@ -218,6 +220,7 @@ public class MainView extends CustomComponent implements View {
         uploads.setHeight(100, Unit.PERCENTAGE);
         uploads.setMargin(true);
         uploads.setSpacing(true);
+        uploads.addComponent(createXMLUpload());
         uploads.addComponent(createEtalonUpload());
         uploads.addComponent(createMarksUpload());
         uploads.addComponent(new Button("Удалить все модули", event -> {
@@ -381,40 +384,36 @@ public class MainView extends CustomComponent implements View {
     }
 
     private Component createEtalonUpload() {
+        return createSingleUpload("Загрузить эталон", "Эталон загружен: ", bufferedInputStream -> {
+            try {
+                return moduleJournalUploader.updateStudentsFromExcel(getCurrentSemester(), bufferedInputStream);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private Component createXMLUpload() {
+        return createSingleUpload("Загрузить XML", "XML загружен: ", bufferedInputStream -> {
+            try {
+                return moduleJournalXMLUploader.updateFromXml(getCurrentSemester(), bufferedInputStream);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private Component createSingleUpload(String caption, final String completeMsg, Function<InputStream, List<String>> uploader) {
         final UploadField uploadField2 = new UploadField() {
             @Override
             protected void updateDisplay() {
-                alarmHolder.post("Эталон загружен: " + this.getLastFileName());
+                alarmHolder.post(completeMsg + this.getLastFileName());
             }
 
-            {
-                addListener(new Property.ValueChangeListener() {
-                    @Override
-                    public void valueChange(Property.ValueChangeEvent event) {
-
-                        File file = (File) getValue();
-                        if (file == null)
-                            return;
-                        try {
-                            logger.debug("event:{}", event);
-                            backupUpload(file, getLastFileName());
-
-                            try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-                                List<String> log = moduleJournalUploader.updateStudentsFromExcel(getCurrentSemester(), bufferedInputStream);
-                                alarmHolder.post(String.join("\n", log));
-                                setValue(null);
-                            }
-                        } catch (Exception e) {
-                            alarmHolder.error(e);
-                        }
-
-                    }
-                });
-            }
         };
 
         uploadField2.setFieldType(UploadField.FieldType.FILE);
-        uploadField2.setCaption("Загрузить эталон");
+        uploadField2.setCaption(caption);
         uploadField2.setButtonCaption("Выбрать файл");
         uploadField2.setFileDeletesAllowed(false);
 
@@ -429,8 +428,9 @@ public class MainView extends CustomComponent implements View {
                 if (checkWrongSemestr()) return;
 
                 try {
+                    backupUpload(file, uploadField2.getLastFileName());
                     try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-                        List<String> log = moduleJournalUploader.updateStudentsFromExcel(getCurrentSemester(), bufferedInputStream);
+                        List<String> log = uploader.apply(bufferedInputStream) ;
                         alarmHolder.post(String.join("\n", log));
                         uploadField2.setValue(null);
                     }

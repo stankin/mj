@@ -22,76 +22,39 @@
         <option name="compilerInfo">
           <KotlinCompilerInfo>
             <option name="compilerSettings">
-              <CompilerSettings>
-                <option name="additionalArguments" value="-version" />
-                <option name="copyJsLibraryFiles" value="true" />
-                <option name="outputDirectoryForJsLibraryFiles" value="lib" />
-              </CompilerSettings>
+              <CompilerSettings />
             </option>
             <option name="k2jsCompilerArguments">
               <K2JSCompilerArguments>
-                <option name="outputFile" />
-                <option name="noStdlib" value="false" />
-                <option name="libraryFiles" />
-                <option name="sourceMap" value="false" />
-                <option name="metaInfo" value="false" />
-                <option name="kjsm" value="false" />
-                <option name="target" />
                 <option name="moduleKind" value="plain" />
-                <option name="main" />
-                <option name="outputPrefix" />
-                <option name="outputPostfix" />
-                <option name="languageVersion" />
-                <option name="apiVersion" />
-                <option name="suppressWarnings" value="false" />
-                <option name="verbose" value="false" />
-                <option name="version" value="false" />
-                <option name="help" value="false" />
-                <option name="extraHelp" value="false" />
-                <option name="noInline" value="false" />
-                <option name="repeat" />
-                <option name="pluginClasspaths" />
-                <option name="pluginOptions" />
-                <option name="freeArgs">
-                  <list />
-                </option>
-                <option name="unknownExtraFlags">
-                  <list />
-                </option>
               </K2JSCompilerArguments>
+            </option>
+            <option name="k2jvmCompilerArguments">
+              <K2JVMCompilerArguments>
+                <option name="jvmTarget" value="1.6" />
+              </K2JVMCompilerArguments>
             </option>
             <option name="_commonCompilerArguments">
               <DummyImpl>
-                <option name="languageVersion" />
-                <option name="apiVersion" />
-                <option name="suppressWarnings" value="false" />
-                <option name="verbose" value="false" />
-                <option name="version" value="false" />
-                <option name="help" value="false" />
-                <option name="extraHelp" value="false" />
-                <option name="noInline" value="false" />
-                <option name="repeat" />
+                <option name="languageVersion" value="1.1" />
+                <option name="apiVersion" value="1.1" />
                 <option name="pluginClasspaths">
                   <array />
                 </option>
+                <option name="coroutinesWarn" value="true" />
                 <option name="pluginOptions">
                   <array />
-                </option>
-                <option name="freeArgs">
-                  <list />
-                </option>
-                <option name="unknownExtraFlags">
-                  <list />
                 </option>
               </DummyImpl>
             </option>
           </KotlinCompilerInfo>
         </option>
+        <option name="useProjectSettings" value="false" />
         <option name="versionInfo">
           <KotlinVersionInfo>
-            <option name="apiLevel" value="1.0" />
-            <option name="languageLevel" value="1.0" />
-            <option name="targetPlatformName" value="JVM 1.6" />
+            <option name="apiLevel" value="1.1" />
+            <option name="languageLevel" value="1.1" />
+            <option name="targetPlatformName" value="JVM 1.8" />
           </KotlinVersionInfo>
         </option>
       </configuration>
@@ -280,13 +243,13 @@
     <orderEntry type="library" scope="TEST" name="Maven: commons-lang:commons-lang:2.6" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.apache.maven.wagon:wagon-http-lightweight:2.6" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.apache.maven.wagon:wagon-http-shared:2.6" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.6" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.6" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.6" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains:annotations:13.0" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk7:0.3" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-support-jdk8:0.3" level="project" />
     <orderEntry type="module" module-name="sql2o" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.0.6" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.flywaydb:flyway-core:4.0.3" level="project" />
     <orderEntry type="library" name="Maven: io.buji:buji-pac4j:2.0.3" level="project" />
     <orderEntry type="library" name="Maven: org.pac4j:pac4j-core:1.9.4" level="project" />

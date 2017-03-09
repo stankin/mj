@@ -31,6 +31,9 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
 
     fun updateModules(student: Student): ModulesUpdateStat {
 
+        if (student.modules.isEmpty())
+            throw IllegalArgumentException("Student:" + student.cardid + " has no modules")
+
         val studentModules = ArrayList(student.modules)
         val semester = studentModules[0].subject.semester
         logger.debug("saving student {} at {} modules: {}", student.cardid, semester, studentModules.size)

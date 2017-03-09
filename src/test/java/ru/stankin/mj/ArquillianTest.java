@@ -154,7 +154,7 @@ public class ArquillianTest {
         //        sql2.joinTransaction();
         mj.updateStudentsFromExcel("2014-осень", loadResource("/newEtalon.xls"));
         //        sql2.joinTransaction();
-        //mj.updateStudentsFromExcel(ModuleJournalUploaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
+        //mj.updateStudentsFromExcel(MarksWorkbookReaderTest.class.getResourceAsStream("/Эталон на 21.10.2014.xls"));
 
         try (Stream<Student> students = storage.getStudents()) {
             Assert.assertEquals(1753, students.count());

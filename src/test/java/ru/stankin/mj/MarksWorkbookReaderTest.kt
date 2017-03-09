@@ -8,7 +8,7 @@ import ru.stankin.mj.model.*
 import java.util.stream.Collectors
 
 
-class ModuleJournalUploaderTest : FunSpec() {
+class MarksWorkbookReaderTest : FunSpec() {
 
     init {
 
@@ -46,7 +46,7 @@ class ModuleJournalUploaderTest : FunSpec() {
         test("testLoadStudentsList") {
 
             val students = MarksWorkbookReader.updateStudentsFromExcel(
-                    ModuleJournalUploaderTest::class.java.getResourceAsStream("/newEtalon.xls")
+                    MarksWorkbookReaderTest::class.java.getResourceAsStream("/newEtalon.xls")
             )
 
             students.use { students -> students.count() shouldBe 1753L }
@@ -56,7 +56,7 @@ class ModuleJournalUploaderTest : FunSpec() {
 
     private fun getStudentMarks(name: String): Collection<Student> {
 
-       return  MarksWorkbookReader.modulesFromExcel(ModuleJournalUploaderTest::class.java.getResourceAsStream(name), "")
+       return  MarksWorkbookReader.modulesFromExcel(MarksWorkbookReaderTest::class.java.getResourceAsStream(name), "")
                .collect(Collectors.toList<Student>())
 
     }

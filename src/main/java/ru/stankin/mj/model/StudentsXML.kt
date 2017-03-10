@@ -19,6 +19,19 @@ object StudentsXML {
     private val log = LogManager.getLogger(StudentsXML::class.java)
 
 
+    private fun markColor(attributes: Map<String, String>): Int {
+        when(attributes["P"]){
+            "1" -> return 0x0000ff
+        }
+        when(attributes["status"]){
+            "0" -> return -1
+            "1" -> return 0xCC99FF
+            "2" -> return 0xFFFF00
+        }
+        return -1;
+    }
+
+
     private operator fun ArrayDeque<Pair<String, Map<String, String>>>.get(elem: String): Map<String, String> {
         return find { it.first == elem }!!.second
     }
@@ -70,7 +83,7 @@ object StudentsXML {
                                                 curStudent.id,
                                                 attributes["type"]?.toIntOrNull()?.let { markTypes[it] } ?: "",
                                                 attributes["mark"]!!.toInt(),
-                                                -1
+                                                markColor(attributes)
                                         ))
 
                         }
@@ -98,6 +111,7 @@ object StudentsXML {
         }).onClose { reader.close() }
 
     }
+
 
 
 }

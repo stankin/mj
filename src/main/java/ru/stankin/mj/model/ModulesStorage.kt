@@ -28,7 +28,6 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
 
     private val logger = LogManager.getLogger(ModulesStorage::class.java)
 
-
     fun updateModules(student: Student): ModulesUpdateStat {
 
         if (student.modules.isEmpty())
@@ -83,11 +82,9 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
                     added++
                 }
 
-
             }
 
             if (!currentModules.isEmpty()) {
-                logger.debug("removing modules {}", currentModules)
 
                 val query = connection.createQuery("DELETE FROM modules WHERE student_id = :student AND subject_id = :subject AND num = :num")
 
@@ -113,15 +110,11 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
                 }
                 query1.executeBatch()
 
-
-
                 deleted += currentModules.size
             }
 
             connection.commit()
-            val updateStat = ModulesUpdateStat(added, updated, deleted)
-            logger.debug("update stat: " + updateStat)
-            return updateStat
+            return ModulesUpdateStat(added, updated, deleted)
         }
 
     }

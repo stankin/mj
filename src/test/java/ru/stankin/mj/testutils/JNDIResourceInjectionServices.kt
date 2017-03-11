@@ -36,4 +36,8 @@ class JNDIResourceInjectionServices : AbstractResourceServices() {
         return lookup?: super.getResourceName(injectionPoint)
     }
 
+    override fun cleanup() {
+        mail.stop()
+        super.cleanup()
+    }
 }

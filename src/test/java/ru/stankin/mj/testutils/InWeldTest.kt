@@ -38,8 +38,7 @@ abstract class InWeldTest : FunSpec() {
                 }
             }.apply {
                 disableDiscovery()
-                addPackages(true, UtilProducer::class.java)
-                addPackages(true, CDIViewProvider::class.java)
+                addWeldElems(this)
             }
 
             container = weld.initialize()
@@ -48,6 +47,11 @@ abstract class InWeldTest : FunSpec() {
             e.printStackTrace()
             throw e
         }
+    }
+
+    open protected fun addWeldElems(weld: Weld) {
+        weld.addPackages(true, UtilProducer::class.java)
+        weld.addPackages(true, CDIViewProvider::class.java)
     }
 
     override fun afterAll() {

@@ -32,9 +32,11 @@ import io.undertow.servlet.api.DeploymentInfo
 import io.undertow.servlet.api.InstanceFactory
 import io.undertow.servlet.api.ServletInfo
 import io.undertow.servlet.util.ImmediateInstanceFactory
+import ru.stankin.mj.rested.StudentApi
 import ru.stankin.mj.testutils.InWeldWebTest
 import java.net.URL
 import java.net.URLConnection
+import kotlin.reflect.KClass
 
 
 /**
@@ -52,9 +54,7 @@ class MyServlet : HttpServlet() {
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
         resp.setContentType("text/plain")
         PrintWriter(resp.writer).use { out ->
-
             out.println("students:" + students.students.use { it.count() })
-
         }
 
     }
@@ -70,13 +70,23 @@ class WebTest : InWeldWebTest() {
             servlet<MyServlet>("/myservlet")
     )
 
+    override fun restClasses() = listOf(StudentApi::class.java)
+
     init {
         test("Web server on top of weld") {
-            val content = URL("http://localhost:8080/myservlet")
+
+            val content = serverURL("/myservlet")
                     .openConnection().getInputStream().use { it.reader().readText() }
 
             content shouldBe "students:0\n"
         }
+
+        test("api request") {
+            val content = restURL("/api3/student/login")
+                    .openConnection().getInputStream().use { it.reader().readText() }
+            content shouldBe "OK"
+        }
+
 
 
     }

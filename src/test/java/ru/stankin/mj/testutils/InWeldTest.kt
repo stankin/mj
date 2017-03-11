@@ -8,6 +8,7 @@ import org.apache.shiro.subject.support.DelegatingSubject
 import org.apache.shiro.subject.support.SubjectThreadState
 import org.apache.shiro.util.ThreadContext
 import org.apache.shiro.web.mgt.WebSecurityManager
+import org.jboss.resteasy.cdi.ResteasyCdiExtension
 import org.jboss.weld.bootstrap.api.CDI11Bootstrap
 import org.jboss.weld.bootstrap.spi.Deployment
 import org.jboss.weld.environment.se.Weld

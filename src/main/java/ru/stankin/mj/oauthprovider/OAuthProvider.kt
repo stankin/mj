@@ -45,7 +45,7 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
         return ConsumerAuthentication(clientId, secret)
     }
 
-    fun addUserPermission(serviceName: String, userId: Long) {
+    fun addUserPermission(serviceName: String, userId: Long): String {
 
         val token = UUID.randomUUID().toString()
 
@@ -59,6 +59,8 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
                     .executeUpdate()
                     .commit()
         }
+
+        return token
     }
 
     fun getSavedToken(serviceName: String, userId: Long): String? {

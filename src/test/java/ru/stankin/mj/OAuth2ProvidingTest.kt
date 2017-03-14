@@ -1,5 +1,6 @@
 package ru.stankin.mj
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.apache.oltu.oauth2.`as`.issuer.MD5Generator
@@ -50,10 +51,10 @@ fun doPostRequest(req: OAuthClientRequest): HttpURLConnection {
     c.instanceFollowRedirects = true
     c.doOutput = true
     c.requestMethod = "POST"
-    c.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded" );
-    c.setRequestProperty( "Content-Length", req.body.length.toString());
+    c.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    c.setRequestProperty("Content-Length", req.body.length.toString());
     LogManager.getLogger(OAuth2ProvidingTest::class.java).debug("doPostRequest: body: {}", req.body)
-    c.outputStream.writer().use{it.write(req.body) }
+    c.outputStream.writer().use { it.write(req.body) }
     c.responseCode
     return c
 }
@@ -80,7 +81,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             val provider = bean<OAuthProvider>()
 
             val (token, secret) = provider.registerConsumer("testService", "some@some.com")
-            provider.addUserPermission("testService", student.id.toLong())
+            val permission = provider.addUserPermission("testService", student.id.toLong())
 
             log.debug("student {}", student)
 
@@ -94,22 +95,21 @@ class OAuth2ProvidingTest : InWeldWebTest() {
                     .setCode(code.toString())
                     .buildBodyMessage()
 
-
-//            val oAuthClient = OAuthClient(URLConnectionClient())
-//            val response = oAuthClient.accessToken(request)
-//            log.debug("resp= {}", response.accessToken)
-//            log.debug("resp= {}", response.expiresIn)
-
             val c = doPostRequest(request)
-            val queryString = c.getURL().toURI().getQuery()
-            val map = OAuthUtils.decodeForm(queryString)
 
-            log.debug("c:" + c)
-            log.debug("c.responseCode:" + c.responseCode)
-            log.debug("c.body:" + c.inputStream.use { it.reader().readText() })
+            val body = ObjectMapper().readValue<Map<String, Any>>(c.inputStream, Map::class.java as Class<Map<String, Any>>)
 
-            assert(map[OAuth.OAUTH_CODE] != null)
-            map[OAuth.OAUTH_STATE] shouldBe "abc"
+            body shouldBe mapOf("access_token" to permission,
+                    "token_type" to "bearer",
+                    "userInfo" to mapOf(
+                            "name" to student.name,
+                            "surname" to student.surname,
+                            "patronym" to student.patronym,
+                            "stgroup" to student.stgroup,
+                            "cardid" to student.cardid
+                    )
+
+            )
 
         }
 

@@ -1,19 +1,12 @@
 package ru.stankin.mj.rested
 
 import org.apache.logging.log4j.LogManager
-import org.apache.oltu.oauth2.`as`.request.OAuthTokenRequest
-import org.apache.oltu.oauth2.common.validators.OAuthValidator
-import org.sql2o.Sql2o
-import ru.stankin.mj.model.UserResolver
-import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.model.Student
+import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.oauthprovider.OAuthProvider
 import javax.inject.Inject
 import javax.inject.Singleton
-import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 /**
@@ -33,25 +26,29 @@ class OAuthProviderApi {
     @Inject
     private lateinit var userResolver: UserResolver
 
+//    @GET
+//    @Path("/authorize")
+//    fun authorize(@QueryParam("response_type") responseType: String,
+//                  @QueryParam("client_id") clientId: String,
+//                  @QueryParam("force_confirm") force: String?,
+//                  @QueryParam("state") state: String?
+//    ): Response {
+//
+//        if (responseType.toLowerCase() != "code")
+//            return Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "response_type shoule be 'code'")).build()
+//
+//
+//
+//
+//
+//
+//    }
+
     @POST
     @Path("/token")
     fun getUserInfo(@FormParam("code") code: Long,
                     @FormParam("client_secret") secret: String,
                     @FormParam("client_id") clientId: String): Response {
-
-
-//    @POST
-//    @Path("/getInfo")
-//    fun getUserInfo(@Context request: HttpServletRequest): Response {
-//
-//        log.debug("getUserInfo params:" + request.parameterNames.toList())
-//
-//        val oauthRequest = object :OAuthTokenRequest(request)
-//
-//        val code = oauthRequest.code.toLong()
-//        val clientId = oauthRequest.clientId
-//        val secret = oauthRequest.clientSecret
-
 
         val (serviceName, userId, token) = prov.resolveByTemporaryCode(code) ?:
                 return Response.status(Response.Status.NOT_FOUND)

@@ -44,7 +44,7 @@ abstract class InWeldWebTest : InWeldTest() {
 
     inline fun <reified T : Servlet> servlet(path: String): ServletInfo = servlet<T>().addMapping(path)
 
-    abstract fun servlets(): List<ServletInfo>
+    open fun servlets(): List<ServletInfo> = emptyList()
 
     open val restApiPrefix = "/rest"
 

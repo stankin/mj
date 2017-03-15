@@ -2,12 +2,10 @@ package ru.stankin.mj.testutils
 
 import io.undertow.Undertow
 import io.undertow.servlet.Servlets
-import io.undertow.servlet.api.DeploymentInfo
-import io.undertow.servlet.api.InstanceFactory
-import io.undertow.servlet.api.InstanceHandle
-import io.undertow.servlet.api.ServletInfo
+import io.undertow.servlet.api.*
 import io.undertow.servlet.util.ImmediateInstanceFactory
 import io.undertow.servlet.util.ImmediateInstanceHandle
+import org.apache.shiro.web.env.EnvironmentLoaderListener
 import org.jboss.resteasy.cdi.CdiInjectorFactory
 import org.jboss.resteasy.cdi.ResteasyCdiExtension
 import org.jboss.resteasy.plugins.server.servlet.HttpServlet30Dispatcher
@@ -16,7 +14,11 @@ import org.jboss.weld.environment.se.Weld
 import ru.stankin.mj.MyServlet
 import ru.stankin.mj.WebTest
 import ru.stankin.mj.rested.StudentApi
+import ru.stankin.mj.rested.security.ShiroListener
 import java.net.URL
+import java.util.*
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
 import javax.servlet.Servlet
 import kotlin.reflect.KClass
 
@@ -46,11 +48,23 @@ abstract class InWeldWebTest : InWeldTest() {
 
     open fun servlets(): List<ServletInfo> = emptyList()
 
+    private lateinit var servlets: List<ServletInfo>
+
+    class MappedFilterInfo(val info: FilterInfo, val mapping: String)
+
+    inline fun <reified T : Filter> filter(path: String): MappedFilterInfo = MappedFilterInfo(Servlets.filter(T::class.java), path)
+
+    open fun filters(): List<MappedFilterInfo> = emptyList()
+
+    private lateinit var filters: List<MappedFilterInfo>
+
+    inline fun <reified T : EventListener> listener(): ListenerInfo = Servlets.listener(T::class.java, WeldInstanceFactory(T::class.java))
+
+    open fun listeners(): List<ListenerInfo> = emptyList()
+
     open val restApiPrefix = "/rest"
 
     open protected fun restClasses(): List<Class<*>> = emptyList()
-
-    private lateinit var servlets: List<ServletInfo>
 
     override fun addWeldElems(weld: Weld) {
         super.addWeldElems(weld)
@@ -68,15 +82,21 @@ abstract class InWeldWebTest : InWeldTest() {
     override fun beforeAll() {
         try {
             servlets = servlets()
+            filters = filters()
             super.beforeAll()
             val servletBuilder = Servlets.deployment()
                     .setClassLoader(WebTest::class.java.getClassLoader())
                     .setContextPath("")
                     .setDeploymentName("mjtest.war")
                     .addServlets(servlets)
+                    .apply { for(filter in this@InWeldWebTest.filters ) {
+                        addFilter(filter.info)
+                        addFilterUrlMapping(filter.info.name,filter.mapping, DispatcherType.REQUEST)
+                    } }
                     .deployRest(restClasses(), restApiPrefix)
                     .addListener(Servlets.listener(org.jboss.weld.environment.servlet.Listener::class.java,
                             { ImmediateInstanceHandle(org.jboss.weld.environment.servlet.Listener.using(container)) }))
+                    .addListeners(listeners())
 
             val manager = Servlets.defaultContainer().addDeployment(servletBuilder)
             manager.deploy()

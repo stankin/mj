@@ -1,6 +1,8 @@
 package ru.stankin.mj
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.kotlintest.matchers.be
+import io.undertow.servlet.api.ListenerInfo
 import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.apache.oltu.oauth2.`as`.issuer.MD5Generator
@@ -15,12 +17,15 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException
 import org.apache.oltu.oauth2.common.message.types.GrantType
 import org.apache.oltu.oauth2.common.message.types.ResponseType
 import org.apache.oltu.oauth2.common.utils.OAuthUtils
+import org.apache.shiro.web.servlet.ShiroFilter
 import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.StudentsStorage
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.oauthprovider.OAuthProvider
 import ru.stankin.mj.rested.OAuthProviderApi
+import ru.stankin.mj.rested.security.ShiroListener
 import ru.stankin.mj.testutils.InWeldWebTest
+import ru.stankin.mj.testutils.Matchers.ne
 import java.io.IOException
 import java.io.PrintWriter
 import java.net.HttpURLConnection
@@ -65,13 +70,35 @@ class OAuth2ProvidingTest : InWeldWebTest() {
     private val log = LogManager.getLogger(OAuth2ProvidingTest::class.java)
 
 
-    override fun restClasses(): List<Class<*>> {
-        return listOf(OAuthProviderApi::class.java)
-    }
+    override fun restClasses() = listOf(OAuthProviderApi::class.java)
+
+    override fun filters() = listOf(filter<ShiroFilter>("/*"))
+
+    override fun listeners() = listOf(listener<ShiroListener>())
 
     init {
-        test("Oauth providing") {
 
+        test("Oauth redirect user authorize") {
+
+            val provider = bean<OAuthProvider>()
+
+            val (clientId, secret) = provider.registerConsumer("testService1", "som1e@some.com")
+
+            val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
+                    .setResponseType("code")
+                    .setClientId(clientId)
+                    .setRedirectURI("http://example.com/login")
+                    .setState("abc").buildQueryMessage()
+
+            val c = doRequest(request)
+            c.responseCode  should be ne 500
+            c.url.toString() shouldBe "http://localhost:8080/"
+            log.debug("c url= {}", c.responseCode)
+            log.debug("c url= {}", c.url)
+
+        }
+
+        test("Oauth token") {
 
             val userResolver = bean<UserResolver>()
 
@@ -80,16 +107,16 @@ class OAuth2ProvidingTest : InWeldWebTest() {
 
             val provider = bean<OAuthProvider>()
 
-            val (token, secret) = provider.registerConsumer("testService", "some@some.com")
+            val (clientId, secret) = provider.registerConsumer("testService", "some@some.com")
             val permission = provider.addUserPermission("testService", student.id.toLong())
 
             log.debug("student {}", student)
 
 
-            val code = provider.makeUserTemporaryCode("testService", student.id.toLong())!!
+            val code = provider.makeUserTemporaryCode(clientId, student.id.toLong())!!
 
             val request = OAuthClientRequest.TokenRequestBuilder(restURL("/oauth/token").toString())
-                    .setClientId(token)
+                    .setClientId(clientId)
                     .setClientSecret(secret)
                     .setGrantType(GrantType.AUTHORIZATION_CODE)
                     .setCode(code.toString())

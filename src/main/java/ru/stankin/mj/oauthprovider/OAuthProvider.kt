@@ -63,16 +63,16 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
         return token
     }
 
-    fun getSavedToken(serviceName: String, userId: Long): String? {
+    fun getSavedToken(clientId: String, userId: Long): String? {
 
 
         sql2o.open().use { connection ->
-            val permission = connection.createQuery("SELECT token FROM OAuthConsumerPermissions WHERE consumer_id = (SELECT consumer_id FROM OAuthConsumer WHERE service_name = :service_name) AND user_id = :userId")
-                    .addParameter("service_name", serviceName)
+            val permission = connection.createQuery("SELECT token FROM OAuthConsumerPermissions WHERE consumer_id = (SELECT consumer_id FROM OAuthConsumer WHERE client_id = :client_id) AND user_id = :userId")
+                    .addParameter("client_id", clientId)
                     .addParameter("userId", userId)
                     .executeScalar(String::class.java)
 
-            log.debug("getting saved permission for {} {} -> {}", serviceName, userId, permission)
+            log.debug("getting saved permission for {} {} -> {}", clientId, userId, permission)
             return permission
         }
 
@@ -84,11 +84,11 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
             .build<Long, ResolvedUser>()
 
 
-    fun makeUserTemporaryCode(serviceName: String, userId: Long): Long? {
-        val token = getSavedToken(serviceName, userId) ?: return null
+    fun makeUserTemporaryCode(clientId: String, userId: Long): Long? {
+        val token = getSavedToken(clientId, userId) ?: return null
 
         val code = Math.abs(UUID.randomUUID().leastSignificantBits)
-        val resolvedUser = ResolvedUser(serviceName, userId, token)
+        val resolvedUser = ResolvedUser(clientId, userId, token)
         temporaryCodes.put(code, resolvedUser)
         return code
     }
@@ -106,7 +106,7 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
 
 }
 
-data class ResolvedUser(val serviceName: String, val userId: Long, val token: String)
+data class ResolvedUser(val clientId: String, val userId: Long, val token: String)
 
 data class ConsumerInfo(val serviceName: String, val email: String)
 

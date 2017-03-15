@@ -88,6 +88,32 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             log.debug("c url= {}", c.url)
         }
 
+        test("Oauth user authorize without permission") {
+            val provider = bean<OAuthProvider>()
+            val userResolver = bean<UserResolver>()
+            val student = Student("OAuthStudentWithoutPermission", "1", "2", "3", "4")
+            userResolver.saveUser(student)
+            val (clientId, secret) =
+                    provider.registerConsumer("testService3", "som2e@some.com", listOf("http://example.com/","http://example1.com/"))
+
+            MockableShiroFilter.runAs(student) {
+                val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
+                        .setResponseType("code")
+                        .setClientId(clientId)
+                        .setRedirectURI("http://example.com/login")
+                        .setState("abc").buildQueryMessage()
+
+                val c = doRequest(request)
+                c.responseCode  should be ne 500
+                c.url.host shouldBe "localhost"
+                c.url.path shouldBe "/givepermission"
+                c.url.queryParams["service"] shouldBe clientId
+
+
+            }
+
+        }
+
         test("Oauth user authorize") {
             val provider = bean<OAuthProvider>()
             val userResolver = bean<UserResolver>()
@@ -109,13 +135,8 @@ class OAuth2ProvidingTest : InWeldWebTest() {
                 c.responseCode  should be ne 500
                 c.url.host shouldBe "example.com"
                 c.url.path shouldBe "/login"
-
-                log.debug("c query{}", c.url.query)
-
-                val params = c.url.query.split('&').map { it.split('=') }.associateBy({it[0]}, {it[1]})
-
-                params["state"] shouldBe "abc"
-                val code = params["code"]!!.toLong()
+                c.url.queryParams["state"] shouldBe "abc"
+                val code = c.url.queryParams["code"]!!.toLong()
 
                 val user = provider.resolveByTemporaryCode(code)!!
 
@@ -162,4 +183,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
 
 
     }
+
+    private val URL.queryParams: Map<String, String>
+        get() = query.split('&').map { it.split('=') }.associateBy({ it[0] }, { it[1] })
 }

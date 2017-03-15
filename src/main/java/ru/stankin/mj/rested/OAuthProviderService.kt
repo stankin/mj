@@ -53,16 +53,22 @@ class OAuthProviderService {
         if(consumer == null || consumer.redirects.none { redirect.startsWith(it)  })
             return Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "client does not exist or redirect is not registred")).build()
 
-
         val user = MjRoles.getUser()
 
         log.debug("got user:{}", user)
 
         if (user == null) {
             SecurityUtils.getSubject().session.setAttribute("redirectAfterLogin", request.requestURI)
-            return Response.temporaryRedirect(URI(request.requestURL.removeSuffix(request.requestURI).toString() + "/" + request.contextPath)).build()
+            return request.baseRedirect("/")
         }
 
+        if (force == "yes" || prov.getSavedToken(clientId, user.id.toLong()) == null) {
+            SecurityUtils.getSubject().session.setAttribute("redirectAfterLogin", request.requestURI)
+            return Response.temporaryRedirect(UriBuilder.fromUri(request.basedUrl("/givepermission"))
+                    .queryParam("service", clientId)
+                    .build()
+            ).build()
+        }
 
         val code = prov.makeUserTemporaryCode(clientId, user.id.toLong())
 
@@ -73,6 +79,10 @@ class OAuthProviderService {
         return Response.temporaryRedirect(uri).build()
 
     }
+
+    private fun HttpServletRequest.baseRedirect(path: String) = Response.temporaryRedirect(basedUrl(path)).build()
+
+    private fun HttpServletRequest.basedUrl(path: String) = URI(requestURL.removeSuffix(requestURI).toString() + contextPath + path)
 
     @POST
     @Path("/token")

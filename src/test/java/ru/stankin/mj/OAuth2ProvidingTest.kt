@@ -14,6 +14,7 @@ import ru.stankin.mj.rested.security.ShiroListener
 import ru.stankin.mj.testutils.InWeldWebTest
 import ru.stankin.mj.testutils.Matchers.ne
 import ru.stankin.mj.testutils.MockableShiroFilter
+import ru.stankin.mj.utils.JSON
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -94,7 +95,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             val student = Student("OAuthStudentWithoutPermission", "1", "2", "3", "4")
             userResolver.saveUser(student)
             val (clientId, secret) =
-                    provider.registerConsumer("testService3", "som2e@some.com", listOf("http://example.com/","http://example1.com/"))
+                    provider.registerConsumer("testService3", "som2e@some.com", listOf("]); DROP TABLE student;--", "http://example.com/","http://example1.com/"))
 
             MockableShiroFilter.runAs(student) {
                 val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
@@ -166,7 +167,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
 
             val c = doPostRequest(request)
 
-            val body = ObjectMapper().readValue<Map<String, Any>>(c.inputStream, Map::class.java as Class<Map<String, Any>>)
+            val body = JSON.read<Map<String, Any>>(c.inputStream)
 
             body shouldBe mapOf("access_token" to permission,
                     "token_type" to "bearer",

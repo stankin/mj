@@ -6,14 +6,14 @@ import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.oauthprovider.OAuthProvider
 import ru.stankin.mj.rested.security.MjRoles
-import java.net.URI
+import ru.stankin.mj.utils.restutils.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.Response
-import javax.ws.rs.core.UriBuilder
+
 
 /**
  * Created by nickl on 14.03.17.
@@ -44,14 +44,15 @@ class OAuthProviderService {
 
         log.debug("request:{}", request.requestURI)
 
-        if (responseType.toLowerCase() != "code")
-            return Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "response_type shoule be 'code'")).build()
+        if (responseType.toLowerCase() != "code") {
+            return badRequest("response_type shoule be 'code'")
+        }
 
         val consumer = prov.getConsumer(clientId)
         log.debug("consumer = {}", consumer)
 
-        if(consumer == null || consumer.redirects.none { redirect.startsWith(it)  })
-            return Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "client does not exist or redirect is not registred")).build()
+        if (consumer == null || consumer.redirects.none { redirect.startsWith(it) })
+            return badRequest("client does not exist or redirect is not registred")
 
         val user = MjRoles.getUser()
 
@@ -64,25 +65,18 @@ class OAuthProviderService {
 
         if (force == "yes" || prov.getSavedToken(clientId, user.id.toLong()) == null) {
             SecurityUtils.getSubject().session.setAttribute("redirectAfterLogin", request.requestURI)
-            return Response.temporaryRedirect(UriBuilder.fromUri(request.basedUrl("/givepermission"))
-                    .queryParam("service", clientId)
-                    .build()
-            ).build()
+            return request.baseRedirect("/givepermission") { queryParam("service", clientId) }
+
         }
 
         val code = prov.makeUserTemporaryCode(clientId, user.id.toLong())
 
-        val uri = UriBuilder.fromUri(redirect)
-                .queryParam("code", code)
-                .queryParam("state", state).build()
-
-        return Response.temporaryRedirect(uri).build()
+        return redirect(redirect) {
+            queryParam("code", code)
+            queryParam("state", state)
+        }
 
     }
-
-    private fun HttpServletRequest.baseRedirect(path: String) = Response.temporaryRedirect(basedUrl(path)).build()
-
-    private fun HttpServletRequest.basedUrl(path: String) = URI(requestURL.removeSuffix(requestURI).toString() + contextPath + path)
 
     @POST
     @Path("/token")
@@ -91,17 +85,12 @@ class OAuthProviderService {
                      @FormParam("client_id") clientId: String): Response {
 
         val (resolvedClientId, userId, token) = prov.resolveByTemporaryCode(code) ?:
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(mapOf("message" to "nothing bound to this code"))
-                        .build()
+                return responseMessage(Response.Status.NOT_FOUND, "nothing bound to this code")
 
         val consumer = prov.getConsumer(clientId, secret)
         log.debug("consumer = {}", consumer)
         if (resolvedClientId != clientId || consumer == null)
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(mapOf("message" to "consumer authentication failed"))
-                    .build()
-
+            return responseMessage(Response.Status.UNAUTHORIZED, "consumer authentication failed")
 
         val user = userResolver.getUserById(userId.toInt())
         log.debug("writing responde for {} got by {}", user, userId)
@@ -129,3 +118,4 @@ class OAuthProviderService {
 
 
 }
+

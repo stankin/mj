@@ -4,6 +4,7 @@ CREATE TABLE OAuthConsumer (
   service_name        VARCHAR(255) UNIQUE NOT NULL,
   client_id           TEXT UNIQUE,
   secret              TEXT,
+  redirects           VARCHAR(255) ARRAY,
   token_creation_date TIMESTAMP WITH TIME ZONE DEFAULT (now() AT TIME ZONE 'MSK')
 );
 

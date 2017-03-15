@@ -57,11 +57,8 @@ class OAuth2ProvidingTest : InWeldWebTest() {
     init {
 
         test("Oauth redirect user authorize") {
-
             val provider = bean<OAuthProvider>()
-
-            val (clientId, secret) = provider.registerConsumer("testService1", "som1e@some.com")
-
+            val (clientId, secret) = provider.registerConsumer("testService1", "som1e@some.com", listOf("http://example.com/"))
             val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
                     .setResponseType("code")
                     .setClientId(clientId)
@@ -73,7 +70,22 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             c.url.toString() shouldBe "http://localhost:8080/"
             log.debug("c url= {}", c.responseCode)
             log.debug("c url= {}", c.url)
+        }
 
+        test("Oauth unregistred redirect user authorize") {
+            val provider = bean<OAuthProvider>()
+            val (clientId, secret) = provider.registerConsumer("testServiceWithInvalidRedirect", "som1e@some.com", listOf("http://yandex.ru"))
+            val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
+                    .setResponseType("code")
+                    .setClientId(clientId)
+                    .setRedirectURI("http://example.com/login")
+                    .setState("abc").buildQueryMessage()
+
+            val c = doRequest(request)
+            c.responseCode  shouldBe 400
+            c.url.host shouldBe "localhost"
+            log.debug("c url= {}", c.responseCode)
+            log.debug("c url= {}", c.url)
         }
 
         test("Oauth user authorize") {
@@ -81,7 +93,8 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             val userResolver = bean<UserResolver>()
             val student = Student("OAuthStudent1", "1", "2", "3", "4")
             userResolver.saveUser(student)
-            val (clientId, secret) = provider.registerConsumer("testService2", "som2e@some.com")
+            val (clientId, secret) =
+                    provider.registerConsumer("testService2", "som2e@some.com", listOf("http://example.com/","http://example1.com/"))
 
             provider.addUserPermission("testService2", student.id.toLong())
 
@@ -117,7 +130,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             val student = Student("OAuthStudent", "1", "2", "3", "4")
             userResolver.saveUser(student)
             val provider = bean<OAuthProvider>()
-            val (clientId, secret) = provider.registerConsumer("testService", "some@some.com")
+            val (clientId, secret) = provider.registerConsumer("testService", "some@some.com", emptyList())
             val permission = provider.addUserPermission("testService", student.id.toLong())
 
             log.debug("student {}", student)

@@ -27,17 +27,18 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
 
     var oauthIssuerImpl: OAuthIssuer = OAuthIssuerImpl(MD5Generator())
 
-    fun registerConsumer(serviceName: String, email: String): ConsumerAuthentication {
+    fun registerConsumer(serviceName: String, email: String, redirects: List<String>): ConsumerAuthentication {
 
         val clientId = UUID.randomUUID().toString()
         val secret = UUID.randomUUID().toString()
 
         sql2o.tlTransaction { connection ->
-            connection.createQuery("INSERT INTO OAuthConsumer (email, service_name, client_id, secret) VALUES (:email, :name, :client_id, :secret)")
+            connection.createQuery("INSERT INTO OAuthConsumer (email, service_name, client_id, secret, redirects) VALUES (:email, :name, :client_id, :secret, ARRAY[:redirects])")
                     .addParameter("email", email)
                     .addParameter("name", serviceName)
                     .addParameter("client_id", clientId)
                     .addParameter("secret", secret)
+                    .addParameter("redirects", redirects.toTypedArray())
                     .executeUpdate()
                     .commit()
         }
@@ -96,9 +97,17 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
     fun resolveByTemporaryCode(code: Long): ResolvedUser? = temporaryCodes.getIfPresent(code)
     fun getConsumer(clientId: String, secret: String): ConsumerInfo? {
         sql2o.open().use { connection ->
-            return connection.createQuery("SELECT service_name AS serviceName, email FROM OAuthConsumer WHERE client_id = :clientId AND secret = :secret")
+            return connection.createQuery("SELECT service_name AS serviceName, email, redirects FROM OAuthConsumer WHERE client_id = :clientId AND secret = :secret")
                     .addParameter("clientId", clientId)
                     .addParameter("secret", secret)
+                    .executeAndFetchFirst(ConsumerInfo::class.java)
+        }
+    }
+
+    fun getConsumer(clientId: String): ConsumerInfo? {
+        sql2o.open().use { connection ->
+            return connection.createQuery("SELECT service_name AS serviceName, email, redirects FROM OAuthConsumer WHERE client_id = :clientId")
+                    .addParameter("clientId", clientId)
                     .executeAndFetchFirst(ConsumerInfo::class.java)
         }
     }
@@ -108,6 +117,6 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
 
 data class ResolvedUser(val clientId: String, val userId: Long, val token: String)
 
-data class ConsumerInfo(val serviceName: String, val email: String)
+data class ConsumerInfo(val serviceName: String, val email: String, val redirects: List<String>)
 
 data class ConsumerAuthentication(val token: String, val secret: String)

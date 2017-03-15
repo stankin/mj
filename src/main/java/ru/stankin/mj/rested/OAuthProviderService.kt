@@ -47,6 +47,12 @@ class OAuthProviderService {
         if (responseType.toLowerCase() != "code")
             return Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "response_type shoule be 'code'")).build()
 
+        val consumer = prov.getConsumer(clientId)
+        log.debug("consumer = {}", consumer)
+
+        if(consumer == null || consumer.redirects.none { redirect.startsWith(it)  })
+            return Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "client does not exist or redirect is not registred")).build()
+
 
         val user = MjRoles.getUser()
 
@@ -70,16 +76,18 @@ class OAuthProviderService {
 
     @POST
     @Path("/token")
-    fun getUserInfo(@FormParam("code") code: Long,
-                    @FormParam("client_secret") secret: String,
-                    @FormParam("client_id") clientId: String): Response {
+    fun tokenAndInfo(@FormParam("code") code: Long,
+                     @FormParam("client_secret") secret: String,
+                     @FormParam("client_id") clientId: String): Response {
 
         val (resolvedClientId, userId, token) = prov.resolveByTemporaryCode(code) ?:
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity(mapOf("message" to "nothing bound to this code"))
                         .build()
 
-        if (resolvedClientId != clientId || prov.getConsumer(clientId, secret) == null)
+        val consumer = prov.getConsumer(clientId, secret)
+        log.debug("consumer = {}", consumer)
+        if (resolvedClientId != clientId || consumer == null)
             return Response.status(Response.Status.UNAUTHORIZED)
                     .entity(mapOf("message" to "consumer authentication failed"))
                     .build()

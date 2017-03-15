@@ -2,41 +2,21 @@ package ru.stankin.mj
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotlintest.matchers.be
-import io.undertow.servlet.api.ListenerInfo
 import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
-import org.apache.oltu.oauth2.`as`.issuer.MD5Generator
-import org.apache.oltu.oauth2.`as`.issuer.OAuthIssuerImpl
-import org.apache.oltu.oauth2.`as`.request.OAuthAuthzRequest
-import org.apache.oltu.oauth2.`as`.response.OAuthASResponse
-import org.apache.oltu.oauth2.client.OAuthClient
-import org.apache.oltu.oauth2.client.URLConnectionClient
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest
-import org.apache.oltu.oauth2.common.OAuth
-import org.apache.oltu.oauth2.common.exception.OAuthProblemException
 import org.apache.oltu.oauth2.common.message.types.GrantType
-import org.apache.oltu.oauth2.common.message.types.ResponseType
-import org.apache.oltu.oauth2.common.utils.OAuthUtils
-import org.apache.shiro.web.servlet.ShiroFilter
 import ru.stankin.mj.model.Student
-import ru.stankin.mj.model.StudentsStorage
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.oauthprovider.OAuthProvider
-import ru.stankin.mj.rested.OAuthProviderApi
+import ru.stankin.mj.rested.OAuthProviderService
 import ru.stankin.mj.rested.security.ShiroListener
 import ru.stankin.mj.testutils.InWeldWebTest
 import ru.stankin.mj.testutils.Matchers.ne
+import ru.stankin.mj.testutils.MockableShiroFilter
 import java.io.IOException
-import java.io.PrintWriter
 import java.net.HttpURLConnection
-import java.net.URI
 import java.net.URL
-import javax.inject.Inject
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import javax.ws.rs.WebApplicationException
-import javax.ws.rs.core.Response
 
 
 @Throws(IOException::class)
@@ -66,13 +46,11 @@ fun doPostRequest(req: OAuthClientRequest): HttpURLConnection {
 
 class OAuth2ProvidingTest : InWeldWebTest() {
 
-
     private val log = LogManager.getLogger(OAuth2ProvidingTest::class.java)
 
+    override fun restClasses() = listOf(OAuthProviderService::class.java)
 
-    override fun restClasses() = listOf(OAuthProviderApi::class.java)
-
-    override fun filters() = listOf(filter<ShiroFilter>("/*"))
+    override fun filters() = listOf(filter<MockableShiroFilter>("/*"))
 
     override fun listeners() = listOf(listener<ShiroListener>())
 
@@ -98,23 +76,53 @@ class OAuth2ProvidingTest : InWeldWebTest() {
 
         }
 
-        test("Oauth token") {
-
+        test("Oauth user authorize") {
+            val provider = bean<OAuthProvider>()
             val userResolver = bean<UserResolver>()
+            val student = Student("OAuthStudent1", "1", "2", "3", "4")
+            userResolver.saveUser(student)
+            val (clientId, secret) = provider.registerConsumer("testService2", "som2e@some.com")
 
+            provider.addUserPermission("testService2", student.id.toLong())
+
+            MockableShiroFilter.runAs(student) {
+                val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
+                        .setResponseType("code")
+                        .setClientId(clientId)
+                        .setRedirectURI("http://example.com/login")
+                        .setState("abc").buildQueryMessage()
+
+                val c = doRequest(request)
+                c.responseCode  should be ne 500
+                c.url.host shouldBe "example.com"
+                c.url.path shouldBe "/login"
+
+                log.debug("c query{}", c.url.query)
+
+                val params = c.url.query.split('&').map { it.split('=') }.associateBy({it[0]}, {it[1]})
+
+                params["state"] shouldBe "abc"
+                val code = params["code"]!!.toLong()
+
+                val user = provider.resolveByTemporaryCode(code)!!
+
+                user.clientId shouldBe clientId
+                user.userId.toInt() shouldBe student.id
+            }
+
+        }
+
+        test("Oauth token") {
+            val userResolver = bean<UserResolver>()
             val student = Student("OAuthStudent", "1", "2", "3", "4")
             userResolver.saveUser(student)
-
             val provider = bean<OAuthProvider>()
-
             val (clientId, secret) = provider.registerConsumer("testService", "some@some.com")
             val permission = provider.addUserPermission("testService", student.id.toLong())
 
             log.debug("student {}", student)
 
-
             val code = provider.makeUserTemporaryCode(clientId, student.id.toLong())!!
-
             val request = OAuthClientRequest.TokenRequestBuilder(restURL("/oauth/token").toString())
                     .setClientId(clientId)
                     .setClientSecret(secret)
@@ -135,7 +143,6 @@ class OAuth2ProvidingTest : InWeldWebTest() {
                             "stgroup" to student.stgroup,
                             "cardid" to student.cardid
                     )
-
             )
 
         }

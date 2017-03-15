@@ -22,9 +22,9 @@ import javax.ws.rs.core.UriBuilder
 @Singleton
 @Path("oauth")
 @Produces("application/json; charset=UTF-8")
-class OAuthProviderApi {
+class OAuthProviderService {
 
-    private val log = LogManager.getLogger(OAuthProviderApi::class.java)
+    private val log = LogManager.getLogger(OAuthProviderService::class.java)
 
     @Inject
     private lateinit var prov: OAuthProvider

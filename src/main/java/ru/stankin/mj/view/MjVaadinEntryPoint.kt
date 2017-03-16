@@ -71,7 +71,7 @@ class MjVaadinEntryPoint : UI() {
             navigator.navigateTo("login")
             return
         }
-        navigator.navigateTo("")
+//        navigator.navigateTo("")
     }
 
 }

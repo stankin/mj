@@ -25,7 +25,6 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
 
     private val log = LogManager.getLogger(OAuthProvider::class.java)
 
-    var oauthIssuerImpl: OAuthIssuer = OAuthIssuerImpl(MD5Generator())
 
     fun registerConsumer(serviceName: String, email: String, redirects: List<String>): ConsumerAuthentication {
 
@@ -46,15 +45,15 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
         return ConsumerAuthentication(clientId, secret)
     }
 
-    fun addUserPermission(serviceName: String, userId: Long): String {
+    fun addUserPermission(clientId: String, userId: Long): String {
 
         val token = UUID.randomUUID().toString()
 
         sql2o.tlTransaction { connection ->
             connection.createQuery("INSERT INTO OAuthConsumerPermissions (consumer_id, user_id, token) " +
-                    "VALUES ((SELECT consumer_id from OAuthConsumer where service_name = :service_name), :userId, :token)" +
+                    "VALUES ((SELECT consumer_id from OAuthConsumer where client_id = :client_id), :userId, :token)" +
                     "ON CONFLICT(consumer_id, user_id) DO UPDATE SET token=:token, creation_date=DEFAULT")
-                    .addParameter("service_name", serviceName)
+                    .addParameter("client_id", clientId)
                     .addParameter("userId", userId)
                     .addParameter("token", token)
                     .executeUpdate()
@@ -64,9 +63,17 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
         return token
     }
 
+    fun removeUserPermission(clientId: String, userId: Long) {
+        sql2o.tlTransaction { connection ->
+            connection.createQuery("DELETE FROM OAuthConsumerPermissions WHERE consumer_id = (SELECT consumer_id FROM OAuthConsumer WHERE client_id = :client_id) AND user_id = :userId")
+                    .addParameter("client_id", clientId)
+                    .addParameter("userId", userId)
+                    .executeUpdate()
+                    .commit()
+        }
+    }
+
     fun getSavedToken(clientId: String, userId: Long): String? {
-
-
         sql2o.open().use { connection ->
             val permission = connection.createQuery("SELECT token FROM OAuthConsumerPermissions WHERE consumer_id = (SELECT consumer_id FROM OAuthConsumer WHERE client_id = :client_id) AND user_id = :userId")
                     .addParameter("client_id", clientId)
@@ -76,8 +83,16 @@ class OAuthProvider @Inject constructor(private val sql2o: Sql2o) {
             log.debug("getting saved permission for {} {} -> {}", clientId, userId, permission)
             return permission
         }
+    }
 
+    fun getUserIdByToken(token: String): Int? {
+        sql2o.open().use { connection ->
+            val userId = connection.createQuery("SELECT user_id FROM OAuthConsumerPermissions WHERE token = :token")
+                    .addParameter("token", token)
+                    .executeScalar(Int::class.java)
 
+            return userId
+        }
     }
 
     private val temporaryCodes = CacheBuilder.newBuilder()

@@ -9,15 +9,19 @@ import org.apache.oltu.oauth2.common.message.types.GrantType
 import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.oauthprovider.OAuthProvider
+import ru.stankin.mj.oauthprovider.ResolvedUser
 import ru.stankin.mj.rested.OAuthProviderService
+import ru.stankin.mj.rested.UserInfoService
 import ru.stankin.mj.rested.security.ShiroListener
 import ru.stankin.mj.testutils.InWeldWebTest
 import ru.stankin.mj.testutils.Matchers.ne
 import ru.stankin.mj.testutils.MockableShiroFilter
 import ru.stankin.mj.utils.JSON
+import ru.stankin.mj.utils.restutils.queryParams
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import javax.ws.rs.core.HttpHeaders
 
 
 @Throws(IOException::class)
@@ -49,7 +53,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
 
     private val log = LogManager.getLogger(OAuth2ProvidingTest::class.java)
 
-    override fun restClasses() = listOf(OAuthProviderService::class.java)
+    override fun restClasses() = listOf(OAuthProviderService::class.java, UserInfoService::class.java)
 
     override fun filters() = listOf(filter<MockableShiroFilter>("/*"))
 
@@ -107,10 +111,9 @@ class OAuth2ProvidingTest : InWeldWebTest() {
                 val c = doRequest(request)
                 c.responseCode  should be ne 500
                 c.url.host shouldBe "localhost"
-                c.url.path shouldBe "/givepermission"
+                c.url.path shouldBe "/"
+                c.url.ref shouldBe "!givepermission"
                 c.url.queryParams["service"] shouldBe clientId
-
-
             }
 
         }
@@ -123,7 +126,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             val (clientId, secret) =
                     provider.registerConsumer("testService2", "som2e@some.com", listOf("http://example.com/","http://example1.com/"))
 
-            provider.addUserPermission("testService2", student.id.toLong())
+            provider.addUserPermission(clientId, student.id.toLong())
 
             MockableShiroFilter.runAs(student) {
                 val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
@@ -145,6 +148,24 @@ class OAuth2ProvidingTest : InWeldWebTest() {
                 user.userId.toInt() shouldBe student.id
             }
 
+            // Станет недоступен после удаления
+            provider.removeUserPermission(clientId, student.id.toLong())
+
+            MockableShiroFilter.runAs(student) {
+                val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
+                        .setResponseType("code")
+                        .setClientId(clientId)
+                        .setRedirectURI("http://example.com/login")
+                        .setState("abc").buildQueryMessage()
+
+                val c = doRequest(request)
+                c.responseCode  should be ne 500
+                c.url.host shouldBe "localhost"
+                c.url.path shouldBe "/"
+                c.url.ref shouldBe "!givepermission"
+                c.url.queryParams["service"] shouldBe clientId
+            }
+
         }
 
         test("Oauth token") {
@@ -153,7 +174,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             userResolver.saveUser(student)
             val provider = bean<OAuthProvider>()
             val (clientId, secret) = provider.registerConsumer("testService", "some@some.com", emptyList())
-            val permission = provider.addUserPermission("testService", student.id.toLong())
+            val permission = provider.addUserPermission(clientId, student.id.toLong())
 
             log.debug("student {}", student)
 
@@ -180,11 +201,20 @@ class OAuth2ProvidingTest : InWeldWebTest() {
                     )
             )
 
+            // Аналогично через http
+
+            val c1 = restURL("/user/info").openConnection() as HttpURLConnection
+            c1.setRequestProperty(HttpHeaders.AUTHORIZATION, "Bearer ${permission}");
+            c1.connect()
+            c1.responseCode  shouldBe 200
+            val studentInfo = JSON.read<Map<String, Any>>(c1.inputStream)
+            studentInfo["name"] shouldBe student.name
+            studentInfo["cardid"] shouldBe student.cardid
+
         }
 
 
     }
 
-    private val URL.queryParams: Map<String, String>
-        get() = query.split('&').map { it.split('=') }.associateBy({ it[0] }, { it[1] })
+
 }

@@ -12,6 +12,8 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.BaseTheme;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -24,10 +26,13 @@ import ru.stankin.mj.model.user.User;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
 
 
 @CDIView("login")
 public class LoginView extends CustomComponent implements View {
+
+    private static final Logger logger = LogManager.getLogger(LoginView.class);
 
     @Inject
     protected PasswordRecoveryService recoveryService;
@@ -177,11 +182,17 @@ public class LoginView extends CustomComponent implements View {
 
         try {
             doLogin(username, password);
-            this.getUI().getNavigator().navigateTo("");
 
-        } catch (AuthenticationException e){
-                errorLabel.setValue("Неверный пароль.\nОбратитесь в деканат, если не знаете пароль.");
-                errorLabel.setVisible(true);
+            URI afterLogin = (URI) SecurityUtils.getSubject().getSession().removeAttribute("redirectAfterLogin");
+            logger.debug("afterLogin={}", afterLogin);
+            if (afterLogin != null)
+                this.getUI().getPage().setLocation(afterLogin.toString());
+            else
+                this.getUI().getPage().setLocation("");
+
+        } catch (AuthenticationException e) {
+            errorLabel.setValue("Неверный пароль.\nОбратитесь в деканат, если не знаете пароль.");
+            errorLabel.setVisible(true);
         }
 
     }

@@ -11,7 +11,7 @@
 На данный момент автоматическая регистрация сервисов не релизована.
 
 Если вы хотите добавить возможность аутентификации на вашем сервисе через модульный журнал, то напишите мне на почту 
-[xiexed@gmail.com](mailto:xiexed@gmail.com) или заведите [тикет](https://bitbucket.org/NicolayMitropolsky/stankin-mj/issues?sort=status) и сообщите название сервиса, электронную почту для связии и `redirect_uri` (можно несколько),
+[xiexed@gmail.com](mailto:xiexed@gmail.com) или заведите [тикет](https://bitbucket.org/NicolayMitropolsky/stankin-mj/issues?sort=status) и сообщите название сервиса, электронную почту для связи и `redirect_uri` (можно несколько),
 на который будет перенаправляться пользователь после аутентификации и авторизации.
 
 В ответ вы получите `client_id` и `client_secret` для вашего сервиса.
@@ -51,9 +51,7 @@ Host: uits-labs.ru
 Content-type: application/x-www-form-urlencoded
 Content-Length: [длина тела запроса]
 
-code=[полученный code]
-& client_id=[ваш client_id]
-& client_secret=[ваш client_secret]
+code=[полученный code]&client_id=[ваш client_id]&client_secret=[ваш client_secret]
 ```
 
 В ответ вы получите JSON вида:

@@ -11,12 +11,16 @@ import ru.stankin.mj.rested.security.MjRoles
 import ru.stankin.mj.utils.restutils.*
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.servlet.*
+import javax.servlet.annotation.WebFilter
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.Response
 import javax.ws.rs.NotAuthorizedException
+import kotlin.IllegalArgumentException
 
 
 /**
@@ -56,14 +60,14 @@ class OAuthProviderService {
         log.debug("request:{}", request.requestURI)
 
         if (responseType.toLowerCase() != "code") {
-            return badRequest("response_type should be 'code'")
+            throw IllegalArgumentException("response_type should be 'code'")
         }
 
         val consumer = prov.getConsumer(clientId)
         log.debug("consumer = {}", consumer)
 
         if (consumer == null || consumer.redirects.none { redirect.startsWith(it) })
-            return badRequest("client does not exist or redirect is not registred")
+            throw IllegalArgumentException("client does not exist or redirect is not registered")
 
         val user = MjRoles.getUser()
 
@@ -106,7 +110,8 @@ class OAuthProviderService {
         if (resolvedClientId != clientId || consumer == null)
             return responseMessage(Response.Status.UNAUTHORIZED, "consumer authentication failed")
 
-        val user = userResolver.getUserById(userId.toInt())
+        val user: User = userResolver.getUserById(userId.toInt()) ?:
+                return responseMessage(Response.Status.NOT_FOUND, "user is not found")
         log.debug("writing responde for {} got by {}", user, userId)
 
         val tokenInfo = mutableMapOf<String, Any>(
@@ -114,9 +119,7 @@ class OAuthProviderService {
                 "token_type" to "bearer"
         )
 
-        if (user is Student) {
-            tokenInfo.put("userInfo", userInfo(user))
-        }
+        tokenInfo.put("userInfo", UserInfoService.userInfo(user))
 
         return Response.ok()
                 .entity(tokenInfo)
@@ -125,61 +128,56 @@ class OAuthProviderService {
 
 }
 
-@Singleton
-@Path("user")
-@Produces("application/json; charset=UTF-8")
-class UserInfoService {
+/**
+ * This is a hack-class to make [OAuthProviderService] return appropriate errors when wrong params are passed
+ * The best way should be to make *Resteasy* understant `@NotNull` annotation. but it doesn't seemed to be easy
+ */
+@WebFilter(filterName = "oauthredirectFilter", urlPatterns = arrayOf("/webapi/oauth/*"))
+class RedirectAwareExceptionHandler : Filter {
 
-    private val log = LogManager.getLogger(UserInfoService::class.java)
+    private val log = LogManager.getLogger(RedirectAwareExceptionHandler::class.java)
 
-    @Inject
-    private lateinit var prov: OAuthProvider
-
-    @Inject
-    private lateinit var userResolver: UserResolver
-
-    @POST
-    @GET
-    @Path("/info")
-    fun userInfo(@Context headers: HttpHeaders): Response {
-        val userById = userByBearer(headers)
-
-        log.debug("userInfo: {}", userById)
-
-        return Response.ok()
-                .entity(userById)
-                .build()
+    override fun destroy() {
     }
 
-    private fun userByBearer(headers: HttpHeaders): User {
-        val authorizationHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION)
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw NotAuthorizedException("Authorization header required")
+    override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+
+        if (request is HttpServletRequest && response is HttpServletResponse) {
+            httpDoFilter(chain, request, response)
+        } else
+            chain.doFilter(request, response)
+
+    }
+
+    private fun httpDoFilter(chain: FilterChain, request: HttpServletRequest, response: HttpServletResponse) {
+        try {
+            log.debug("filtering {}", request.fullURI)
+            chain.doFilter(request, response)
+            log.debug("after filtering {}", request.fullURI)
+        } catch (e: org.jboss.resteasy.spi.UnhandledException) {
+            log.debug("filter caught exception {}", e)
+
+            val cause = e.cause
+            when (cause) {
+                is IllegalArgumentException -> {
+                    val redirect = request.getParameter("redirect_uri")
+                    if (redirect != null)
+                        response.sendRedirect(uriBuilder(redirect) {
+                            queryParam("error", cause.message)
+                        }.toASCIIString())
+                    else {
+                        response.sendError(400, cause.message)
+                    }
+                }
+                else -> throw e
+            }
+
         }
-
-        val token = authorizationHeader.removePrefix("Bearer").trim()
-        val userId = prov.getUserIdByToken(token) ?: throw NotAuthorizedException("invalid token")
-        val userById = userResolver.getUserById(userId) ?: throw NotAuthorizedException("user not found")
-        return userById
     }
-}
 
-private fun userInfo(user: User): Map<String, Any> {
-
-    return when(user){
-        is Student -> mapOf(
-                "name" to user.name,
-                "surname" to user.surname,
-                "patronym" to user.patronym,
-                "stgroup" to user.stgroup,
-                "cardid" to user.cardid
-        )
-        is AdminUser -> mapOf(
-                "admin" to user.isAdmin,
-                "username" to user.username
-        )
-
-        else -> mapOf()
+    override fun init(filterConfig: FilterConfig?) {
     }
 
 }
+
+

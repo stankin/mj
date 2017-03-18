@@ -1,6 +1,5 @@
 package ru.stankin.mj
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotlintest.matchers.be
 import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
@@ -9,8 +8,8 @@ import org.apache.oltu.oauth2.common.message.types.GrantType
 import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.oauthprovider.OAuthProvider
-import ru.stankin.mj.oauthprovider.ResolvedUser
 import ru.stankin.mj.rested.OAuthProviderService
+import ru.stankin.mj.rested.RedirectAwareExceptionHandler
 import ru.stankin.mj.rested.UserInfoService
 import ru.stankin.mj.rested.security.ShiroListener
 import ru.stankin.mj.testutils.InWeldWebTest
@@ -55,7 +54,10 @@ class OAuth2ProvidingTest : InWeldWebTest() {
 
     override fun restClasses() = listOf(OAuthProviderService::class.java, UserInfoService::class.java)
 
-    override fun filters() = listOf(filter<MockableShiroFilter>("/*"))
+    override fun filters() = listOf(
+            filter<MockableShiroFilter>("/*"),
+            filter<RedirectAwareExceptionHandler>("/*")
+    )
 
     override fun listeners() = listOf(listener<ShiroListener>())
 
@@ -87,8 +89,9 @@ class OAuth2ProvidingTest : InWeldWebTest() {
                     .setState("abc").buildQueryMessage()
 
             val c = doRequest(request)
-            c.responseCode  shouldBe 400
-            c.url.host shouldBe "localhost"
+            c.responseCode  shouldBe 404
+            c.url.host shouldBe "example.com"
+            c.url.queryParams["error"] shouldBe "client+does+not+exist+or+redirect+is+not+registered"
             log.debug("c url= {}", c.responseCode)
             log.debug("c url= {}", c.url)
         }
@@ -188,7 +191,11 @@ class OAuth2ProvidingTest : InWeldWebTest() {
 
             val c = doPostRequest(request)
 
-            val body = JSON.read<Map<String, Any>>(c.inputStream)
+            val jsonResponse = c.inputStream.reader().readText()
+
+            log.debug("jsonResponse={}", jsonResponse)
+
+            val body = JSON.read<Map<String, Any>>(jsonResponse)
 
             body shouldBe mapOf("access_token" to permission,
                     "token_type" to "bearer",
@@ -212,6 +219,22 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             studentInfo["cardid"] shouldBe student.cardid
 
         }
+
+        test("Bad request") {
+
+            val request = OAuthClientRequest.authorizationLocation(restURL("/oauth/authorize").toString())
+                    .setRedirectURI("http://example.com/login")
+                    .setState("abc").buildQueryMessage()
+
+            val c = doRequest(request)
+            c.responseCode should be ne 500
+            c.url.host shouldBe "example.com"
+            c.url.path shouldBe "/login"
+            c.url.ref shouldBe null
+            c.url.queryParams["error"] shouldBe "Parameter+specified+as+non-null+is+null%3A+method+ru.stankin.mj.rested.OAuthProviderService.authorize%2C+parameter+responseType"
+
+        }
+
 
 
     }

@@ -220,7 +220,7 @@ public class MainView extends CustomComponent implements View {
         uploads.setHeight(100, Unit.PERCENTAGE);
         uploads.setMargin(true);
         uploads.setSpacing(true);
-        uploads.addComponent(createXMLUpload());
+//        uploads.addComponent(createXMLUpload());
         uploads.addComponent(createEtalonUpload());
         uploads.addComponent(createMarksUpload());
         uploads.addComponent(new Button("Удалить все модули", event -> {

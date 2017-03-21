@@ -1,1 +1,2 @@
 ru.stankin.mj.utils.KotlinRestValidator
+ru.stankin.mj.utils.RedirectAwareBadRequestMapper

@@ -4,17 +4,23 @@ import org.apache.logging.log4j.LogManager
 import org.jboss.resteasy.spi.BadRequestException
 import org.jboss.resteasy.spi.HttpRequest
 import org.jboss.resteasy.spi.validation.GeneralValidator
+import ru.stankin.mj.utils.restutils.uriBuilder
 import java.lang.reflect.Method
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.FormParam
 import javax.ws.rs.QueryParam
+import javax.ws.rs.core.Context
+import javax.ws.rs.core.MediaType
+import javax.ws.rs.core.Response
 import javax.ws.rs.ext.ContextResolver
+import javax.ws.rs.ext.ExceptionMapper
+import javax.ws.rs.ext.Provider
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.kotlinFunction
 
 /**
  * Created by nickl on 21.03.17.
- * @see ru.stankin.mj.rested.RedirectAwareExceptionHandler
  */
 
 class KotlinRestValidator : ContextResolver<GeneralValidator> {
@@ -59,4 +65,28 @@ class NullValidator : GeneralValidator {
     }
 }
 
-class IllegalRestParameterNullability(val paramName: String) : IllegalArgumentException("param '$paramName' cant be null")
+class IllegalRestParameterNullability(val paramName: String) : BadRequestException("param '$paramName' cant be null")
+
+class RedirectAwareBadRequestMapper : ExceptionMapper<BadRequestException> {
+
+    private val log = LogManager.getLogger(RedirectAwareBadRequestMapper::class.java)
+
+    @Context
+    private lateinit var request: HttpServletRequest;
+
+    override fun toResponse(cause: BadRequestException): Response? {
+        log.debug("RedirectAwareBadRequestMapper: $cause")
+
+        val redirect = request.getParameter("redirect_uri")
+        return if (redirect != null)
+            Response.temporaryRedirect(uriBuilder(redirect) {
+                queryParam("error", cause.message)
+            }).build()
+        else {
+            Response.status(Response.Status.BAD_REQUEST)
+                    .type(MediaType.TEXT_PLAIN_TYPE)
+                    .entity(cause.message)
+                    .build()
+        }
+    }
+}

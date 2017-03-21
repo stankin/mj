@@ -9,7 +9,6 @@ import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.oauthprovider.OAuthProvider
 import ru.stankin.mj.rested.OAuthProviderService
-import ru.stankin.mj.rested.RedirectAwareExceptionHandler
 import ru.stankin.mj.rested.UserInfoService
 import ru.stankin.mj.rested.security.ShiroListener
 import ru.stankin.mj.testutils.InWeldWebTest
@@ -55,8 +54,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
     override fun restClasses() = listOf(OAuthProviderService::class.java, UserInfoService::class.java)
 
     override fun filters() = listOf(
-            filter<MockableShiroFilter>("/*"),
-            filter<RedirectAwareExceptionHandler>("/*")
+            filter<MockableShiroFilter>("/*")
     )
 
     override fun listeners() = listOf(listener<ShiroListener>())

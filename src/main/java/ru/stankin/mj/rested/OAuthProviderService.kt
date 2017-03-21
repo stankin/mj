@@ -2,6 +2,7 @@ package ru.stankin.mj.rested
 
 import org.apache.logging.log4j.LogManager
 import org.apache.shiro.SecurityUtils
+import org.jboss.resteasy.spi.BadRequestException
 import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.AdminUser
@@ -62,14 +63,14 @@ class OAuthProviderService {
         log.debug("request:{}", request.requestURI)
 
         if (responseType.toLowerCase() != "code") {
-            throw IllegalArgumentException("response_type should be 'code'")
+            throw BadRequestException("response_type should be 'code'")
         }
 
         val consumer = prov.getConsumer(clientId)
         log.debug("consumer = {}", consumer)
 
         if (consumer == null || consumer.redirects.none { redirect.startsWith(it) })
-            throw IllegalArgumentException("client does not exist or redirect is not registered")
+            throw BadRequestException("client does not exist or redirect is not registered")
 
         val user = MjRoles.getUser()
 
@@ -130,56 +131,5 @@ class OAuthProviderService {
 
 }
 
-/**
- * This is a filter to make [OAuthProviderService] return errors in send redirect link if it avaliable
- * best works in combination with [ru.stankin.mj.utils.KotlinRestValidator]
- */
-@WebFilter(filterName = "oauthredirectFilter", urlPatterns = arrayOf("/webapi/*"))
-class RedirectAwareExceptionHandler : Filter {
-
-    private val log = LogManager.getLogger(RedirectAwareExceptionHandler::class.java)
-
-    override fun destroy() {
-    }
-
-    override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-
-        if (request is HttpServletRequest && response is HttpServletResponse) {
-            httpDoFilter(chain, request, response)
-        } else
-            chain.doFilter(request, response)
-
-    }
-
-    private fun httpDoFilter(chain: FilterChain, request: HttpServletRequest, response: HttpServletResponse) {
-        try {
-            log.debug("filtering {}", request.fullURI)
-            chain.doFilter(request, response)
-            log.debug("after filtering {}", request.fullURI)
-        } catch (e: org.jboss.resteasy.spi.UnhandledException) {
-            log.debug("filter caught exception {}", e)
-
-            val cause = e.cause
-            when (cause) {
-                is IllegalArgumentException -> {
-                    val redirect = request.getParameter("redirect_uri")
-                    if (redirect != null)
-                        response.sendRedirect(uriBuilder(redirect) {
-                            queryParam("error", cause.message)
-                        }.toASCIIString())
-                    else {
-                        response.sendError(400, cause.message)
-                    }
-                }
-                else -> throw e
-            }
-
-        }
-    }
-
-    override fun init(filterConfig: FilterConfig?) {
-    }
-
-}
 
 

@@ -8,6 +8,7 @@ import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.oauthprovider.OAuthProvider
 import ru.stankin.mj.rested.security.MjRoles
+import ru.stankin.mj.utils.IllegalRestParameterNullability
 import ru.stankin.mj.utils.restutils.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,6 +16,7 @@ import javax.servlet.*
 import javax.servlet.annotation.WebFilter
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import javax.validation.constraints.NotNull
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.HttpHeaders
@@ -129,10 +131,10 @@ class OAuthProviderService {
 }
 
 /**
- * This is a hack-class to make [OAuthProviderService] return appropriate errors when wrong params are passed
- * The best way should be to make *Resteasy* understant `@NotNull` annotation. but it doesn't seemed to be easy
+ * This is a filter to make [OAuthProviderService] return errors in send redirect link if it avaliable
+ * best works in combination with [ru.stankin.mj.utils.KotlinRestValidator]
  */
-@WebFilter(filterName = "oauthredirectFilter", urlPatterns = arrayOf("/webapi/oauth/*"))
+@WebFilter(filterName = "oauthredirectFilter", urlPatterns = arrayOf("/webapi/*"))
 class RedirectAwareExceptionHandler : Filter {
 
     private val log = LogManager.getLogger(RedirectAwareExceptionHandler::class.java)

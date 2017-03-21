@@ -231,7 +231,7 @@ class OAuth2ProvidingTest : InWeldWebTest() {
             c.url.host shouldBe "example.com"
             c.url.path shouldBe "/login"
             c.url.ref shouldBe null
-            c.url.queryParams["error"] shouldBe "Parameter+specified+as+non-null+is+null%3A+method+ru.stankin.mj.rested.OAuthProviderService.authorize%2C+parameter+responseType"
+            c.url.queryParams["error"] shouldBe "param+%27response_type%27+cant+be+null"
 
         }
 

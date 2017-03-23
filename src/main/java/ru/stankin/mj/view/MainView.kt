@@ -7,10 +7,7 @@ import com.vaadin.data.Property
 import com.vaadin.data.util.IndexedContainer
 import com.vaadin.navigator.View
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent
-import com.vaadin.server.ExternalResource
-import com.vaadin.server.Page
-import com.vaadin.server.Sizeable
-import com.vaadin.server.VaadinService
+import com.vaadin.server.*
 import com.vaadin.shared.ui.label.ContentMode
 import com.vaadin.ui.*
 import org.apache.logging.log4j.LogManager
@@ -67,6 +64,8 @@ class MainView : CustomComponent(), View {
     private val alarmHolder = AlarmHolder("Загрузка данных", this)
     private lateinit var semestrCbx: ComboBox
 
+    val alarmsPanel = Panel()
+
     override fun enter(event: ViewChangeEvent) {
 
         addStyleName("main")
@@ -99,11 +98,7 @@ class MainView : CustomComponent(), View {
                         val recoveryMode = SecurityUtils.getSubject().hasRole(MjRoles.PASSWORDRECOVERY)
                         val needChangePassword = recoveryMode || auth.acceptPassword(MjRoles.getUser()!!.id, MjRoles.getUser()!!.username)
                         val settings = Button("Аккаунт: " + MjRoles.getUser()!!.username) { event1 ->
-                            if (SecurityUtils.getSubject().isAuthenticated) {
-                                val accountWindow = AccountWindow(MjRoles.getUser()!!, userDao, auth, false, !recoveryMode)
-                                this.ui.addWindow(accountWindow)
-                            } else
-                                this.ui.navigator.navigateTo("login")
+                            openAccountWindow(recoveryMode)
                         }
 
                         if (needChangePassword) {
@@ -124,6 +119,10 @@ class MainView : CustomComponent(), View {
             }
             )
 
+            addComponent(alarmsPanel.also {
+                refreshAlarms()
+            })
+
             addComponentExpand(kotlin.run {
                 val mainPanel: Component
                 if (SecurityUtils.getSubject().hasRole(MjRoles.ADMIN))
@@ -139,6 +138,31 @@ class MainView : CustomComponent(), View {
             setSizeFull()
         }
 
+    }
+
+    private fun openAccountWindow(recoveryMode: Boolean) {
+        if (SecurityUtils.getSubject().isAuthenticated) {
+            val accountWindow = AccountWindow(MjRoles.getUser()!!, userDao, auth, false, !recoveryMode)
+            accountWindow.addCloseListener { refreshAlarms() }
+            this.ui.addWindow(accountWindow)
+        } else
+            this.ui.navigator.navigateTo("login")
+    }
+
+    private fun refreshAlarms() {
+        alarmsPanel.content = VerticalLayout().apply {
+            val user = MjRoles.getUser()!!
+            if (!user.isAdmin && user.email.isNullOrEmpty())
+                addComponent(Button("На вашем аккаунте не указан адрес электроной почты, пожалуйста, укажите его, " +
+                        "он может пригодиться, например, для восстановления пароля.") { e ->
+                    openAccountWindow(SecurityUtils.getSubject().hasRole(MjRoles.PASSWORDRECOVERY))
+                }.apply {
+//                    setIcon(ThemeResource("../runo/icons/32/folder.png"))
+                    setStyleName("link v-Notification-warning");
+                    setWidth(100f, Sizeable.Unit.PERCENTAGE);
+                }
+                )
+        }
     }
 
     private fun createSemestrCbx(): ComboBox {
@@ -554,11 +578,8 @@ class MainView : CustomComponent(), View {
     }
 
     companion object {
-
         private val logger = LogManager.getLogger(MainView::class.java)
         private val ADD_SEMESTER_LABEL = "Добавить семестр"
     }
-
-
 }
 

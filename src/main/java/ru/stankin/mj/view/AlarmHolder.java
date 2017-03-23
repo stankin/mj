@@ -3,6 +3,7 @@ package ru.stankin.mj.view;
 import com.vaadin.server.ClientConnector;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
+import ru.stankin.mj.view.utils.UtilsKt;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -35,7 +36,7 @@ public class AlarmHolder {
                     reportWindow = null;
                 }
             });
-            Utils.showCentralWindow(uI.getUI(), reportWindow);
+            UtilsKt.showCentralWindow(uI.getUI(), reportWindow);
         }
 
         reportWindow.body.setValue(reportWindow.body.getValue() + "\n" + text);

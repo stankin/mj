@@ -12,6 +12,7 @@ import ru.stankin.mj.rested.OAuthProviderService
 import ru.stankin.mj.rested.security.MjRoles
 import ru.stankin.mj.utils.restutils.queryParams
 import ru.stankin.mj.utils.restutils.uriBuilder
+import ru.stankin.mj.view.utils.addComponentExpand
 import java.net.URI
 import javax.inject.Inject
 
@@ -82,8 +83,5 @@ class GivePermissionView : CustomComponent(), View {
                 }
     }
 
-    private fun AbstractOrderedLayout.addComponentExpand(c: Component, ratio: Float) {
-        this.addComponent(c)
-        setExpandRatio(c, ratio)
-    }
+
 }

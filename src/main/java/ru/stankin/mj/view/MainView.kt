@@ -20,6 +20,7 @@ import org.vaadin.dialogs.ConfirmDialog
 import org.vaadin.easyuploads.MultiFileUpload
 import org.vaadin.easyuploads.UploadField
 import ru.stankin.mj.model.*
+import ru.stankin.mj.view.utils.*
 import ru.stankin.mj.rested.security.MjRoles
 
 import javax.inject.Inject
@@ -69,88 +70,74 @@ class MainView : CustomComponent(), View {
     override fun enter(event: ViewChangeEvent) {
 
         addStyleName("main")
-
         logger.debug("entered")
-
         setHeight("100%")
-        val verticalLayout = VerticalLayout()
 
-        //        verticalLayout.setWidth("100%");
-        //        verticalLayout.setHeight("100%");
-        val pael1 = Panel()
-        val content = HorizontalLayout()
-        content.setWidth("100%")
-        //content.setHeight(30, Unit.PIXELS);
-        val label = Label("<b>&nbsp;МОДУЛЬНЫЙ ЖУРНАЛ</b>", ContentMode.HTML)
-        label.setWidth(200f, Sizeable.Unit.PIXELS)
-        content.addComponent(label)
-        //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
-        //content.setExpandRatio(label, 0.5f);
-        //label.setHeight(30,Unit.PIXELS);
+        compositionRoot = VerticalLayout().apply {
 
+            addComponent(Panel().apply {
+                content = HorizontalLayout().apply {
+                    setWidth("100%")
 
-        content.addComponent(createSemestrCbx())
-        content.addComponent(ratingRulesButton())
-        if (!SecurityUtils.getSubject().hasRole(MjRoles.ADMIN)) {
-            val studentRatingButton = StudentRatingButton()
-            content.addComponent(studentRatingButton)
-            val student = MjRoles.getUser() as Student?
-            studentRatingButton.setStudent(storage.getStudentById(student!!.id, currentSemester))
+                    addComponent(Label("<b>&nbsp;МОДУЛЬНЫЙ ЖУРНАЛ</b>", ContentMode.HTML).apply {
+                        setWidth(200f, Sizeable.Unit.PIXELS)
+                    })
+
+                    addComponent(createSemestrCbx())
+                    addComponent(ratingRulesButton())
+
+                    if (!SecurityUtils.getSubject().hasRole(MjRoles.ADMIN)) {
+                        val studentRatingButton = StudentRatingButton()
+                        addComponent(studentRatingButton)
+                        val student = MjRoles.getUser() as Student?
+                        studentRatingButton.setStudent(storage.getStudentById(student!!.id, currentSemester))
+                    }
+
+                    addComponentExpand(Label(""), 1f)
+
+                    addComponentAlignment(kotlin.run {
+                        val recoveryMode = SecurityUtils.getSubject().hasRole(MjRoles.PASSWORDRECOVERY)
+                        val needChangePassword = recoveryMode || auth.acceptPassword(MjRoles.getUser()!!.id, MjRoles.getUser()!!.username)
+                        val settings = Button("Аккаунт: " + MjRoles.getUser()!!.username) { event1 ->
+                            if (SecurityUtils.getSubject().isAuthenticated) {
+                                val accountWindow = AccountWindow(MjRoles.getUser()!!, userDao, auth, false, !recoveryMode)
+                                this.ui.addWindow(accountWindow)
+                            } else
+                                this.ui.navigator.navigateTo("login")
+                        }
+
+                        if (needChangePassword) {
+                            settings.click()
+                        }
+                        settings
+                    }, Alignment.TOP_RIGHT)
+
+                    addComponentAlignment(Button("Выход").apply {
+                        addClickListener { event1 ->
+                            SecurityUtils.getSubject().logout()
+                            VaadinService.getCurrentRequest().wrappedSession.invalidate()
+                            this.ui.page.reload()
+                        }
+                    }, Alignment.TOP_RIGHT)
+
+                }
+            }
+            )
+
+            addComponentExpand(kotlin.run {
+                val mainPanel: Component
+                if (SecurityUtils.getSubject().hasRole(MjRoles.ADMIN))
+                    mainPanel = genUploadAndGrids()
+                else {
+                    mainPanel = genMarks()
+                    val student = MjRoles.getUser() as Student?
+                    setWorkingStudent(student!!.id, currentSemester!!)
+                    //marks.fillMarks(storage.getStudentById(student.id, getCurrentSemester()));
+                }
+                mainPanel
+            }, 1f)
+            setSizeFull()
         }
-
-        val blonk = Label("")
-        content.addComponent(blonk)
-        //content.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
-        content.setExpandRatio(blonk, 1f)
-
-        val recoveryMode = SecurityUtils.getSubject().hasRole(MjRoles.PASSWORDRECOVERY)
-
-        val needChangePassword = recoveryMode || auth.acceptPassword(MjRoles.getUser()!!.id, MjRoles.getUser()!!.username)
-
-        val settings = Button("Аккаунт: " + MjRoles.getUser()!!.username) { event1 ->
-            if (SecurityUtils.getSubject().isAuthenticated) {
-                val accountWindow = AccountWindow(MjRoles.getUser()!!, userDao, auth, false, !recoveryMode)
-                this.ui.addWindow(accountWindow)
-            } else
-                this.ui.navigator.navigateTo("login")
-        }
-
-        if (needChangePassword) {
-            settings.click()
-        }
-
-        //settings.setEnabled(false);
-        content.addComponent(settings)
-        content.setComponentAlignment(settings, Alignment.TOP_RIGHT)
-        val exit = Button("Выход")
-        exit.addClickListener { event1 ->
-            SecurityUtils.getSubject().logout()
-            VaadinService.getCurrentRequest().wrappedSession.invalidate()
-            this.ui.page.reload()
-        }
-        content.addComponent(exit)
-        content.setComponentAlignment(exit, Alignment.TOP_RIGHT)
-
-        pael1.content = content
-
-        // pael1.setWidth(100, Unit.PERCENTAGE);
-        //  pael1.setHeight(100, Unit.PERCENTAGE);
-        verticalLayout.addComponent(pael1)
-
-        val mainPanel: Component
-        if (SecurityUtils.getSubject().hasRole(MjRoles.ADMIN))
-            mainPanel = genUploadAndGrids()
-        else {
-            mainPanel = genMarks()
-            val student = MjRoles.getUser() as Student?
-            setWorkingStudent(student!!.id, currentSemester!!)
-            //marks.fillMarks(storage.getStudentById(student.id, getCurrentSemester()));
-        }
-
-        verticalLayout.addComponent(mainPanel)
-        verticalLayout.setExpandRatio(mainPanel, 1f)
-        verticalLayout.setSizeFull()
-        compositionRoot = verticalLayout
 
     }
 
@@ -204,7 +191,7 @@ class MainView : CustomComponent(), View {
             val content1 = BrowserFrame("Правила расчёта рейтинга", ExternalResource("rating.html"))
             window.content = content1
             content1.setSizeFull()
-            Utils.showCentralWindow(this.ui, window)
+            showCentralWindow(this.ui, window)
         }
     }
 
@@ -559,7 +546,7 @@ class MainView : CustomComponent(), View {
                 verticalLayout.setSizeFull()
                 val window = Window("Расчет рейтинга", verticalLayout)
 
-                Utils.showCentralWindow(this.ui, window)
+                showCentralWindow(this.ui, window)
                 Page.getCurrent().javaScript.execute("yaCounter29801259.hit('#calc');")
             }
         }

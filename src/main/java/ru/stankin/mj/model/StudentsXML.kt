@@ -36,7 +36,7 @@ object StudentsXML {
         return find { it.first == elem }!!.second
     }
 
-    fun readStudentsFromXML(input: InputStream, semester: String): Stream<Student> {
+    fun readStudentsFromXML(input: InputStream): Stream<Student> {
 
         val factory = XMLInputFactory.newInstance();
         val reader =
@@ -53,6 +53,7 @@ object StudentsXML {
 
             fun subject(name: String, factor: String): Subject? {
                 val subjData = SubjData(ctxStack["group"]["name"]!!, name, factor)
+                val semester = ctxStack["sem"]["title"]
                 return subjectsCache.computeIfAbsent(subjData,
                         { subjData -> Subject(semester, subjData.group, subjData.name, subjData.factor.replace(',', '.').toDouble()) })
 

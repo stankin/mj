@@ -47,7 +47,7 @@ service.recoveryurl=http://localhost:8080/mj/recovery
 
 Для работы приложения на сервере должен быть установлен [PostgreSQL](https://www.postgresql.org/).
 
-Сервер WildFly должен иметь поддержку [JDBC-драйвера для postgresql](https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar). Для добавления его нужно выполнить следующие команды:
+Сервер WildFly должен иметь поддержку [JDBC-драйвера для postgresql](https://jdbc.postgresql.org/download/postgresql-42.0.0.jar). Для добавления его нужно выполнить следующие команды:
 
     ./jboss-cli.sh 
     

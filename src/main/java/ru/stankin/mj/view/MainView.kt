@@ -226,7 +226,7 @@ class MainView : CustomComponent(), View {
         uploads.setHeight(100f, Sizeable.Unit.PERCENTAGE)
         uploads.setMargin(true)
         uploads.isSpacing = true
-        //        uploads.addComponent(createXMLUpload());
+        uploads.addComponent(createXMLUpload());
         uploads.addComponent(createEtalonUpload())
         uploads.addComponent(createMarksUpload())
         uploads.addComponent(Button("Удалить все модули") { event ->

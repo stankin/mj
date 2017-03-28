@@ -35,7 +35,7 @@ class ModulesJournalXMLUploader {
 
         ThreadLocalTransaction.joinOrNew(sql2o) {
             val processedCards = HashSet<String>()
-            StudentsXML.readStudentsFromXML(inputStream, semestr).use {
+            StudentsXML.readStudentsFromXML(inputStream).use {
                 it.forEach { excelStudent ->
                     val student = mergeWithExisting(excelStudent)
                     processedCards.add(student.cardid)
@@ -48,11 +48,11 @@ class ModulesJournalXMLUploader {
                 }
             }
 
-            val forGotStudents = storage.students.use {
+            val forgottenStudents = storage.students.use {
                 it.filter { !processedCards.contains(it.cardid) }.count()
             }
 
-            messages.add(0, "В базе присутствует $forGotStudents студентов, которых нет в загруженном файле")
+            messages.add(0, "В базе присутствует $forgottenStudents студентов, которых нет в загруженном файле")
 
         }
 

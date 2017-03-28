@@ -59,7 +59,7 @@ class ModulesJournalXMLParserTest : FunSpec() {
 		</student>
 </group>
 </sem>
-""".toByteArray()), "testSemester")
+""".toByteArray()))
 
             val students = stre.use { it.toList() }
 
@@ -67,12 +67,87 @@ class ModulesJournalXMLParserTest : FunSpec() {
             students.map { it.modules.size }.sum() shouldBe 9
 
             students[0].surname shouldBe "Попов"
-            students[0].surname shouldBe "Попов"
 
             students[0].modules[1].subject.title shouldBe "Методы и средства измерений, испытаний и контроля"
             students[0].modules[1].value shouldBe 50
 
         }
+
+        test("StudentsXML2") {
+
+
+            val stre = StudentsXML.readStudentsFromXML(ByteArrayInputStream("""<?xml version="1.0" encoding="UTF-8"?>
+<sem date="28.03.2017.07.09.35" title="2016-весна">
+	<group name="ИДБ-13-01">
+		<student surame="Сергеев" firstname="Владимир" patronymic="Петрович" stud_id="121212" status="1" rating="0" accumRating="0" oldAccumRating="0" numSemester="0">
+			<discipline name="Защита выпускной квалификационной работы" factor="0">
+				<exam type="" mark="0" P="0" status="0"/>
+			</discipline>
+			<discipline name="Вычислительные машины, системы и сети" factor="3,5">
+				<exam type="5" mark="0" P="0" status="0"/>
+				<exam type="2" mark="0" P="0" status="0"/>
+				<exam type="1" mark="40" P="0" status="0"/>
+			</discipline>
+			<discipline name="Диагностика и надежность  автоматизированных систем" factor="3">
+				<exam type="3" mark="0" P="0" status="0"/>
+				<exam type="2" mark="0" P="0" status="0"/>
+				<exam type="1" mark="0" P="0" status="0"/>
+			</discipline>
+</student>
+		<student surame="Ходько" firstname="Александр" patronymic="Алексеевич" stud_id="113114" status="1" rating="0" accumRating="0" oldAccumRating="0" numSemester="0">
+			<discipline name="Защита выпускной квалификационной работы" factor="0">
+				<exam type="" mark="0" P="0" status="0"/>
+			</discipline>
+			<discipline name="Вычислительные машины, системы и сети" factor="3,5">
+				<exam type="5" mark="0" P="0" status="0"/>
+				<exam type="2" mark="0" P="0" status="0"/>
+				<exam type="1" mark="40" P="0" status="0"/>
+			</discipline>
+		</student>
+</group>
+<group name="ИДБ-13-05">
+		<student surame="Мергаева" firstname="Анастасия" patronymic="Андреевна" stud_id="113115" status="1" rating="0" accumRating="0" oldAccumRating="0" numSemester="0">
+			<discipline name="Защита выпускной квалификационной работы" factor="0">
+				<exam type="" mark="0" P="0" status="0"/>
+			</discipline>
+			<discipline name="Программное обеспечение мехатронных и робототехнических систем" factor="2,5">
+				<exam type="5" mark="0" P="0" status="0"/>
+				<exam type="2" mark="0" P="0" status="0"/>
+				<exam type="1" mark="0" P="0" status="0"/>
+			</discipline>
+			<discipline name="Моделирование и исследование робототехнических систем" factor="3">
+				<exam type="3" mark="0" P="0" status="0"/>
+				<exam type="2" mark="0" P="0" status="0"/>
+				<exam type="1" mark="0" P="0" status="0"/>
+			</discipline>
+		</student>
+		<student surame="Копытов" firstname="Владимир" patronymic="Олегович" stud_id="113116" status="1" rating="0" accumRating="0" oldAccumRating="0" numSemester="0">
+			<discipline name="Защита выпускной квалификационной работы" factor="0">
+				<exam type="" mark="0" P="0" status="0"/>
+			</discipline>
+			<discipline name="Компьютерное управление мехатронными системами" factor="2,5">
+				<exam type="4" mark="0" P="0" status="0"/>
+				<exam type="5" mark="0" P="0" status="0"/>
+				<exam type="2" mark="0" P="0" status="0"/>
+				<exam type="1" mark="50" P="0" status="0"/>
+			</discipline>
+		</student></group>
+</sem>
+""".toByteArray()))
+
+            val students = stre.use { it.toList() }
+
+            students.count() shouldBe 4
+            students.map { it.modules.size }.sum() shouldBe 23
+
+            students[0].surname shouldBe "Сергеев"
+
+            students[0].modules[1].subject.title shouldBe "Вычислительные машины, системы и сети"
+            students[0].modules[1].value shouldBe 0
+            students[0].modules[1].subject.semester shouldBe "2016-весна"
+
+        }
+
 
     }
 

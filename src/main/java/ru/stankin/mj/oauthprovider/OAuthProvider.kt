@@ -1,20 +1,13 @@
 package ru.stankin.mj.oauthprovider
 
 import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
 import org.apache.logging.log4j.LogManager
 import org.sql2o.Sql2o
-import ru.stankin.mj.utils.ThreadLocalTransaction
-import ru.stankin.mj.utils.ThreadLocalTransaction.joinOrNew
 import ru.stankin.mj.utils.ThreadLocalTransaction.tlTransaction
 import java.util.*
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
-import org.apache.oltu.oauth2.`as`.issuer.MD5Generator
-import org.apache.oltu.oauth2.`as`.issuer.OAuthIssuerImpl
-import org.apache.oltu.oauth2.`as`.issuer.OAuthIssuer
 
 
 /**

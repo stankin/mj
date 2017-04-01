@@ -9,11 +9,16 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.shrinkwrap.api.Archive;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.*;
+import org.jboss.shrinkwrap.api.asset.Asset;
+import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.impl.base.URLPackageScanner;
+import org.jboss.shrinkwrap.impl.base.Validate;
+import org.jboss.shrinkwrap.impl.base.asset.AssetUtil;
+import org.jboss.shrinkwrap.impl.base.path.BasicPath;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.After;
 import org.junit.Assert;
@@ -25,7 +30,10 @@ import org.sql2o.Sql2o;
 import ru.stankin.mj.http.HttpApi2;
 import ru.stankin.mj.model.*;
 import ru.stankin.mj.model.user.User;
+import ru.stankin.mj.oauthprovider.OAuthProvider;
 import ru.stankin.mj.rested.security.ShiroConfiguration;
+import ru.stankin.mj.testutils.InWeldTest;
+import ru.stankin.mj.testutils.TestutilsKt;
 import ru.stankin.mj.utils.FlywayMigrations;
 import ru.stankin.mj.view.AccountWindow;
 
@@ -59,13 +67,7 @@ public class ArquillianTest {
 
         WebArchive jar = ShrinkWrap.create(WebArchive.class, "test.war")
                 .addAsLibraries(files)
-                .addPackage(Package.getPackage("ru.stankin.mj"))
-                .addPackage(Package.getPackage("ru.stankin.mj.model"))
-                .addPackage(Package.getPackage("ru.stankin.mj.model.user"))
-                .addPackage(AccountWindow.class.getPackage())
-                .addPackage(HttpApi2.class.getPackage())
-                .addPackage(ShiroConfiguration.class.getPackage())
-                .addPackage(FlywayMigrations.class.getPackage())
+                .addPackages(true, TestutilsKt.notTests(), UtilProducer.class.getPackage())
                 .addAsResource("log4j2-test.xml")
                 .addAsWebInfResource(new File("src/main/webapp/WEB-INF/web.xml"))
                 .addAsWebResource(new File("src/main/webapp/index.html"))
@@ -199,7 +201,7 @@ public class ArquillianTest {
 
         User idb1316Student = userDAO.getUserBy("114513"); // Богданова	Устина	Кирилловна
 
-        auths.updatePassword(idb1316Student.getId(),"nonDefaultPassword" );
+        auths.updatePassword(idb1316Student.getId(), "nonDefaultPassword");
         userDAO.saveUser(idb1316Student);
 
         User idb1316StudentWithNewPassword = userDAO.getUserBy("114513", "nonDefaultPassword");
@@ -240,7 +242,7 @@ public class ArquillianTest {
         Assert.assertEquals("ИДБ-13-15", studentWithNewGroup.stgroup);
 
         Assert.assertEquals("Students have the same id", studentWithNewGroup.id, studentWithOldGroup.id);
-         Assert.assertTrue("And nonDefaultPassword", auths.acceptPassword(studentWithNewGroup.id, "nonDefaultPassword"));
+        Assert.assertTrue("And nonDefaultPassword", auths.acceptPassword(studentWithNewGroup.id, "nonDefaultPassword"));
         Assert.assertEquals("Student have both groups in history",
                 new TreeSet<>(asList("ИДБ-13-15", "ИДБ-13-16")),
                 studentWithNewGroup.getGroups().stream().map(s -> s.groupName).collect(Collectors.toCollection(TreeSet<String>::new)));
@@ -292,7 +294,7 @@ public class ArquillianTest {
             Assert.assertNotNull(s0);
             Student s1 = storage.getStudentById(s0.id, "2014-осень");
             List<Module> allModules = connect(c -> c.createQuery("SELECT m.*, m.student_id as studentId FROM modules m").throwOnMappingFailure(false).executeAndFetch(Module.class));
-            Assert.assertFalse("",allModules.stream().anyMatch(m -> m.studentId == 0));
+            Assert.assertFalse("", allModules.stream().anyMatch(m -> m.studentId == 0));
             Assert.assertEquals(3977, allModules.size());
             Assert.assertEquals(30, allModules.stream().filter(m -> m.studentId == s1.id).count());
             refresh(s1);
@@ -334,17 +336,20 @@ public class ArquillianTest {
         //System.out.println(url);
         {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            Assert.assertEquals(200, connection.getResponseCode());
             Assert.assertEquals(3883, connection.getContentLength());
             connection.disconnect();
         }
         {
             HttpURLConnection connection = (HttpURLConnection) new URL(url + "/VAADIN/vaadinBootstrap.js").openConnection();
-            Assert.assertEquals(1783, connection.getContentLength());
+            Assert.assertEquals(200, connection.getResponseCode());
+            Assert.assertEquals(2172, connection.getContentLength());
             connection.disconnect();
         }
         {
             HttpURLConnection connection = (HttpURLConnection) new URL(url + "/VAADIN/widgetsets/ru.stankin.mj.WidgetSet/ru.stankin.mj.WidgetSet.nocache.js").openConnection();
-            Assert.assertEquals(1819, connection.getContentLength());
+            Assert.assertEquals(200, connection.getResponseCode());
+            Assert.assertEquals(2208, connection.getContentLength());
             connection.disconnect();
         }
 
@@ -406,7 +411,7 @@ public class ArquillianTest {
         if (stringOptional1.isPresent()) {
             Assert.assertEquals(expectedString, stringOptional1.get());
         } else {
-            Assert.fail(expectedString + " was not found: "+strings.stream().collect(Collectors.joining(", ")));
+            Assert.fail(expectedString + " was not found: " + strings.stream().collect(Collectors.joining(", ")));
         }
 
     }

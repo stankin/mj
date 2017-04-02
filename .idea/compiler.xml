@@ -7,20 +7,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="modules-journal" />
-        <module name="sql2o" />
-        <module name="sql2o-db2" />
-        <module name="sql2o-postgres" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="extensions-parent" target="1.7" />
       <module name="modules-journal" target="1.8" />
-      <module name="sql2o" target="1.7" />
-      <module name="sql2o-db2" target="1.7" />
-      <module name="sql2o-oracle" target="1.7" />
-      <module name="sql2o-oracle-joda-time" target="1.7" />
-      <module name="sql2o-parent" target="1.7" />
-      <module name="sql2o-postgres" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>

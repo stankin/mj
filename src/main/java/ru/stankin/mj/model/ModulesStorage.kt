@@ -35,7 +35,7 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
 
         val studentModules = ArrayList(student.modules)
         val semester = studentModules[0].subject.semester
-        logger.debug("saving student {} at {} modules: {}", student.cardid, semester, studentModules.size)
+//        logger.debug("saving student {} at {} modules: {}", student.cardid, semester, studentModules.size)
 
         sql2o.beginTransaction(ThreadLocalTransaction.get()).use { connection ->
 

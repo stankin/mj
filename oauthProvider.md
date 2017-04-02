@@ -22,7 +22,7 @@
 
 На вашем сайте вы должны разместить ссылку вида: 
 
-`http://uits-labs.ru/mj/webapi/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=[redirect_uri]`
+`https://lk.stankin.ru/webapi/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=[redirect_uri]`
 
 где 
 
@@ -46,8 +46,8 @@
 POST-запрос вида:
 
 ```text
-POST /mj/webapi/oauth/token HTTP/1.1
-Host: uits-labs.ru
+POST /webapi/oauth/token HTTP/1.1
+Host: lk.stankin.ru
 Content-type: application/x-www-form-urlencoded
 Content-Length: [длина тела запроса]
 
@@ -79,7 +79,7 @@ code=[полученный code]&client_id=[ваш client_id]&client_secret=[в�
 
 В настоящее время полученный токен особой пользы не приносит, так как всё что можно при помощи него сделать, это отправить запрос
 
-    http://uits-labs.ru/mj/webapi/user/info
+    https://lk.stankin.ru/webapi/user/info
     
 добавив заголовкок запроса `Authorization: Bearer [ваш токен]`.
 

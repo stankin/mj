@@ -1,5 +1,6 @@
 package ru.stankin.mj
 
+import io.kotlintest.matchers.be
 import io.kotlintest.specs.FunSpec
 import kotlinx.support.jdk7.use
 import kotlinx.support.jdk8.collections.stream
@@ -7,6 +8,7 @@ import kotlinx.support.jdk8.streams.toList
 import org.apache.logging.log4j.LogManager
 import org.intellij.lang.annotations.Language
 import ru.stankin.mj.model.*
+import ru.stankin.mj.testutils.Matchers.ne
 import ru.stankin.mj.utils.stream
 import java.io.ByteArrayInputStream
 
@@ -64,12 +66,13 @@ class ModulesJournalXMLParserTest : FunSpec() {
             val students = stre.use { it.toList() }
 
             students.count() shouldBe 3
-            students.map { it.modules.size }.sum() shouldBe 9
+            students.map { it.modules.size }.sum() shouldBe 15
 
             students[0].surname shouldBe "Попов"
 
             students[0].modules[1].subject.title shouldBe "Методы и средства измерений, испытаний и контроля"
             students[0].modules[1].value shouldBe 50
+            println("students modules:"+ students[0].modules)
 
         }
 
@@ -138,13 +141,17 @@ class ModulesJournalXMLParserTest : FunSpec() {
             val students = stre.use { it.toList() }
 
             students.count() shouldBe 4
-            students.map { it.modules.size }.sum() shouldBe 23
+            students.map { it.modules.size }.sum() shouldBe 31
 
             students[0].surname shouldBe "Сергеев"
 
             students[0].modules[1].subject.title shouldBe "Вычислительные машины, системы и сети"
             students[0].modules[1].value shouldBe 0
             students[0].modules[1].subject.semester shouldBe "2016-весна"
+            val ratingModule = students[0].modules.find { it.subject.title == "Накопленный Рейтинг" }
+            ratingModule should be ne null
+            ratingModule!!.num shouldBe "М1"
+
 
         }
 

@@ -7,7 +7,7 @@ import io.kotlintest.matchers.BeWrapper
  */
 object Matchers {
 
-    infix fun <T> BeWrapper<T>.ne(notexpected: Any): Unit {
+    infix fun <T> BeWrapper<T>.ne(notexpected: Any?): Unit {
         if (value == notexpected)
             throw AssertionError("$value is $notexpected but should not be")
     }

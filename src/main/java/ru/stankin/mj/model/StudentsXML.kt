@@ -20,10 +20,10 @@ object StudentsXML {
 
 
     private fun markColor(attributes: Map<String, String>): Int {
-        when(attributes["P"]){
+        when (attributes["P"]) {
             "1" -> return 0x0000ff
         }
-        when(attributes["status"]){
+        when (attributes["status"]) {
             "0" -> return -1
             "1" -> return 0xCC99FF
             "2" -> return 0xFFFF00
@@ -93,13 +93,17 @@ object StudentsXML {
                     }
 
                     XMLStreamConstants.END_ELEMENT -> {
-                        ctxStack.pop()
                         when (reader.localName) {
                             "student" -> {
+                                curStudent!!.modules.apply {
+                                    add(Module(subject(MarksWorkbookReader.RATING, "0.0"), curStudent!!.id, "М1", ctxStack["student"]["rating"]?.toIntOrNull() ?: 0, -1))
+                                    add(Module(subject(MarksWorkbookReader.ACCOUMULATED_RATING, "0.0"), curStudent!!.id, "М1", ctxStack["student"]["accumRating"]?.toIntOrNull() ?: 0, -1))
+                                }
                                 yield(curStudent!!)
                                 curStudent = null
                             }
                         }
+                        ctxStack.pop()
                     }
 
                 }
@@ -112,7 +116,6 @@ object StudentsXML {
         }).onClose { reader.close() }
 
     }
-
 
 
 }

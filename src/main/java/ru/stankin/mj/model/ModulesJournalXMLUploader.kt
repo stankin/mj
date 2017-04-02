@@ -36,8 +36,8 @@ class ModulesJournalXMLUploader {
         ThreadLocalTransaction.joinOrNew(sql2o) {
             val processedCards = HashSet<String>()
             StudentsXML.readStudentsFromXML(inputStream).use {
-                it.forEach { excelStudent ->
-                    val student = mergeWithExisting(excelStudent)
+                it.forEach { xmlStudent ->
+                    val student = mergeWithExisting(xmlStudent)
                     processedCards.add(student.cardid)
                     storage.saveStudent(student, semestr)
                     messages.addAll(checkModules(student))

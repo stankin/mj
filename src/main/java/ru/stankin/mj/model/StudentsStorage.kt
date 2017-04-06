@@ -56,7 +56,7 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
             if (student.id == 0) {
                 logger.trace("inserting student {}", student)
                 val userId = connection
-                        .createQuery("INSERT INTO users (login, initials, name, patronym, surname) " + "VALUES (:cardid, :initials, :name, :patronym, :surname)", true)
+                        .createQuery("INSERT INTO users (login, initials, name, patronym, surname, email) " + "VALUES (:cardid, :initials, :name, :patronym, :surname, :email)", true)
                         .bind(student)
                         .executeUpdate().getKey<Int>(Int::class.java)
 
@@ -72,7 +72,8 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
                                 " initials = :initials," +
                                 " name = :name," +
                                 " patronym = :patronym," +
-                                " surname = :surname" +
+                                " surname = :surname," +
+                                " email = :email" +
                                 " WHERE id = :id")
                         .bind(student)
                         .executeUpdate()

@@ -127,6 +127,9 @@ class UserResolver @Inject constructor(private val sql2o: Sql2o) {
 
         sql2o.beginTransaction().use { connection ->
 
+            if(admin.email.isBlank())
+                admin.email = null
+
             if (admin.id == 0) {
 
                 val userId = connection

@@ -115,8 +115,8 @@ class AccountWindow @JvmOverloads constructor(
     }
 
 
-    private fun readOnlyField(caption: String, value: String): TextField {
-        val filed = TextField(caption, value)
+    private fun readOnlyField(caption: String, value: String?): TextField {
+        val filed = TextField(caption, value.orEmpty())
         filed.isReadOnly = true
         return filed
     }

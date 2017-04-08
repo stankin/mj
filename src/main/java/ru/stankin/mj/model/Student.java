@@ -1,5 +1,8 @@
 package ru.stankin.mj.model;
 
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.stankin.mj.model.user.User;
 
 import java.io.Serializable;
@@ -20,16 +23,26 @@ public class Student implements Serializable, User, Comparable {
 
     public int id = 0;
 
+    @Nullable
     public String stgroup;
+    @Nullable
     public String surname;
+    @Nullable
     public String initials;
 
+    @NotNull
     private List<Module> modules = new ArrayList<>();
+
+    @Nullable
     public String name;
+
+    @Nullable
     public String patronym;
 
+    @Nullable
     public String cardid;
 
+    @Nullable
     public String email;
 
 
@@ -38,18 +51,19 @@ public class Student implements Serializable, User, Comparable {
 
     private List<StudentHistoricalGroup> groups = new ArrayList<>();
 
-    public Student(String group, String surname, String initials) {
+    public Student(@Nullable String group,@Nullable String surname, @Nullable String initials) {
         this.stgroup = group;
         this.surname = surname;
         this.initials = initials;
     }
 
-    public Student(String cardid, String group, String surname, String initials) {
+    public Student(@Nullable String cardid, String group, String surname, String initials) {
         this(group, surname, initials);
         this.cardid = cardid;
     }
 
-    public Student(String cardid, String group, String surname, String name, String patronym) {
+    public Student(@Nullable String cardid, @Nullable String group, @Nullable String surname,
+                   @Nullable String name, @Nullable String patronym) {
         this(cardid, group, surname, initialsFromNames(name, patronym));
         this.name = name;
         this.patronym = patronym;
@@ -66,13 +80,14 @@ public class Student implements Serializable, User, Comparable {
     public void initialsFromNP() {
         if (initials != null)
             return;
-        if (name == null || surname == null)
+        if (name == null || patronym == null)
             return;
 
         initials = initialsFromNames(name, patronym);
     }
 
-    public static String initialsFromNames(String name, String patronym) {
+    @NotNull
+    public static String initialsFromNames(@NotNull String name, @NotNull String patronym) {
         String sp = "";
         if (patronym.length() > 0)
             sp = Character.toUpperCase(patronym.charAt(0)) + ".";
@@ -122,6 +137,7 @@ public class Student implements Serializable, User, Comparable {
         return result;
     }
 
+    @NotNull
     public List<Module> getModules() {
         return modules;
     }
@@ -134,14 +150,15 @@ public class Student implements Serializable, User, Comparable {
                         )));
     }
 
-    public void setModules(List<Module> modules) {
+    public void setModules(@NotNull List<Module> modules) {
         this.modules = modules;
         modules.forEach(m -> m.studentId = this.id);
     }
 
     @Override
+    @NotNull
     public String getUsername() {
-        return cardid;
+        return  cardid != null ? cardid : "no_cardid_set";
     }
 
     @Override
@@ -164,11 +181,12 @@ public class Student implements Serializable, User, Comparable {
     }
 
     @Override
+    @Nullable
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(@Nullable String email) {
         this.email = email;
     }
 }

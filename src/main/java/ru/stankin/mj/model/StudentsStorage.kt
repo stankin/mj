@@ -52,7 +52,7 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
         sql2o.beginTransaction(ThreadLocalTransaction.get()).use { connection ->
 
             logger.trace("saving student {} at semester {}", student, semestr)
-            if(student.email.isBlank())
+            if(student.email.isNullOrBlank())
                 student.email = null
 
             if (student.id == 0) {

@@ -86,7 +86,7 @@ class ArrayConverter:Converter<List<String>> {
 
         return when(a){
             is Array -> {
-                (a.array as kotlin.Array<String?>).filterNotNull()
+                (a.array as? kotlin.Array<String?>)?.filterNotNull() ?: throw UnsupportedOperationException("converting $a of class ${a?.javaClass} to List<String>")
             }
 
             else -> throw UnsupportedOperationException("converting $a of class ${a?.javaClass} to List<String>")

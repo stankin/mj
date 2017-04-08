@@ -52,7 +52,7 @@ class UserInfoService {
     }
 
     companion object {
-        fun userInfo(user: User): Map<String, Any> {
+        fun userInfo(user: User): Map<String, Any?> {
             return when(user){
                 is Student -> mapOf(
                         "name" to user.name,

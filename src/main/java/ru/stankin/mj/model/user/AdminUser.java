@@ -1,5 +1,8 @@
 package ru.stankin.mj.model.user;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 
 
@@ -7,33 +10,37 @@ public class AdminUser implements Serializable, User {
 
     private int id;
 
+    @Nullable
     private String username = null;
+    @Nullable
     private String email = null;
     private boolean isAdmin = true;
 
     public AdminUser() {
     }
 
-    public AdminUser(String username, String email) {
+    public AdminUser(@Nullable String username,@Nullable  String email) {
         this.username = username;
         this.email = email;
     }
 
 
     @Override
+    @NotNull
     public String getUsername() {
-        return username;
+        return username != null? username : "anonymous";
     }
 
-    public void setUsername(String username) {
+    public void setUsername(@Nullable String username) {
         this.username = username;
     }
 
+    @Nullable
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(@Nullable String email) {
         this.email = email;
     }
 

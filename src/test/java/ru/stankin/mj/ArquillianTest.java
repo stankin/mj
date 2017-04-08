@@ -337,19 +337,16 @@ public class ArquillianTest {
         {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             Assert.assertEquals(200, connection.getResponseCode());
-            Assert.assertEquals(3883, connection.getContentLength());
             connection.disconnect();
         }
         {
             HttpURLConnection connection = (HttpURLConnection) new URL(url + "/VAADIN/vaadinBootstrap.js").openConnection();
             Assert.assertEquals(200, connection.getResponseCode());
-            Assert.assertEquals(2172, connection.getContentLength());
             connection.disconnect();
         }
         {
             HttpURLConnection connection = (HttpURLConnection) new URL(url + "/VAADIN/widgetsets/ru.stankin.mj.WidgetSet/ru.stankin.mj.WidgetSet.nocache.js").openConnection();
             Assert.assertEquals(200, connection.getResponseCode());
-            Assert.assertEquals(2208, connection.getContentLength());
             connection.disconnect();
         }
 

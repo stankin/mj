@@ -27,7 +27,7 @@ class ModulesJournalXMLUploader {
     @Inject
     private lateinit var sql2o: Sql2o
 
-    fun updateFromXml(semestr: String, inputStream: InputStream): List<String>{
+    fun updateFromXml(semestr: String, inputStream: InputStream): List<String> {
 
         val messages = ArrayList<String>()
 
@@ -38,11 +38,11 @@ class ModulesJournalXMLUploader {
             StudentsXML.readStudentsFromXML(inputStream).use {
                 it.forEach { xmlStudent ->
                     val student = mergeWithExisting(xmlStudent)
-                    processedCards.add(student.cardid)
+                    processedCards.add(student.cardid!!)
                     storage.saveStudent(student, semestr)
                     messages.addAll(checkModules(student))
-                    if(student.modules.isNotEmpty())
-                    modulesUpdateStat += modules.updateModules(student)
+                    if (student.modules.isNotEmpty())
+                        modulesUpdateStat += modules.updateModules(student)
                     else
                         messages.add("Студент ${student.cardid} ${student.stgroup} ${student.surname} не имеет модулей")
                 }
@@ -64,7 +64,7 @@ class ModulesJournalXMLUploader {
     }
 
     private fun mergeWithExisting(excelStudent: Student): Student {
-        var student = storage.getStudentByCardId(excelStudent.cardid)
+        var student = storage.getStudentByCardId(excelStudent.cardid!!)
 
         if (student == null)
             student = excelStudent

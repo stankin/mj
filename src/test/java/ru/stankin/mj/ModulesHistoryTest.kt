@@ -7,6 +7,7 @@ import org.sql2o.Sql2o
 import ru.stankin.mj.model.*
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.testutils.InWeldTest
+import ru.stankin.mj.testutils.asAdminTransaction
 import ru.stankin.mj.utils.ThreadLocalTransaction
 
 
@@ -111,13 +112,7 @@ class ModulesHistoryTest : InWeldTest() {
 
     }
 
-    fun <T> asAdminTransaction(f: () -> T): T {
 
-        val admin = bean<UserResolver>().getUserBy("admin")!!
-        return runAs(admin) {
-            ThreadLocalTransaction.within(bean<Sql2o>(), f)
-        }
-    }
 
 }
 

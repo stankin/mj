@@ -2,6 +2,9 @@ package ru.stankin.mj.testutils
 
 import org.jboss.shrinkwrap.api.ArchivePath
 import org.jboss.shrinkwrap.api.Filter
+import org.sql2o.Sql2o
+import ru.stankin.mj.model.UserResolver
+import ru.stankin.mj.utils.ThreadLocalTransaction
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -19,3 +22,11 @@ fun isTestClass(arhivePath: String): Boolean {
 }
 
 fun notTests() = Filter<ArchivePath> { !isTestClass(it.get()) }
+
+fun <T> InWeldTest.asAdminTransaction(f: () -> T): T {
+
+    val admin = bean<UserResolver>().getUserBy("admin")!!
+    return runAs(admin) {
+        ThreadLocalTransaction.within(bean<Sql2o>(), f)
+    }
+}

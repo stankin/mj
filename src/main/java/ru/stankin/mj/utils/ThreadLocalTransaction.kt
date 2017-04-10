@@ -42,10 +42,10 @@ object ThreadLocalTransaction {
 
     @JvmStatic fun getSql2oConnection(): Connection? = connection.get()
 
-    fun <T> Sql2o.tlTransaction(f: (Connection) -> T):T  {
-        return joinOrNew(this){
+    fun <T> Sql2o.tlTransaction(f: (Connection) -> T): T {
+        return joinOrNew(this) {
             this.beginTransaction(ru.stankin.mj.utils.ThreadLocalTransaction.get()).use { conn ->
-                return@joinOrNew f(conn)
+                f(conn)
             }
         }
     }

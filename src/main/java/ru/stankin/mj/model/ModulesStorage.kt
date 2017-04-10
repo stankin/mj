@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import java.util.stream.StreamSupport
+import javax.enterprise.event.Event
 import javax.enterprise.inject.Default
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,6 +28,8 @@ import javax.inject.Singleton
 class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val subjects: SubjectsStorage) {
 
     private val logger = LogManager.getLogger(ModulesStorage::class.java)
+
+    @Inject lateinit var transactions: Event<Transaction>
 
     fun updateModules(student: Student): ModulesUpdateStat {
 
@@ -114,6 +117,11 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
             }
 
             connection.commit()
+
+            ModifyingTransactions.existingModifyingTransaction()?.let {
+                transactions.fire(it)
+            }
+
             return ModulesUpdateStat(added, updated, deleted)
         }
 
@@ -171,6 +179,11 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
                 }.groupBy({ it.first }, { it.second })
             }
 
+    fun getStudentModulesChangesFromRange(studentId: Long, from: Long, upTo: Long) {
+
+
+    }
+
     data class HistoryRecord(val student_id: String, val num: String, val value: Int, val color: Int, val subject_id: Int, val transaction: Long)
 
 
@@ -186,6 +199,8 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
 
                 }
             })
+
+
 
 }
 
@@ -213,5 +228,10 @@ object ModifyingTransactions {
     @JvmStatic fun modifyingTransaction(): Transaction {
         val connection = ThreadLocalTransaction.getSql2oConnection() ?: throw IllegalStateException("not in transaction")
         return transactions.get(connection)
+    }
+
+    @JvmStatic fun existingModifyingTransaction(): Transaction? {
+        val connection = ThreadLocalTransaction.getSql2oConnection() ?: throw IllegalStateException("not in transaction")
+        return transactions.getIfPresent(connection)
     }
 }

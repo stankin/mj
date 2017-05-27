@@ -84,15 +84,19 @@ public class LoginView extends CustomComponent implements View {
         additionalButtons(layout);
         layout.addComponent(getLoginButton());
 
-        androidSuggest(layout);
-
         Panel panel = new Panel();
         panel.setWidthUndefined();
         panel.setContent(layout);
         VerticalLayout loginLayout = new VerticalLayout();
         loginLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
         loginLayout.addComponent(panel);
-
+        VerticalLayout links = new VerticalLayout(
+                new Label("<a href='https://play.google.com/store/apps/details?id=ru.modulejournal&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img style='height:40px;' alt='Доступно в Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/ru_badge_web_generic.png'/></a>", ContentMode.HTML)
+                ,
+                new Label("<div style='padding: 0px 10px 10px 5px'><a href=\"https://itunes.apple.com/us/app/%D1%81%D1%82%D0%B0%D0%BD%D0%BA%D0%B8%D0%BD/id1220812657?mt=8\" style=\"display:inline-block;overflow:hidden;background:url(//linkmaker.itunes.apple.com/assets/shared/badges/ru-ru/appstore-lrg.svg) no-repeat;width:95px;height:30px;background-size:contain;\"></a></div>", ContentMode.HTML)
+        );
+        links.setWidthUndefined();
+        loginLayout.addComponent(links);
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setSizeFull();
         verticalLayout.addComponent(loginLayout);
@@ -104,8 +108,6 @@ public class LoginView extends CustomComponent implements View {
         verticalLayout.setExpandRatio(spacer, 1);
 
         setCompositionRoot(verticalLayout);
-
-        //setCompositionRoot(loginLayout);
     }
 
     private void recoveryButtonClick(ClickEvent clickEvent) {
@@ -156,15 +158,6 @@ public class LoginView extends CustomComponent implements View {
     }
 
     protected void androidSuggest(VerticalLayout layout) {
-        VaadinRequest request = VaadinService.getCurrentRequest();
-        if (request instanceof VaadinServletRequest) {
-            HttpServletRequest httpRequest = ((VaadinServletRequest)request).getHttpServletRequest();
-            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
-            if (userAgent.contains("android")) {
-                layout.addComponent(new Label("<a href=\"https://play.google.com/store/apps/details?id=ru.modulejournal\">Приложение для Android</a>",  ContentMode.HTML));
-            }
-
-        }
     }
 
     protected void additionalButtons(VerticalLayout layout) {

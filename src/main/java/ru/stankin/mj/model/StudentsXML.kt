@@ -83,13 +83,13 @@ object StudentsXML {
                                         Module(subject(ctxStack["discipline"]["name"]!!, ctxStack["discipline"]["factor"]!!),
                                                 curStudent.id,
                                                 attributes["type"]?.toIntOrNull()?.let { markTypes[it] } ?: "",
-                                                attributes["mark"]!!.toInt(),
+                                                attributes["mark"]!!.substringBefore(',').toInt(),
                                                 markColor(attributes)
                                         ))
 
                         }
                     } catch (e: Exception) {
-                        throw RuntimeException("excetion processing ${reader.localName} for student ${curStudent?.cardid}", e)
+                        throw RuntimeException("exception processing ${reader.localName} for student ${curStudent?.cardid}", e)
                     }
 
                     XMLStreamConstants.END_ELEMENT -> {

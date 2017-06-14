@@ -11,7 +11,6 @@ import com.vaadin.server.*
 import com.vaadin.shared.ui.label.ContentMode
 import com.vaadin.ui.*
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import org.apache.shiro.SecurityUtils
 import org.vaadin.dialogs.ConfirmDialog
 import org.vaadin.easyuploads.MultiFileUpload
@@ -22,14 +21,12 @@ import ru.stankin.mj.rested.security.MjRoles
 
 import javax.inject.Inject
 import java.io.*
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.concurrent.*
-import java.util.function.Function
 
 
 @CDIView("")
@@ -388,25 +385,13 @@ class MainView : CustomComponent(), View {
         return marks!!
     }
 
-    private fun createEtalonUpload(): Component {
-        return createSingleUpload("Загрузить эталон", "Эталон загружен: ", { bufferedInputStream ->
-            try {
-                return@createSingleUpload moduleJournalUploader!!.updateStudentsFromExcel(currentSemester, bufferedInputStream)
-            } catch (e: Exception) {
-                throw RuntimeException(e)
-            }
-        })
-    }
+    private fun createEtalonUpload() = createSingleUpload("Загрузить эталон", "Эталон загружен: ", {
+        moduleJournalUploader.updateStudentsFromExcel(currentSemester, it)
+    })
 
-    private fun createXMLUpload(): Component {
-        return createSingleUpload("Загрузить XML", "XML загружен: ", { bufferedInputStream ->
-            try {
-                return@createSingleUpload moduleJournalXMLUploader!!.updateFromXml(currentSemester!!, bufferedInputStream)
-            } catch (e: Exception) {
-                throw RuntimeException(e)
-            }
-        })
-    }
+    private fun createXMLUpload() = createSingleUpload("Загрузить XML", "XML загружен: ", {
+        moduleJournalXMLUploader.updateFromXml(currentSemester!!, it)
+    })
 
     private fun createSingleUpload(caption: String, completeMsg: String, uploader: (InputStream) -> List<String>): Component {
         val uploadField2 = object : UploadField() {

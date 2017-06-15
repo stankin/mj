@@ -31,10 +31,11 @@ object StudentsXML {
         return -1;
     }
 
-
     private operator fun ArrayDeque<Pair<String, Map<String, String>>>.get(elem: String): Map<String, String> {
         return find { it.first == elem }!!.second
     }
+
+    private fun String.intRounded(): Int? = replace(',', '.').toFloatOrNull()?.let { Math.round(it) }
 
     fun readStudentsFromXML(input: InputStream): Stream<Student> {
 
@@ -96,8 +97,8 @@ object StudentsXML {
                         when (reader.localName) {
                             "student" -> {
                                 curStudent!!.modules.apply {
-                                    add(Module(subject(MarksWorkbookReader.RATING, "0.0"), curStudent!!.id, "М1", ctxStack["student"]["rating"]?.toIntOrNull() ?: 0, -1))
-                                    add(Module(subject(MarksWorkbookReader.ACCOUMULATED_RATING, "0.0"), curStudent!!.id, "М1", ctxStack["student"]["accumRating"]?.toIntOrNull() ?: 0, -1))
+                                    add(Module(subject(MarksWorkbookReader.RATING, "0.0"), curStudent!!.id, "М1", ctxStack["student"]["rating"]?.intRounded() ?: 0, -1))
+                                    add(Module(subject(MarksWorkbookReader.ACCOUMULATED_RATING, "0.0"), curStudent!!.id, "М1", ctxStack["student"]["accumRating"]?.intRounded() ?: 0, -1))
                                 }
                                 yield(curStudent!!)
                                 curStudent = null

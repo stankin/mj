@@ -16,8 +16,6 @@ import java.io.ByteArrayInputStream
 /**
  * Created by nickl on 09.03.17.
  */
-
-
 class ModulesJournalXMLParserTest : FunSpec() {
 
     private val log = LogManager.getLogger(ModulesJournalXMLParserTest::class.java)
@@ -72,7 +70,7 @@ class ModulesJournalXMLParserTest : FunSpec() {
 
             students[0].modules[1].subject.title shouldBe "Методы и средства измерений, испытаний и контроля"
             students[0].modules[1].value shouldBe 50
-            println("students modules:"+ students[0].modules)
+            println("students modules:" + students[0].modules)
 
         }
 
@@ -82,7 +80,7 @@ class ModulesJournalXMLParserTest : FunSpec() {
             val stre = StudentsXML.readStudentsFromXML(ByteArrayInputStream("""<?xml version="1.0" encoding="UTF-8"?>
 <sem date="28.03.2017.07.09.35" title="2016-весна">
 	<group name="ИДБ-13-01">
-		<student surame="Сергеев" firstname="Владимир" patronymic="Петрович" stud_id="121212" status="1" rating="0" accumRating="0" oldAccumRating="0" numSemester="0">
+		<student surame="Сергеев" firstname="Владимир" patronymic="Петрович" stud_id="121212" status="1" rating="44,26917" accumRating="36,06701" oldAccumRating="34,89527" numSemester="0">
 			<discipline name="Защита выпускной квалификационной работы" factor="0">
 				<exam type="" mark="0" P="0" status="0"/>
 			</discipline>
@@ -124,7 +122,7 @@ class ModulesJournalXMLParserTest : FunSpec() {
 				<exam type="1" mark="0" P="0" status="0"/>
 			</discipline>
 		</student>
-		<student surame="Копытов" firstname="Владимир" patronymic="Олегович" stud_id="113116" status="1" rating="0" accumRating="0" oldAccumRating="0" numSemester="0">
+		<student surame="Копытов" firstname="Владимир" patronymic="Олегович" stud_id="113116" status="1" rating="44,26917" accumRating="36,06701" oldAccumRating="34,89527" numSemester="0">
 			<discipline name="Защита выпускной квалификационной работы" factor="0">
 				<exam type="" mark="0" P="0" status="0"/>
 			</discipline>
@@ -148,11 +146,10 @@ class ModulesJournalXMLParserTest : FunSpec() {
             students[0].modules[1].subject.title shouldBe "Вычислительные машины, системы и сети"
             students[0].modules[1].value shouldBe 0
             students[0].modules[1].subject.semester shouldBe "2016-весна"
-            val ratingModule = students[0].modules.find { it.subject.title == "Накопленный Рейтинг" }
+            val ratingModule = students[0].modules.find { it.subject.title == MarksWorkbookReader.ACCOUMULATED_RATING }
             ratingModule should be ne null
             ratingModule!!.num shouldBe "М1"
-
-
+            ratingModule!!.value shouldBe 36
         }
 
 

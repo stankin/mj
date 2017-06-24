@@ -7,6 +7,8 @@ import java.io.Serializable;
 public class Module implements Cloneable, Serializable {
 
     public static final int BLACK_MODULE = 3355443;
+    public static final int YELLOW_MODULE = 16776960;
+    public static final int PURPLE_MODULE = 0xCC99FF;
 
     private static final long serialVersionUID = 1L;
 

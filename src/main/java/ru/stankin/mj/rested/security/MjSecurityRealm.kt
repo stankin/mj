@@ -5,7 +5,6 @@ import org.apache.logging.log4j.LogManager
 import org.apache.shiro.SecurityUtils
 import org.apache.shiro.authc.*
 import org.apache.shiro.authc.credential.PasswordMatcher
-import org.apache.shiro.authz.AuthorizationException
 import org.apache.shiro.authz.AuthorizationInfo
 import org.apache.shiro.authz.SimpleAuthorizationInfo
 import org.apache.shiro.realm.AuthorizingRealm
@@ -13,6 +12,7 @@ import org.apache.shiro.realm.Realm
 import org.apache.shiro.subject.PrincipalCollection
 import org.apache.shiro.subject.SimplePrincipalCollection
 import ru.stankin.mj.model.AuthenticationsStore
+import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.PasswordRecoveryService
 import ru.stankin.mj.model.user.User
@@ -21,38 +21,36 @@ import java.util.*
 
 class MjSecurityRealm(private val userService: UserResolver, private val authService: AuthenticationsStore) : AuthorizingRealm() {
 
-
-
     init {
         this.credentialsMatcher = PasswordMatcher().apply {
             this.passwordService = this@MjSecurityRealm.authService.getPasswordService()
         }
     }
 
-    override fun supports(token: AuthenticationToken?): Boolean {
-        return token is UsernamePasswordToken
-    }
+    override fun supports(token: AuthenticationToken?): Boolean = token is UsernamePasswordToken
 
-    override fun doGetAuthorizationInfo(p0: PrincipalCollection): AuthorizationInfo {
-        return userService.getUserByPrincipal(p0.primaryPrincipal)?.let {
-            SimpleAuthorizationInfo(setOf(if (it.isAdmin) MjRoles.ADMIN else MjRoles.STUDENT, MjRoles.USER))
-        } ?: SimpleAuthorizationInfo()
-    }
+    override fun doGetAuthorizationInfo(p0: PrincipalCollection): AuthorizationInfo =
+            userService.getUserByPrincipal(p0.primaryPrincipal)?.let {
+                SimpleAuthorizationInfo(setOf(if (it.isAdmin) MjRoles.ADMIN else MjRoles.STUDENT, MjRoles.USER))
+            } ?: SimpleAuthorizationInfo()
 
-    override fun doGetAuthenticationInfo(token: AuthenticationToken?): AuthenticationInfo? {
-
-        return when (token) {
-            is UsernamePasswordToken -> authenicateByUsernamePasswordToken(token)
-            else -> throw UnsupportedOperationException("unsupported token type ${token?.javaClass}")
-        }
-
+    override fun doGetAuthenticationInfo(token: AuthenticationToken?): AuthenticationInfo? = when (token) {
+        is UsernamePasswordToken -> authenicateByUsernamePasswordToken(token)
+        else -> throw UnsupportedOperationException("unsupported token type ${token?.javaClass}")
     }
 
     private fun authenicateByUsernamePasswordToken(userPassToken: UsernamePasswordToken): SimpleAuthenticationInfo? {
 
         val user = userService.getUserBy(userPassToken.username)
         if (user != null) {
-            return SimpleAuthenticationInfo(user, authService.getStoredPassword(user.id), name)
+            var storedPassword = authService.getStoredPassword(user.id)
+            if (storedPassword == null && user is Student) {
+                user.cardid?.let { cardid ->
+                    authService.updatePassword(user.id, cardid)
+                    storedPassword = authService.getStoredPassword(user.id)
+                }
+            }
+            return SimpleAuthenticationInfo(user, storedPassword, name)
         } else
             throw IncorrectCredentialsException()
     }

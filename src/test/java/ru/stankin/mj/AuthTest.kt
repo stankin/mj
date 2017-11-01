@@ -7,6 +7,7 @@ import org.apache.shiro.authc.UsernamePasswordToken
 import org.apache.shiro.subject.support.DelegatingSubject
 import org.apache.shiro.web.mgt.WebSecurityManager
 import ru.stankin.mj.model.AuthenticationsStore
+import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.rested.security.MjRoles
@@ -19,6 +20,11 @@ import ru.stankin.mj.testutils.InWeldTest
 class AuthTest : InWeldTest() {
     init {
         test("Should always be admin admin") {
+            shouldThrow<org.apache.shiro.authc.AuthenticationException> {
+                DelegatingSubject(bean<WebSecurityManager>())
+                        .login(UsernamePasswordToken("admin", "admin"))
+            }
+
             val userResolver = bean<UserResolver>()
             val admin = userResolver.getUserBy("admin", "adminadmin") as AdminUser
             checkNotNull(admin)
@@ -39,6 +45,19 @@ class AuthTest : InWeldTest() {
 
             info.principal should be a AdminUser::class
             (info.principal as AdminUser).username shouldBe "admin"
+        }
+
+        test("new students should be able to login with default password") {
+            val sm = bean<WebSecurityManager>()
+            val userResolver = bean<UserResolver>()
+            val idAndPassword = "NewStudentWithSameIdAndPassword"
+            val student = Student(idAndPassword, "1", "2", "3", "4")
+            userResolver.saveUser(student)
+
+            val info = DelegatingSubject(sm).apply { login(UsernamePasswordToken(idAndPassword, idAndPassword)) }
+
+            info.principal should be a Student::class
+            (info.principal as Student).username shouldBe idAndPassword
         }
 
         test("login with pac4j") {

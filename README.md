@@ -11,14 +11,6 @@
 
 Для сборки из исходников необходим [maven](http://maven.apache.org/) и [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
 
-Перед сборкой самого проекта нужно собрать Sql2o:
-
-```text
-cd sql2o
-mvn --projects . -pl core -pl extensions/postgres clean install -DskipTests
-cd ..
-```
-
 Сборку можно осуществить командой:
 ```text
 mvn clean install -DskipTests

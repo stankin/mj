@@ -1,7 +1,6 @@
 package ru.stankin.mj
 
 import io.kotlintest.matchers.be
-import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest
 import org.apache.oltu.oauth2.common.message.types.GrantType

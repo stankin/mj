@@ -1,6 +1,5 @@
 package ru.stankin.mj.javamigrations
 
-import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import ru.stankin.mj.model.AuthenticationsStore

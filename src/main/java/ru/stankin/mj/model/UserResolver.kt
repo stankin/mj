@@ -1,15 +1,12 @@
 package ru.stankin.mj.model
 
 import io.buji.pac4j.subject.Pac4jPrincipal
-import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.sql2o.Sql2o
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.model.user.User
 import ru.stankin.mj.utils.ThreadLocalTransaction
 import javax.annotation.PostConstruct
-import javax.enterprise.context.ApplicationScoped
-
 import javax.inject.Inject
 import javax.inject.Singleton
 

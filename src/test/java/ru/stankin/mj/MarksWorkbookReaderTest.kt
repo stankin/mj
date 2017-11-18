@@ -1,8 +1,6 @@
 package ru.stankin.mj
 
 import io.kotlintest.specs.FunSpec
-import kotlinx.support.jdk7.use
-import kotlinx.support.jdk8.collections.stream
 import ru.stankin.mj.model.*
 
 import java.util.stream.Collectors

@@ -1,6 +1,5 @@
 package ru.stankin.mj.utils
 
-import kotlinx.support.jdk7.use
 import org.sql2o.Connection
 import org.sql2o.Sql2o
 import org.sql2o.connectionsources.ConnectionSource

@@ -2,19 +2,14 @@ package ru.stankin.mj.model
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
-import kotlinx.support.jdk8.collections.stream
 import org.apache.logging.log4j.LogManager
 import org.sql2o.Connection
-import org.sql2o.ResultSetIterable
 import org.sql2o.Sql2o
 import ru.stankin.mj.rested.security.MjRoles
 import ru.stankin.mj.utils.ThreadLocalTransaction
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
-import java.util.stream.Stream
-import java.util.stream.StreamSupport
-import javax.enterprise.inject.Default
 import javax.inject.Inject
 import javax.inject.Singleton
 

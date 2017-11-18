@@ -2,15 +2,12 @@ package ru.stankin.mj
 
 import io.kotlintest.matchers.be
 import io.kotlintest.specs.FunSpec
-import kotlinx.support.jdk7.use
-import kotlinx.support.jdk8.collections.stream
-import kotlinx.support.jdk8.streams.toList
 import org.apache.logging.log4j.LogManager
-import org.intellij.lang.annotations.Language
-import ru.stankin.mj.model.*
+import ru.stankin.mj.model.MarksWorkbookReader
+import ru.stankin.mj.model.StudentsXML
 import ru.stankin.mj.testutils.Matchers.ne
-import ru.stankin.mj.utils.stream
 import java.io.ByteArrayInputStream
+import kotlin.streams.toList
 
 
 /**

@@ -1,6 +1,5 @@
 package ru.stankin.mj.model
 
-import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.apache.shiro.authc.credential.DefaultPasswordService
 import org.apache.shiro.authc.credential.PasswordService

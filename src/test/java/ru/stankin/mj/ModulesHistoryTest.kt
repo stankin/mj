@@ -1,13 +1,10 @@
 package ru.stankin.mj
 
-import io.kotlintest.matchers.be
-import kotlinx.support.jdk7.use
-import kotlinx.support.jdk8.streams.toList
 import org.sql2o.Sql2o
 import ru.stankin.mj.model.*
-import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.testutils.InWeldTest
 import ru.stankin.mj.utils.ThreadLocalTransaction
+import kotlin.streams.toList
 
 
 /**

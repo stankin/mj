@@ -1,5 +1,4 @@
 package ru.stankin.mj.model
-import kotlinx.support.jdk7.use
 import org.sql2o.Sql2o
 import ru.stankin.mj.utils.ThreadLocalTransaction
 import java.io.InputStream

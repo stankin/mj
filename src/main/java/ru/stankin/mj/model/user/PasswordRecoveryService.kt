@@ -2,14 +2,9 @@ package ru.stankin.mj.model.user
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
-import kotlinx.support.jdk7.use
 import org.apache.logging.log4j.LogManager
 import org.sql2o.Sql2o
 import ru.stankin.mj.UserActionException
-import ru.stankin.mj.model.AuthenticationsStore
-import ru.stankin.mj.model.Student
-import ru.stankin.mj.model.Subject
-import ru.stankin.mj.utils.JSON
 import ru.stankin.mj.utils.ThreadLocalTransaction
 import ru.stankin.mj.utils.requireProperty
 import java.sql.Timestamp
@@ -18,7 +13,6 @@ import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.annotation.PreDestroy

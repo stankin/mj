@@ -1,0 +1,12 @@
+language: java
+
+services:
+  - postgresql
+addons:
+  postgresql: "9.5"
+
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
+  - createuser -U postgres mj_test -d
+  - psql -c "ALTER USER mj_test WITH PASSWORD '';" -U postgres
+  - createdb -U postgres mj_test -E UTF8 -l en_US.UTF-8 -O mj_test

@@ -583,6 +583,18 @@
                             <name>java.util.logging.manager</name>
                             <value>org.jboss.logmanager.LogManager</value>
                         </property>
+                        <property>
+                            <name>mj.test.pg.url</name>
+                            <value>postgresql://localhost/mj_test</value>
+                        </property>
+                        <property>
+                            <name>mj.test.pg.user</name>
+                            <value>mj_test</value>
+                        </property>
+                        <property>
+                            <name>mj.test.pg.password</name>
+                            <value></value>
+                        </property>
                     </systemProperties>
                 </configuration>
             </plugin>

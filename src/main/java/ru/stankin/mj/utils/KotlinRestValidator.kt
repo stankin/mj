@@ -42,9 +42,9 @@ class NullValidator : GeneralValidator {
     override fun checkViolations(request: HttpRequest?) {
     }
 
-    override fun validateAllParameters(request: HttpRequest, `object`: Any, method: Method, parameterValues: Array<out Any?>, vararg groups: Class<*>?) {
+    override fun validateAllParameters(request: HttpRequest, `object`: Any, method: Method, parameterValues: Array<out Any?>?, vararg groups: Class<*>?) {
         for ((i, param) in (method.kotlinFunction?.valueParameters ?: emptyList()).withIndex()) {
-            if (!param.type.isMarkedNullable && parameterValues[i] == null) {
+            if (!param.type.isMarkedNullable && parameterValues?.get(i) == null) {
                 val paramname = param.findAnnotation<QueryParam>()?.value
                         ?: param.findAnnotation<FormParam>()?.value
                         ?: param.name

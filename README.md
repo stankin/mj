@@ -5,7 +5,7 @@
 Также может использоваться как средство OAuth2-аутентификации студентов на внутренних сервисах МГТУ Станкин 
 (см [oauthProvider.md](oauthProvider.md)).
 
-Сообщения об ошибках и пожелания вы можете оставить [здесь](https://bitbucket.org/NicolayMitropolsky/stankin-mj/issues?sort=status).
+Сообщения об ошибках и пожелания вы можете оставить [здесь](https://github.com/stankin/mj/issues).
 
 ## Сборка и инсталяция ##
 

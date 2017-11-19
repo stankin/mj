@@ -1,4 +1,4 @@
-# Модульный журнал МГТУ Станкин #
+# Модульный журнал МГТУ Станкин  [![Build Status](https://travis-ci.org/stankin/mj.svg?branch=master)](https://travis-ci.org/stankin/mj)
 
 Веб-интерфейс для просмотра оценок студентами, разрабатываемый для МГТУ Станкин.
 

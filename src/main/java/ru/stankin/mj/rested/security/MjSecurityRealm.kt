@@ -7,6 +7,7 @@ import org.apache.shiro.authc.*
 import org.apache.shiro.authc.credential.PasswordMatcher
 import org.apache.shiro.authz.AuthorizationInfo
 import org.apache.shiro.authz.SimpleAuthorizationInfo
+import org.apache.shiro.authz.UnauthorizedException
 import org.apache.shiro.realm.AuthorizingRealm
 import org.apache.shiro.realm.Realm
 import org.apache.shiro.subject.PrincipalCollection
@@ -139,5 +140,8 @@ object MjRoles {
     const val PASSWORDRECOVERY = "passwordRecovery"
 
     @JvmStatic fun getUser(): User? = SecurityUtils.getSubject().principals?.oneByType(User::class.java)
+
+    @JvmStatic val userAsStudent: Student
+      get() = getUser() as? Student ?: throw UnauthorizedException("current user is not a student")
 
 }

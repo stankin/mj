@@ -85,8 +85,8 @@ class MainView : CustomComponent(), View {
                     if (!SecurityUtils.getSubject().hasRole(MjRoles.ADMIN)) {
                         val studentRatingButton = StudentRatingButton()
                         addComponent(studentRatingButton)
-                        val student = MjRoles.getUser() as Student?
-                        studentRatingButton.setStudent(storage.getStudentById(student!!.id, currentSemester))
+                        val student = MjRoles.userAsStudent
+                        studentRatingButton.setStudent(storage.getStudentById(student.id, currentSemester))
                     }
 
                     addComponentExpand(Label(""), 1f)
@@ -126,8 +126,8 @@ class MainView : CustomComponent(), View {
                     mainPanel = genUploadAndGrids()
                 else {
                     mainPanel = genMarks()
-                    val student = MjRoles.getUser() as Student?
-                    setWorkingStudent(student!!.id, currentSemester!!)
+                    val student = MjRoles.userAsStudent
+                    setWorkingStudent(student.id, currentSemester!!)
                     //marks.fillMarks(storage.getStudentById(student.id, getCurrentSemester()));
                 }
                 mainPanel
@@ -191,8 +191,8 @@ class MainView : CustomComponent(), View {
             if (size > 1)
                 semestrCbx.select(indexedContainer.itemIds[size - 2])
         } else {
-            val student = MjRoles.getUser() as Student?
-            semestrCbx.containerDataSource = IndexedContainer(storage.getStudentSemestersWithMarks(student!!.id))
+            val student = MjRoles.userAsStudent
+            semestrCbx.containerDataSource = IndexedContainer(storage.getStudentSemestersWithMarks(student.id))
             semestrCbx.addValueChangeListener { event -> setWorkingStudent(lastWorkingStudent, event.property.value as String) }
             val size = semestrCbx.itemIds.size
             if (size > 0)

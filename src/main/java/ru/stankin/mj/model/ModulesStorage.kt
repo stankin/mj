@@ -30,7 +30,6 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
 
         val studentModules = ArrayList(student.modules)
         val semester = studentModules[0].subject.semester
-//        logger.debug("saving student {} at {} modules: {}", student.cardid, semester, studentModules.size)
 
         sql2o.beginTransaction(ThreadLocalTransaction.get()).use { connection ->
 
@@ -49,24 +48,20 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
 
             for (module in studentModules) {
                 module.subject = subjects.persistedSubject(module.subject)
-
-                val existigModule = currentModules.stream().filter({ cur -> cur.getSubject().id == module.subject.id && cur.getNum() == module.num }).findAny()
-
-                existigModule.ifPresent{ currentModules.remove(it) }
-
-                if (existigModule.isPresent() && existigModule.get() != module) {
-
+                val existingModule = currentModules.find { it.subject.id == module.subject.id && it.num == module.num }
+                existingModule?.let { currentModules.remove(it) }
+                if (existingModule != null && existingModule != module) {
                     connection
                             .createQuery("UPDATE modules SET color = :color, value = :value, transaction = :transaction WHERE student_id = :student AND subject_id = :subject AND num = :num")
                             .addParameter("color", module.color)
                             .addParameter("value", module.value)
-                            .addParameter("student", existigModule.get().studentId)
-                            .addParameter("subject", existigModule.get().getSubject().getId())
+                            .addParameter("student", existingModule.studentId)
+                            .addParameter("subject", existingModule.subject.id)
                             .addParameter("transaction", ModifyingTransactions.modifyingTransaction().id)
-                            .addParameter("num", existigModule.get().getNum())
+                            .addParameter("num", existingModule.num)
                             .executeUpdate()
                     updated++
-                } else if (!existigModule.isPresent()) {
+                } else if (existingModule == null) {
                     connection
                             .createQuery("INSERT INTO modules (color, num, value, student_id, subject_id, transaction) VALUES (:color, :num, :value, :studentId, :subjectId, :transaction) ON CONFLICT DO NOTHING")
                             .bind(module)
@@ -76,34 +71,27 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
                             .executeUpdate()
                     added++
                 }
-
             }
 
             if (!currentModules.isEmpty()) {
+                connection.createQuery("DELETE FROM modules WHERE student_id = :student AND subject_id = :subject AND num = :num").apply {
+                    for (module in currentModules) {
+                        addParameter("student", module.studentId)
+                        addParameter("subject", module.subject.id)
+                        addParameter("num", module.num)
+                        addToBatch()
+                    }
+                }.executeBatch()
 
-                val query = connection.createQuery("DELETE FROM modules WHERE student_id = :student AND subject_id = :subject AND num = :num")
-
-                for (module in currentModules) {
-                    query
-                            .addParameter("student", module.studentId)
-                            .addParameter("subject", module.getSubject().getId())
-                            .addParameter("num", module.getNum())
-                            .addToBatch()
-                }
-                query.executeBatch()
-
-                val query1 = connection
-                        .createQuery("INSERT INTO moduleshistory (color, num, value, student_id, subject_id, transaction)  VALUES (0,:num, -1, :studentId, :subjectId, :transaction)")
-
-                for (module in currentModules) {
-                    query1
-                            .addParameter("num", module.getNum())
-                            .addParameter("studentId", student.id)
-                            .addParameter("subjectId", module.subject.id)
-                            .addParameter("transaction", ModifyingTransactions.modifyingTransaction().id)
-                            .addToBatch()
-                }
-                query1.executeBatch()
+                connection.createQuery("INSERT INTO moduleshistory (color, num, value, student_id, subject_id, transaction)  VALUES (0,:num, -1, :studentId, :subjectId, :transaction)").apply {
+                    for (module in currentModules) {
+                        addParameter("num", module.num)
+                        addParameter("studentId", student.id)
+                        addParameter("subjectId", module.subject.id)
+                        addParameter("transaction", ModifyingTransactions.modifyingTransaction().id)
+                        addToBatch()
+                    }
+                }.executeBatch()
 
                 deleted += currentModules.size
             }

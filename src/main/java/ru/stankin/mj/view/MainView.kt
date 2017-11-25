@@ -184,11 +184,16 @@ class MainView : CustomComponent(), View {
                         }
                     }
                 } else {
-                    setWorkingStudent(lastWorkingStudent, event.property.value as String)
+                    val value = event.property.value as String
+                    setWorkingStudent(lastWorkingStudent, value)
+                    Cookies[SELECTED_SEMESTER_COOKIE] = value.urlencoded
                 }
             }
             val size = semestrCbx.itemIds.size
-            if (size > 1)
+            val prevSelected = Cookies[SELECTED_SEMESTER_COOKIE]?.urldecoded
+            if (prevSelected != null && indexedContainer.itemIds.contains(prevSelected))
+                semestrCbx.select(prevSelected)
+            else if (size > 1)
                 semestrCbx.select(indexedContainer.itemIds[size - 2])
         } else {
             val student = MjRoles.userAsStudent
@@ -565,6 +570,7 @@ class MainView : CustomComponent(), View {
     companion object {
         private val logger = LogManager.getLogger(MainView::class.java)
         private val ADD_SEMESTER_LABEL = "Добавить семестр"
+        private val SELECTED_SEMESTER_COOKIE = "selectedSemester"
     }
 }
 

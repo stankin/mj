@@ -68,7 +68,7 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
                     updated++
                 } else if (!existigModule.isPresent()) {
                     connection
-                            .createQuery("INSERT INTO modules (color, num, value, student_id, subject_id, transaction) VALUES (:color, :num, :value, :studentId, :subjectId, :transaction)")
+                            .createQuery("INSERT INTO modules (color, num, value, student_id, subject_id, transaction) VALUES (:color, :num, :value, :studentId, :subjectId, :transaction) ON CONFLICT DO NOTHING")
                             .bind(module)
                             .addParameter("studentId", student.id)
                             .addParameter("subjectId", module.subject.id)

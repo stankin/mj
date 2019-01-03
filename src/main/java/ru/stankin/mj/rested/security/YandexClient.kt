@@ -1,69 +1,43 @@
 package ru.stankin.mj.rested.security
 
-import com.github.scribejava.core.builder.api.BaseApi
+import com.fasterxml.jackson.databind.JsonNode
 import com.github.scribejava.core.builder.api.DefaultApi20
 import com.github.scribejava.core.model.OAuth2AccessToken
-import com.github.scribejava.core.model.OAuthConfig
-import com.github.scribejava.core.oauth.OAuth20Service
+
 import org.apache.logging.log4j.LogManager
-import org.pac4j.core.profile.AttributesDefinition
+
 import org.pac4j.core.profile.converter.Converters
-import org.pac4j.oauth.client.BaseOAuth20Client
+
+import org.pac4j.oauth.client.OAuth20Client
+import org.pac4j.oauth.config.OAuth20Configuration
 import org.pac4j.oauth.profile.JsonHelper
 import org.pac4j.oauth.profile.OAuth20Profile
-import org.pac4j.oauth.profile.converter.JsonListConverter
+import org.pac4j.oauth.profile.definition.OAuth20ProfileDefinition
+
 
 /**
  * Created by nickl on 01.01.17.
  */
-class YandexClient() : BaseOAuth20Client<YandexProfile>() {
-
-    private val log = LogManager.getLogger(this.javaClass)
+class YandexClient() : OAuth20Client<OAuth20Profile>() {
 
     constructor(key: String, secret: String) : this() {
+        this.configuration = YandexProfileDefinition.Configuration
         this.key = key
         this.secret = secret
     }
 
-    override fun getApi(): BaseApi<OAuth20Service> = YandexApi
+}
 
-    override fun hasOAuthGrantType(): Boolean = true
 
-    override fun extractUserProfile(body: String?): YandexProfile {
-        log.debug("extractUserProfile for body: $body")
-        return YandexProfile().let { profile ->
-            JsonHelper.getFirstNode(body)?.run {
-                profile.setId(JsonHelper.getElement(this, "id"))
-                for (attribute in profile.attributesDefinition.primaryAttributes) {
-                    profile.addAttribute(attribute, JsonHelper.getElement(this, attribute))
-                }
-            }
-            profile
-        }
-    }
+object YandexProfileDefinition : OAuth20ProfileDefinition<OAuth20Profile, OAuth20Configuration>() {
 
-    override fun getProfileUrl(accessToken: OAuth2AccessToken): String =
+    private val log = LogManager.getLogger(this.javaClass)
+
+    override fun extractUserProfile(body: String?): OAuth20Profile = YandexProfile(JsonHelper.getFirstNode(body))
+
+    override fun getProfileUrl(accessToken: OAuth2AccessToken, configuration: OAuth20Configuration): String =
             "https://login.yandex.ru/info?format=json&oauth_token=" + accessToken.accessToken
 
-}
-
-
-class YandexProfile() : OAuth20Profile() {
-
-    constructor(id: String, attributes: Map<String, Any>) : this() {
-        setId(id)
-        clientName = "YandexProfile"
-        for ((k, v) in attributes) {
-            addAttribute(k, v)
-        }
-    }
-
-    override fun getAttributesDefinition(): AttributesDefinition = YandexAttributesDefinition
-
-    override fun getEmail(): String = getAttribute("display_name", String::class.java)
-}
-
-object YandexAttributesDefinition : AttributesDefinition() {
 
     val FIRST_NAME = "first_name"
     val last_name = "last_name"
@@ -80,7 +54,7 @@ object YandexAttributesDefinition : AttributesDefinition() {
         primary(FIRST_NAME, Converters.STRING)
         primary(last_name, Converters.STRING)
         primary(display_name, Converters.STRING)
-        primary(emails, JsonListConverter(String::class.java, Array<String>::class.java))
+        primary(emails, Converters.STRING)
         primary(default_email, Converters.STRING)
         primary(real_name, Converters.STRING)
         primary(birthday, Converters.STRING)
@@ -89,17 +63,35 @@ object YandexAttributesDefinition : AttributesDefinition() {
         primary(id, Converters.STRING)
     }
 
+    class YandexProfile : OAuth20Profile {
+        constructor(id: String, attributes: Map<String, Any>) {
+            setId(id)
+            clientName = "YandexProfile"
+            for ((k, v) in attributes) {
+                addAttribute(k, v)
+            }
+        }
 
-}
+        constructor(jsonNode: JsonNode) {
+            id = JsonHelper.getElement(jsonNode, "id") as String
+            for (attribute in primaryAttributes) {
+                addAttribute(attribute, JsonHelper.getElement(jsonNode, attribute))
+            }
+        }
 
-private object YandexApi : DefaultApi20() {
-
-    private val AUTHORIZE_URL = "https://oauth.yandex.ru/authorize?response_type=code&client_id=%s"
-
-    override fun getAuthorizationUrl(config: OAuthConfig): String {
-        return String.format(AUTHORIZE_URL, config.apiKey)
+        override fun getEmail(): String = getAttribute("display_name", String::class.java)
     }
 
-    override fun getAccessTokenEndpoint(): String = "https://oauth.yandex.ru/token"
+    object Configuration : OAuth20Configuration() {
+        init {
+            api = object : DefaultApi20() {
 
+                override fun getAuthorizationBaseUrl(): String = "https://oauth.yandex.ru/authorize"
+
+                override fun getAccessTokenEndpoint(): String = "https://oauth.yandex.ru/token"
+
+            }
+            profileDefinition = YandexProfileDefinition
+        }
+    }
 }

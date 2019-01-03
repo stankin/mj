@@ -22,6 +22,7 @@ import org.apache.shiro.web.mgt.DefaultWebSessionStorageEvaluator
 import org.apache.shiro.web.session.mgt.ServletContainerSessionManager
 import org.pac4j.core.client.Clients
 import org.pac4j.oauth.client.Google2Client
+import org.pac4j.oauth.client.VkClient
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.PasswordRecoveryService
@@ -86,7 +87,7 @@ class ShiroConfiguration {
                     ).apply {
                         callbackUrl = properties.getProperty("oauth.callbackurl")
                     },
-                    MyVkClient(properties.requireProperty("oauth.vk.clientid"),
+                    VkClient(properties.requireProperty("oauth.vk.clientid"),
                             properties.requireProperty("oauth.vk.secret")).apply {
                         callbackUrl = properties.getProperty("oauth.callbackurl")
                     },

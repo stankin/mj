@@ -11,7 +11,7 @@ import ru.stankin.mj.model.Student
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.AdminUser
 import ru.stankin.mj.rested.security.MjRoles
-import ru.stankin.mj.rested.security.YandexProfile
+import ru.stankin.mj.rested.security.YandexProfileDefinition.YandexProfile
 import ru.stankin.mj.testutils.InWeldTest
 
 /**
@@ -63,7 +63,7 @@ class AuthTest : InWeldTest() {
         test("login with pac4j") {
             val sm = bean<WebSecurityManager>()
             val info = DelegatingSubject(sm).apply {
-                login(Pac4jToken(linkedMapOf("YandexKey" to YandexProfile("testYandex", mapOf())), false))
+                login(Pac4jToken(listOf(YandexProfile("testYandex", mapOf())), false))
             }
 
             info.hasRole(MjRoles.UNBINDED_OAUTH) shouldBe true
@@ -85,7 +85,7 @@ class AuthTest : InWeldTest() {
             bean<AuthenticationsStore>().assignProfileToUser(adminUser.id, yandexProfile)
 
             val info = DelegatingSubject(sm).apply {
-                login(Pac4jToken(linkedMapOf("YandexKey" to yandexProfile), false))
+                login(Pac4jToken(listOf(yandexProfile), false))
             }
 
             info.hasRole(MjRoles.UNBINDED_OAUTH) shouldBe false

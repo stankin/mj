@@ -7,7 +7,8 @@
 
 ## Сборка и инсталяция ##
 
-Для сборки из исходников необходим [maven](http://maven.apache.org/) и [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
+Для сборки из исходников необходим [maven](http://maven.apache.org/) и [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+С более поздними версиями JDK может не собираться из-за [проблем](https://vaadin.com/forum/thread/17976425/can-t-compile-widgetset-vaadin-7-java-12) GWT 2.7 с поддержкой более новых версий Java.
 
 Сборку можно осуществить командой:
 ```text

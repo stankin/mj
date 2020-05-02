@@ -17,8 +17,6 @@ import javax.inject.Singleton
 @Singleton
 class UserResolver @Inject constructor(private val sql2o: Sql2o) {
 
-    constructor():this(Sql2o())
-
     @Inject
     private lateinit var storage: StudentsStorage
 

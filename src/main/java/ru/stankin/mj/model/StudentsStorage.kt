@@ -47,13 +47,13 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
             if (student.id == 0) {
                 logger.trace("inserting student {}", student)
                 val userId = connection
-                        .createQuery("INSERT INTO users (login, initials, name, patronym, surname, email) " + "VALUES (:cardid, :initials, :name, :patronym, :surname, :email)", true)
+                        .createQuery("INSERT INTO users (login, initials, name, patronym, surname, email) VALUES (:cardid, :initials, :name, :patronym, :surname, :email)", true)
                         .bind(student)
                         .executeUpdate().getKey<Int>(Int::class.java)
 
                 student.id = userId!!
 
-                connection.createQuery("INSERT INTO student (id, stgroup) " + "VALUES (:id, :stgroup)")
+                connection.createQuery("INSERT INTO student (id, stgroup) VALUES (:id, :stgroup)")
                         .bind(student)
                         .executeUpdate()
             } else {
@@ -69,7 +69,7 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
                         .bind(student)
                         .executeUpdate()
 
-                connection.createQuery("UPDATE student SET stgroup = :stgroup " + "WHERE id = :id")
+                connection.createQuery("UPDATE student SET stgroup = :stgroup WHERE id = :id")
                         .bind(student)
                         .executeUpdate()
             }
@@ -89,7 +89,7 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
 
                 if (group == null) {
                     connection
-                            .createQuery("INSERT INTO groupshistory (groupname, semestr, student_id) " + "VALUES (:group, :semester, :student)")
+                            .createQuery("INSERT INTO groupshistory (groupname, semestr, student_id) VALUES (:group, :semester, :student)")
                             .addParameter("group", student.stgroup)
                             .addParameter("semester", semestr)
                             .addParameter("student", student.id)
@@ -135,7 +135,7 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
             ThreadLocalTransaction.joinOrNew(sql2o) {
                 sql2o.open(ThreadLocalTransaction.get()).use { connection ->
                     val student = connection
-                            .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id" + " WHERE users.id = :id")
+                            .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id  WHERE users.id = :id")
                             .addParameter("id", id)
                             .throwOnMappingFailure(false)
                             .executeAndFetchFirst(Student::class.java)
@@ -185,7 +185,7 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
             ThreadLocalTransaction.joinOrNew(sql2o) {
                 sql2o.open(ThreadLocalTransaction.get()).use { connection ->
                     val student = connection
-                            .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id" + " WHERE student.stgroup = :group and users.surname = :surname AND users.initials = :initials")
+                            .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id WHERE student.stgroup = :group and users.surname = :surname AND users.initials = :initials")
                             .addParameter("group", group)
                             .addParameter("surname", surname)
                             .addParameter("initials", initials)
@@ -207,7 +207,7 @@ constructor(private val sql2o: Sql2o, private val modules: ModulesStorage) {
     fun getStudentByCardId(cardid: String): Student? {
         sql2o.open(ThreadLocalTransaction.get()).use { connection ->
             val student = connection
-                    .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id" + " WHERE login = :login")
+                    .createQuery("SELECT users.id as id, users.login as cardid, * FROM users INNER JOIN student on users.id = student.id WHERE login = :login")
                     .addParameter("login", cardid)
                     .throwOnMappingFailure(false)
                     .executeAndFetchFirst(Student::class.java)

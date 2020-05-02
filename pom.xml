@@ -600,7 +600,7 @@
                         </property>
                         <property>
                             <name>mj.test.pg.password</name>
-                            <value></value>
+                            <value>mj_test</value>
                         </property>
                     </systemProperties>
                 </configuration>

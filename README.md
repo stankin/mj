@@ -97,15 +97,18 @@ mvn wildfly:deploy -DskipTests -Dwildfly.hostname=адрес_сервера
 
 ### Тестирование ###
 
-Для выполнения тестов (`mvn test`) необходимо указать в переменной окружения `JBOSS_HOME` путь к установленному серверу Wildfly.
-
-Для исполнения `ArquillianTest` необходимо предварительно создать в Postgres пользователя `mj_test` с пустым паролем и базу данных `mj_test`.
+Для выполнения тестов (`mvn test`) необходимо предварительно создать в Postgres пользователя `mj_test` с паролем `mj_test` и базу данных `mj_test`.
 Сделать это можно (в Ubuntu) командами:
 
     sudo -u postgres createuser mj_test -d -P
     sudo -u postgres createdb mj_test -E UTF8 -l en_US.UTF-8 -O mj_test
 
-При запросе ввода пароля в качестве пароля оставить пустую строку.
+При запросе ввода пароля в качестве пароля введите `mj_test`.
+
+В качестве альтенративы, если вы используете [Docker](https://www.docker.com), то можно использовать подготовленный
+в корневом каталоге файл для тестирования `docker-compose-dev.yaml`
+
+    docker-compose -f docker-compose-dev.yaml up
 
 
 ## Работа с приложением ##

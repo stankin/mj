@@ -14,7 +14,6 @@ public class AdminUser implements Serializable, User {
     private String username = null;
     @Nullable
     private String email = null;
-    private boolean isAdmin = true;
 
     public AdminUser() {
     }
@@ -46,7 +45,7 @@ public class AdminUser implements Serializable, User {
 
     @Override
     public boolean isAdmin() {
-        return isAdmin;
+        return true;
     }
 
     public int getId() {
@@ -74,7 +73,7 @@ public class AdminUser implements Serializable, User {
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", isAdmin=" + isAdmin +
+                ", isAdmin=" + isAdmin() +
                 '}';
     }
 

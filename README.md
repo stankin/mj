@@ -38,8 +38,9 @@ service.recoveryurl=http://localhost:8080/mj/recovery
 
 Для работы приложения на сервере должен быть установлен [PostgreSQL](https://www.postgresql.org/).
 
-Сервер WildFly должен иметь поддержку [JDBC-драйвера для postgresql](https://jdbc.postgresql.org/download/postgresql-42.0.0.jar). Для добавления его нужно выполнить следующие команды:
+Сервер WildFly должен иметь поддержку [JDBC-драйвера для postgresql](https://jdbc.postgresql.org/download/postgresql-42.2.12.jar). Для добавления его нужно выполнить следующие команды:
 
+    wget https://jdbc.postgresql.org/download/postgresql-42.2.12.jar
     ./jboss-cli.sh 
     
 И внутри него:
@@ -49,43 +50,41 @@ service.recoveryurl=http://localhost:8080/mj/recovery
     /subsystem=datasources/jdbc-driver=postgres:add(driver-name="postgres",driver-module-name="org.postgresql",driver-class-name=org.postgresql.Driver)
 
 Настройки доступа к базе (url, логин, пароль) должны быть указаны в конфигурации WildFly
- (например, `$JBOSS_HOME/standalone/configuration/standalone.xml`) в секции `urn:jboss:domain:datasources:4.0`
 
-```xml
-        <subsystem xmlns="urn:jboss:domain:datasources:4.0">
-            <datasources>
-                <datasource jndi-name="java:jboss/datasources/mj2" jta="false" pool-name="mj-pg-datasource" enabled="true" use-java-context="true">
-                    <connection-url>jdbc:postgresql://localhost:5432/mj</connection-url>
-                    <driver>postgres</driver>
-                    <security>
-                        <user-name>login</user-name>
-                        <password>password</password>
-                    </security>
-                </datasource>
-                ...
-```
+    data-source add --jndi-name=java:jboss/datasources/mj2 --name=mj --connection-url=jdbc:postgresql://localhost:5432/mj --driver-name=postgres --user-name=login --password=password
+    
 
 ### Почта
 
-Для отправки почты почтовый сервер должен быть указан в конфигурации Wildfly:
+Для отправки почты почтовый сервер должен быть указан в конфигурации Wildfly, можно добавить через `jboss-cli`:
 
-```xml
-<subsystem xmlns="urn:jboss:domain:mail:2.0">
-    <mail-session name="default" jndi-name="java:jboss/mail/Default">
-        <smtp-server outbound-socket-binding-ref="mail-smtp" ssl="true" username="..." password="..."/>
-    </mail-session>
-</subsystem>
-```
-и, например:
-```xml
-    <socket-binding-group name="standard-sockets" default-interface="public" port-offset="${jboss.socket.binding.port-offset:0}">
-        ...
-        <outbound-socket-binding name="mail-smtp">
-            <remote-destination host="smtp.yandex.ru" port="465"/>
-        </outbound-socket-binding>
-    </socket-binding-group>
-```
+    batch
+    /subsystem=mail/mail-session=default/server=smtp:write-attribute(name=username,value=ВАШ-EMAIL)
+    /subsystem=mail/mail-session=default/server=smtp:write-attribute(name=password,value=ВАШ-ПАРОЛЬ)
+    /subsystem=mail/mail-session=default/server=smtp:write-attribute(name=ssl,value=true)
+    /socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=mail-smtp/:write-attribute(name=host,value=smtp.yandex.ru)
+    /socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=mail-smtp/:write-attribute(name=port,value=465)
+    run-batch
 
+### Размер загружаемых файлов
+
+По-умолчанию размер загружаемых файлов на Wildfly ограничен 10 мегабайтами, что меньше чем размер загружаемого на 2020 год выгрузки из 1С.
+Этот размер можно увеличить до 64 Мб командой в `jboss-cli.sh`
+
+    /subsystem=undertow/server=default-server/http-listener=default/:write-attribute(name=max-post-size,value=67108864)
+    
+Также имеет смысл увеличить максимальное время соединения для загрузки больших файлов
+
+    /subsystem=undertow/server=default-server/http-listener=default:write-attribute(name=no-request-timeout, value=600000)
+    
+Если в качестве фронтента выступает nginx то ему в соответствующий блок `server` аналогично нужно добавить:
+
+    client_max_body_size 64m;
+    
+А в настройки proxy:
+
+    proxy_connect_timeout 1200s; 
+    proxy_read_timeout 1200s;
 
 ### Запуск
 
@@ -105,7 +104,7 @@ mvn wildfly:deploy -DskipTests -Dwildfly.hostname=адрес_сервера
 
 При запросе ввода пароля в качестве пароля введите `mj_test`.
 
-В качестве альтенративы, если вы используете [Docker](https://www.docker.com), то можно использовать подготовленный
+В качестве альтернативы, если вы используете [Docker](https://www.docker.com), то можно использовать подготовленный
 в корневом каталоге файл для тестирования `docker-compose-dev.yaml`
 
     docker-compose -f docker-compose-dev.yaml up

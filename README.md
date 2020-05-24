@@ -10,12 +10,14 @@
 Для сборки из исходников необходим [maven](http://maven.apache.org/) и [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 С более поздними версиями JDK может не собираться из-за [проблем](https://vaadin.com/forum/thread/17976425/can-t-compile-widgetset-vaadin-7-java-12) GWT 2.7 с поддержкой более новых версий Java.
 
+При этом работа приложения может осуществляться и на более поздних версиях JDK (По крайней мере в настойщий момент приложений работает на JDK 11)
+
 Сборку можно осуществить командой:
 ```text
 mvn clean install -DskipTests
 ```
 
-Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 10.1.0.Final](http://wildfly.org/), скачать который можно по [ссылке](http://download.jboss.org/wildfly/10.1.0.Final/wildfly-10.1.0.Final.zip).
+Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 19.0.0.Final](http://wildfly.org/), скачать который можно по [ссылке](https://download.jboss.org/wildfly/19.0.0.Final/wildfly-19.0.0.Final.zip).
 
 ### Конфигурация
 

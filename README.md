@@ -87,6 +87,12 @@ service.recoveryurl=http://localhost:8080/mj/recovery
 
     proxy_connect_timeout 1200s; 
     proxy_read_timeout 1200s;
+    
+### Логирование
+
+Включить архивацию при ротации логов можно командой в `jboss-cli.sh`
+
+    /subsystem=logging/periodic-rotating-file-handler=FILE:write-attribute(name=suffix, value=".yyyy-MM-dd.gz")
 
 ### Запуск
 

@@ -9,7 +9,7 @@
         <Logger name="com.foo.Bar" level="trace" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Root level="debug">
+        <Root level="info">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>

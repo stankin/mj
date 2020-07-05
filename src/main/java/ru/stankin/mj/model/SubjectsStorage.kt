@@ -49,7 +49,7 @@ class SubjectsStorage @Inject constructor(private val sql2o: Sql2o) {
                     .addParameter("group", subjData.group)
                     .addParameter("title", subjData.name)
                     .executeAndFetchFirst(Subject::class.java)
-            if (subject != null && Math.abs(subject.factor - subjData.factor) < 0.001) {
+            if (subject != null && Math.abs(subject.factor - subjData.factor) < 0.001 || subjData.factor == 0.0) {
                 return subject
             } else if (subject == null) {
                 val id = connection

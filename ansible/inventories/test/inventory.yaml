@@ -1,0 +1,18 @@
+all:
+  hosts:
+    test:
+      ansible_host: <your-ip-here>
+      ansible_user: root
+      ansible_become: 'yes'
+      internal_ip: 127.0.0.1
+  children:
+    mj_wildfly:
+      hosts:
+        test:
+          wfly_user: deployer
+          wfly_password: thoht2Xae#ca
+    mj_pg:
+      hosts:
+        test:
+          pg_user: mj_pg
+          pg_password: password-for-tests

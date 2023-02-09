@@ -1,0 +1,124 @@
+- hosts: mj_pg
+  tasks:
+    - name: "Install postgresql"
+      apt: { name: ['postgresql', 'python3-pip'], state: latest, update_cache: yes }
+    - name: Install psycopg2 for ansible handle postgres
+      pip: { name: psycopg2-binary }
+    - name: act as postgres
+      become_user: postgres
+      become: yes
+      block:
+        - name: Create pg_user
+          postgresql_user:
+            name: "{{ pg_user }}"
+            password: "{{ pg_password }}"
+        - name: Create mj Database
+          postgresql_db:
+            name: mj
+            owner: "{{ pg_user }}"
+            encoding: UTF-8
+        - name: Collect pg_info for further setup
+          postgresql_info:
+          register: pg_info
+        - debug:
+            var: pg_info
+        - name: "Allow md5 connection for the db user"
+          lineinfile:
+            path: "{{ pg_info.settings.hba_file.setting }}"
+            line: "host    mj               {{ pg_user }}           127.0.0.1/32            md5"
+          notify: restart postgres
+  handlers:
+    - name: restart postgres
+      service: name=postgresql state=restarted
+
+- hosts: mj_wildfly
+  # Tested on Ubuntu 22.10
+  collections:
+    - middleware_automation.jcliff
+  tasks:
+    - name: install openjdk-11-jdk
+      apt: { name: openjdk-11-jdk, update_cache: yes }
+    - name: Add user wildfly
+      user: { name: "wildfly", home: "/opt/wildfly", create_home: false }
+    - name: Download Wildfly
+      unarchive:
+        src: "https://download.jboss.org/wildfly/16.0.0.Final/wildfly-16.0.0.Final.tar.gz"
+        dest: /opt/
+        remote_src: yes
+        owner: wildfly
+        creates: /opt/wildfly-16.0.0.Final
+      # https://medium.com/@hasnat.saeed/install-jboss-wildfly-on-ubuntu-18-04-ac00719a2f02
+    - name: symlink wildfly
+      tags: [ initialisation ]
+      file: { src: "/opt/wildfly-16.0.0.Final", dest: /opt/wildfly, state: link, owner: wildfly }
+    - name: copy wildfly.conf
+      copy:
+        remote_src: true
+        src: /opt/wildfly/docs/contrib/scripts/systemd/wildfly.conf 
+        dest: /etc/wildfly/
+    - name: copy launch.sh
+      copy:
+        remote_src: true
+        src: /opt/wildfly/docs/contrib/scripts/systemd/launch.sh  
+        dest: /opt/wildfly/bin/
+        owner: wildfly
+        mode: 'u=rwx,g=rwx,o=rx'
+    - name: copy wildfly.service
+      copy:
+        src: ./templates/wildfly.service
+        dest: /etc/systemd/system/
+    - name: Download Postress driver
+      get_url:
+        url: https://jdbc.postgresql.org/download/postgresql-42.5.2.jar
+        dest: /opt/postgresql-42.5.2.jar
+    - name: Make Postgres driver dirs
+      file: { path: "/opt/wildfly/modules/org/postgresql/main", state: directory, owner: wildfly, mode: 'u=rwx,g=rwx,o=rx' }
+    - name: "Ensures Widlfy module for Postgres driver is present"
+      template:
+        src: templates/pgsql-module.xml.j2
+        dest: "/opt/wildfly/modules/org/postgresql/main/module.xml"
+        owner: wildfly
+      vars:
+        jdbc_driver_filename: /opt/postgresql-42.5.2.jar
+    - name: Start Wildfly Systemd
+      systemd:
+        name: wildfly.service
+        state: started
+        enabled: true
+    - unarchive:
+        src: "https://github.com/bserdar/jcliff/releases/download/v2.12.8/jcliff-2.12.8-dist.tar.gz"
+        creates: /opt/jcliff-2.12.8
+        dest: /opt/
+        owner: root
+        remote_src: yes
+    - name: Make JCliff runnable
+      file: { path: /opt/jcliff-2.12.8/jcliff, mode: 'u=rwx,g=rwx,o=rx' }
+    - jcliff:
+        wfly_home: /opt/wildfly
+        jcliff_home: /opt/jcliff-2.12.8
+        subsystems:
+          - system_properties:
+              - name: jcliff.enabled
+                value: 'enabled'
+              - name: jcliff.version
+                value: '1.0'
+          - drivers:
+             - driver_name: postgres
+               driver_module_name: "org.postgresql"
+               driver_class_name: "org.postgresql.Driver"
+          - datasources:
+              - name: mj
+                use_java_context: 'true'
+                jndi_name: java:jboss/datasources/mj2
+                connection_url: "jdbc:postgresql://localhost:5432/mj"
+                user_name: "{{ pg_user }}"
+                password: "{{ pg_password }}"
+                driver_name: postgres
+    - name: Setup mj.properties
+      template:
+        dest: /opt/wildfly/standalone/configuration/mj.properties
+        src: templates/mj.properties.j2
+    - name: setup user
+      shell:
+        cmd: '/opt/wildfly/bin/add-user.sh -u "{{ wfly_user }}" -p "{{ wfly_password }}"'
+      

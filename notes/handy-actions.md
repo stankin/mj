@@ -5,3 +5,7 @@ Restore database
 SSH tunnel to Wildfly web console
 
     ssh -N -L localhost:9990:localhost:9990 root@deb10.uits-labs.ru
+
+deploy
+
+    mvn wildfly:deploy -DskipTests -Dwildfly.hostname=localhost -Dwildfly.username=deployer -Dwildfly.password=thoht2Xae#ca

@@ -19,6 +19,8 @@ mvn clean install -DskipTests
 
 Собранное веб приложение будет располагаться по адресу `/target/modules-journal.war` и предназначено для развертывания на сервере приложений [Wildlfy Application Server 19.0.0.Final](http://wildfly.org/), скачать который можно по [ссылке](https://download.jboss.org/wildfly/19.0.0.Final/wildfly-19.0.0.Final.zip).
 
+Для автоматического конфигурирования сервера при помощи Ansible можно воспользоваться `ansible/setup-playbook.yaml`.
+
 ### Конфигурация
 
 В папке `${jboss.server.config.dir}` (например, `$JBOSS_HOME/standalone/configuration`) должен находиться файл `mj.properties` следующего содержания :

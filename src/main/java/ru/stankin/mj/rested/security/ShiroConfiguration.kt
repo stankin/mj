@@ -27,6 +27,7 @@ import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.model.user.PasswordRecoveryService
 import ru.stankin.mj.model.user.User
+import ru.stankin.mj.oauthprovider.OAuthProvider
 import ru.stankin.mj.utils.requireProperty
 import java.util.*
 
@@ -42,6 +43,9 @@ class ShiroConfiguration {
     lateinit var userService: UserResolver
 
     @Inject
+    lateinit var prov: OAuthProvider
+
+    @Inject
     lateinit var authenticationsStore: AuthenticationsStore
 
     @Inject
@@ -51,11 +55,13 @@ class ShiroConfiguration {
     lateinit var properties: Properties
 
     @Produces
-    fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(mutableListOf<Realm>(
+    fun getSecurityManager(): WebSecurityManager = DefaultWebSecurityManager(
+        mutableListOf<Realm>(
             MjSecurityRealm(userService, authenticationsStore),
+            ApiTokenSecurityRealm(userService, prov),
             MjOauthSecurityRealm(userService, authenticationsStore, io.buji.pac4j.realm.Pac4jRealm()),
             PasswordRecoveryRealm(userService, pwr)
-    )
+        )
     ).apply {
         authorizer
         (authenticator as ModularRealmAuthenticator).apply {
@@ -81,26 +87,30 @@ class ShiroConfiguration {
 
         val pacConfig = org.pac4j.core.config.Config().apply {
             clients = Clients(
-                    Google2Client(
-                            properties.requireProperty("oauth.google.clientid"),
-                            properties.requireProperty("oauth.google.secret")
-                    ).apply {
-                        callbackUrl = properties.getProperty("oauth.callbackurl")
-                    },
-                    VkClient(properties.requireProperty("oauth.vk.clientid"),
-                            properties.requireProperty("oauth.vk.secret")).apply {
-                        callbackUrl = properties.getProperty("oauth.callbackurl")
-                    },
-                    YandexClient(properties.requireProperty("oauth.yandex.clientid"),
-                            properties.requireProperty("oauth.yandex.secret")).apply {
-                        callbackUrl = properties.getProperty("oauth.callbackurl")
-                    }
+                Google2Client(
+                    properties.requireProperty("oauth.google.clientid"),
+                    properties.requireProperty("oauth.google.secret")
+                ).apply {
+                    callbackUrl = properties.getProperty("oauth.callbackurl")
+                },
+                VkClient(
+                    properties.requireProperty("oauth.vk.clientid"),
+                    properties.requireProperty("oauth.vk.secret")
+                ).apply {
+                    callbackUrl = properties.getProperty("oauth.callbackurl")
+                },
+                YandexClient(
+                    properties.requireProperty("oauth.yandex.clientid"),
+                    properties.requireProperty("oauth.yandex.secret")
+                ).apply {
+                    callbackUrl = properties.getProperty("oauth.callbackurl")
+                }
 
             )
         }
 
         val fcMan = DefaultFilterChainManager().apply {
-            addFilter("basic", org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter())
+            addFilter("apiFilter", OAAuthTokenFilter())
             addFilter("callbackFilter", io.buji.pac4j.filter.CallbackFilter().apply {
                 config = pacConfig
                 defaultUrl = "/mj"
@@ -109,7 +119,7 @@ class ShiroConfiguration {
                 config = pacConfig
             })
             addFilter("passwordRecovery", PasswordRecoveryFilter())
-            createChain("/webapi/api3/**", "basic")
+            createChain("/webapi/api3/**", "apiFilter")
             createChain("/callback", "callbackFilter")
             createChain("/forceLogin", "forceLoginFilter")
             createChain("/recovery", "passwordRecovery")

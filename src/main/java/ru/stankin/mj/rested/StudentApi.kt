@@ -1,6 +1,7 @@
 package ru.stankin.mj.rested
 
 import org.sql2o.Sql2o
+import ru.stankin.mj.rested.security.MjRoles
 import javax.inject.Inject
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -26,7 +27,11 @@ open class StudentApi {
 
     @Path("students")
     @GET
-    open fun students() = sql2o.open().use { it.createQuery("SELECT CARDID, NAME, SURNAME FROM STUDENT").executeAndFetch(Student::class.java) }
+    open fun students(): MutableList<Student>? {
+//        SecurityUtils.getSubject().login()
+        println("StudentApi: students: ${MjRoles.userAsStudent.id}")
+        return sql2o.open().use { it.createQuery("SELECT CARDID, NAME, SURNAME FROM STUDENT").executeAndFetch(Student::class.java) }
+    }
 
 }
 

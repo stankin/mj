@@ -3,29 +3,16 @@ package ru.stankin.mj.testutils
 import io.undertow.Undertow
 import io.undertow.servlet.Servlets
 import io.undertow.servlet.api.*
-import io.undertow.servlet.util.ImmediateInstanceFactory
 import io.undertow.servlet.util.ImmediateInstanceHandle
-import org.apache.shiro.web.env.EnvironmentLoaderListener
-import org.jboss.resteasy.cdi.CdiInjectorFactory
 import org.jboss.resteasy.cdi.ResteasyCdiExtension
-import org.jboss.resteasy.plugins.server.servlet.HttpServlet30Dispatcher
-import org.jboss.resteasy.spi.ResteasyDeployment
 import org.jboss.weld.environment.se.Weld
-import ru.stankin.mj.MyServlet
 import ru.stankin.mj.WebTest
-import ru.stankin.mj.rested.StudentApi
-import ru.stankin.mj.rested.security.ShiroListener
 import java.net.URL
 import java.util.*
 import javax.servlet.DispatcherType
 import javax.servlet.Filter
 import javax.servlet.Servlet
-import kotlin.reflect.KClass
 
-
-/**
- * Created by nickl on 11.03.17.
- */
 abstract class InWeldWebTest : InWeldTest() {
 
 

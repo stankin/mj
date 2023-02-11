@@ -2,7 +2,6 @@ package ru.stankin.mj.utils
 
 import org.apache.logging.log4j.LogManager
 import org.flywaydb.core.Flyway
-import org.flywaydb.core.api.configuration.FluentConfiguration
 import java.util.*
 import javax.sql.DataSource
 
@@ -17,17 +16,17 @@ object FlywayMigrations {
 
         log.info("Running Flyway to init database ")
 
-        val flyway = Flyway(FluentConfiguration()
-            .locations("classpath:/sql", "classpath:/ru/stankin/mj/javamigrations")
-            .dataSource(dataSource)
-            .baselineOnMigrate(true))
-        
+        val flyway = Flyway()
+        flyway.setLocations("classpath:/sql", "classpath:/ru/stankin/mj/javamigrations")
+        flyway.dataSource = dataSource
+
         val cleanup = props.getProperty("flyway.cleandb")
         log.debug("cleanDbattr = {}", cleanup)
         if ("true".equals(cleanup, ignoreCase = true)) {
             log.info("cleaningdb")
             flyway.clean()
         }
+        flyway.isBaselineOnMigrate = true //TODO: Remove it after full switch to Flyway
         flyway.migrate()
         log.info("Flyway database migration is done")
     }

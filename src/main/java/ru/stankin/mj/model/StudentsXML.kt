@@ -7,7 +7,6 @@ import java.util.*
 import java.util.stream.Stream
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.XMLStreamConstants
-import kotlin.coroutines.experimental.buildIterator
 
 /**
  * Created by nickl on 09.03.17.
@@ -37,10 +36,10 @@ object StudentsXML {
         val reader =
                 factory.createXMLStreamReader(input);
         data class SubjData(val group: String, val name: String, val factor: String)
-        return stream(buildIterator {
+        return stream(iterator {
             val ctxStack = ArrayDeque<Pair<String, Map<String, String>>>()
             val subjectsCache = HashMap<SubjData, Subject>()
-            fun subject(name: String, factor: String): Subject? {
+            fun subject(name: String, factor: String): Subject {
                 val subjData = SubjData(ctxStack["group"]["name"]!!, name, factor)
                 val semester = ctxStack["sem"]["title"]
                 return subjectsCache.computeIfAbsent(subjData,
@@ -81,7 +80,7 @@ object StudentsXML {
                                     add(Module(subject(MarksWorkbookReader.RATING, "0.0"), curStudent!!.id, "М1", ctxStack["student"]["rating"]?.intRounded() ?: 0, -1))
                                     add(Module(subject(MarksWorkbookReader.ACCOUMULATED_RATING, "0.0"), curStudent!!.id, "М1", ctxStack["student"]["accumRating"]?.intRounded() ?: 0, -1))
                                 }
-                                yield(curStudent!!)
+                                yield(curStudent)
                                 curStudent = null
                             }
                         }

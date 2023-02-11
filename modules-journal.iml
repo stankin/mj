@@ -18,28 +18,28 @@
       </configuration>
     </facet>
     <facet type="kotlin-language" name="Kotlin">
-      <configuration version="2" platform="JVM 1.6" allPlatforms="JVM [1.6]" useProjectSettings="false">
+      <configuration version="2" platform="JVM 1.8" allPlatforms="JVM [1.8]" useProjectSettings="false">
         <compilerSettings />
         <compilerArguments>
-          <option name="languageVersion" value="1.1" />
-          <option name="apiVersion" value="1.1" />
-          <option name="pluginOptions">
+          <option name="jvmTarget" value="1.8" />
+          <option name="languageVersion" value="1.8" />
+          <option name="apiVersion" value="1.8" />
+          <option name="pluginClasspaths">
             <array />
           </option>
-          <option name="pluginClasspaths">
+          <option name="pluginOptions">
             <array />
           </option>
           <option name="errors">
             <ArgumentParseErrors />
           </option>
-          <option name="coroutinesWarn" value="true" />
         </compilerArguments>
       </configuration>
     </facet>
     <facet type="gwt" name="GWT">
       <configuration>
-        <setting name="additionalCompilerParameters" value="-Xss1024k -Dgwt.persistentunitcachedir=$MODULE_DIR$/target" />
-        <setting name="compilerParameters" value="-draftCompile -deploy $MODULE_DIR$/target/gwt-deploy" />
+        <setting name="additionalCompilerParameters" value="-Xss1024k -Dgwt.persistentunitcachedir=/Users/nicolay.mitropolsky/IdeaProjects/stankin-mj/target" />
+        <setting name="compilerParameters" value="-draftCompile -deploy /Users/nicolay.mitropolsky/IdeaProjects/stankin-mj/target/gwt-deploy" />
         <setting name="compilerMaxHeapSize" value="512" />
         <setting name="gwtScriptOutputStyle" value="OBF" />
         <setting name="gwtSdkUrl" value="file://$MAVEN_REPOSITORY$/com/vaadin/vaadin-client/7.7.6" />
@@ -60,35 +60,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.5-3" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.5-3" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.0.5-3" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.0.5-3" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-jwt:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bouncycastle:bcprov-jdk15on:1.54" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-ldap:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: org.ldaptive:ldaptive:1.1.0" level="project" />
-    <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.3.1" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-sql:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: org.jdbi:jdbi:2.71" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-mongo:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: org.mongodb:mongo-java-driver:3.2.1" level="project" />
-    <orderEntry type="library" name="Maven: org.pac4j:pac4j-stormpath:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: com.stormpath.sdk:stormpath-sdk-api:0.9.3" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: com.stormpath.sdk:stormpath-sdk-httpclient:0.9.3" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: com.stormpath.sdk:stormpath-sdk-impl:0.9.3" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: org.codehaus.jackson:jackson-mapper-asl:1.9.11" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: org.codehaus.jackson:jackson-core-asl:1.9.11" level="project" />
     <orderEntry type="library" name="java" level="project" />
     <orderEntry type="library" name="ironjacamar-jdbc-1.3.4.Final" level="project" />
     <orderEntry type="library" name="org.postgresql:postgresql:9.4.1212" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: com.google.guava:guava:18.0" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-jre8:1.1.1" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-jre7:1.1.1" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.1.1" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.1.1" level="project" />
-    <orderEntry type="library" name="Maven: org.sql2o:sql2o:2.0.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.enterprise:cdi-api:1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.el:el-api:2.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.spec.javax.interceptor:jboss-interceptors-api_1.1_spec:1.0.0.Beta1" level="project" />
@@ -106,7 +80,7 @@
     <orderEntry type="library" name="Maven: commons-io:commons-io:2.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.logging:jboss-logging:3.3.0.Final" level="project" />
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.13.2" level="project" />
     <orderEntry type="library" name="Maven: com.vaadin:vaadin-server:7.7.6" level="project" />
     <orderEntry type="library" name="Maven: com.vaadin:vaadin-sass-compiler:0.9.13" level="project" />
     <orderEntry type="library" name="Maven: org.w3c.css:sac:1.3" level="project" />
@@ -133,17 +107,25 @@
     <orderEntry type="library" name="Maven: org.vaadin.addon:easyuploads:7.4.10" level="project" />
     <orderEntry type="library" name="Maven: org.vaadin:viritin:1.53" level="project" />
     <orderEntry type="library" name="Maven: org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.1" level="project" />
+    <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.9.2" level="project" />
+    <orderEntry type="library" name="Maven: commons-collections:commons-collections:3.2.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.4" level="project" />
     <orderEntry type="library" name="Maven: javax.el:javax.el-api:2.2.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.11" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:1.3" level="project" />
     <orderEntry type="library" name="Maven: org.vaadin.addon:confirmdialog:2.1.2" level="project" />
-    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.10" level="project" />
-    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.10" level="project" />
-    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.10" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-core:1.3.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.slf4j:slf4j-api:1.7.7" level="project" />
-    <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.8.3" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.10.0.pr1" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.10.0.pr1" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.10.0.pr1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-core:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-lang:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-cache:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-crypto-hash:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-crypto-core:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-crypto-cipher:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-config-core:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-config-ogdl:1.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-event:1.4.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.shiro:shiro-web:1.3.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.wildfly.arquillian:wildfly-arquillian-container-managed:1.0.1.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.wildfly.arquillian:wildfly-arquillian-common:1.0.1.Final" level="project" />
@@ -206,6 +188,7 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.arquillian.container:arquillian-container-test-impl-base:1.1.9.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.shrinkwrap.descriptors:shrinkwrap-descriptors-spi:2.0.0-alpha-7" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.slf4j:slf4j-simple:1.6.4" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.slf4j:slf4j-api:1.7.7" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.arquillian.junit:arquillian-junit-container:1.1.9.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.arquillian.junit:arquillian-junit-core:1.1.9.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.arquillian.test:arquillian-test-api:1.1.9.Final" level="project" />
@@ -241,14 +224,16 @@
     <orderEntry type="library" scope="TEST" name="Maven: commons-lang:commons-lang:2.6" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.apache.maven.wagon:wagon-http-lightweight:2.6" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.apache.maven.wagon:wagon-http-shared:2.6" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-jre8:1.1.51" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.1.51" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.8.10" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-common:1.8.10" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains:annotations:13.0" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-jre7:1.1.51" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.1.51" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.8.10" level="project" />
     <orderEntry type="library" name="Maven: org.sql2o:sql2o:1.6.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.1.51" level="project" />
-    <orderEntry type="library" name="Maven: org.flywaydb:flyway-core:4.0.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test-junit:1.8.10" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.8.10" level="project" />
+    <orderEntry type="library" name="Maven: org.flywaydb:flyway-core:6.4.1" level="project" />
     <orderEntry type="library" name="Maven: io.buji:buji-pac4j:4.0.0" level="project" />
     <orderEntry type="library" name="Maven: org.pac4j:pac4j-core:3.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.pac4j:pac4j-oauth:3.4.0" level="project" />
@@ -272,7 +257,7 @@
     <orderEntry type="library" name="Maven: net.minidev:json-smart:2.3" level="project" />
     <orderEntry type="library" name="Maven: net.minidev:accessors-smart:1.2" level="project" />
     <orderEntry type="library" name="Maven: org.ow2.asm:asm:5.0.4" level="project" />
-    <orderEntry type="library" name="Maven: com.nimbusds:lang-tag:1.4.4" level="project" />
+    <orderEntry type="library" name="Maven: com.nimbusds:lang-tag:1.7" level="project" />
     <orderEntry type="library" name="Maven: com.nimbusds:nimbus-jose-jwt:5.4" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:21.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.oltu.oauth2:org.apache.oltu.oauth2.authzserver:1.0.2" level="project" />
@@ -290,7 +275,7 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.spec.javax.interceptor:jboss-interceptors-api_1.2_spec:1.0.0.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.weld.probe:weld-probe-core:2.4.1.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.icegreen:greenmail-standalone:1.5.3" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: io.undertow:undertow-core:1.3.33.Final" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: io.undertow:undertow-core:2.0.23.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: io.undertow:undertow-servlet:1.3.33.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.weld.servlet:weld-servlet-core:2.4.2.SP1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.weld:weld-spi:2.4.SP1" level="project" />

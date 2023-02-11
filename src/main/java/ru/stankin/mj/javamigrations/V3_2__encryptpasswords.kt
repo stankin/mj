@@ -1,7 +1,8 @@
 package ru.stankin.mj.javamigrations
 
 import org.apache.logging.log4j.LogManager
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration
+import org.flywaydb.core.api.migration.BaseJavaMigration
+import org.flywaydb.core.api.migration.Context
 import ru.stankin.mj.model.AuthenticationsStore
 import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.utils.JSON
@@ -13,13 +14,17 @@ import java.util.*
 /**
  * Created by nickl on 13.01.17.
  */
-class V3_2__encryptpasswords : JdbcMigration {
+class V3_2__encryptpasswords : BaseJavaMigration() {
 
     val log = LogManager.getLogger(V3_2__encryptpasswords::class.java)
 
     data class IdPassword(val id: Int, val password: String, val login:String)
 
-    override fun migrate(connection: Connection) {
+    override fun migrate(context: Context) {
+        migrate(context.connection)
+    }
+
+    fun migrate(connection: Connection) {
 
         val adminPasswords = connection.prepareStatement("SELECT a.id, a.password, u.login FROM adminuser a JOIN users u ON a.id = u.id")
                 .use { aggregateIdPasswords(it) }

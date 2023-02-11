@@ -51,12 +51,13 @@ class MarksWorkbookReaderTest : FunSpec() {
         }
 
     }
+    
 
-    private fun getStudentMarks(name: String): Collection<Student> {
+}
 
-       return  MarksWorkbookReader.modulesFromExcel(MarksWorkbookReaderTest::class.java.getResourceAsStream(name), "")
-               .collect(Collectors.toList<Student>())
+fun getStudentMarks(name: String, sem: String = ""): Collection<Student> {
 
-    }
+    return  MarksWorkbookReader.modulesFromExcel(MarksWorkbookReaderTest::class.java.getResourceAsStream(name), sem)
+        .collect(Collectors.toList<Student>())
 
 }

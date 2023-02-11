@@ -6,7 +6,7 @@ import io.undertow.servlet.api.*
 import io.undertow.servlet.util.ImmediateInstanceHandle
 import org.jboss.resteasy.cdi.ResteasyCdiExtension
 import org.jboss.weld.environment.se.Weld
-import ru.stankin.mj.WebTest
+import ru.stankin.mj.StudentsApiTest
 import java.net.URL
 import java.util.*
 import javax.servlet.DispatcherType
@@ -72,7 +72,7 @@ abstract class InWeldWebTest : InWeldTest() {
             filters = filters()
             super.beforeAll()
             val servletBuilder = Servlets.deployment()
-                    .setClassLoader(WebTest::class.java.getClassLoader())
+                    .setClassLoader(StudentsApiTest::class.java.getClassLoader())
                     .setContextPath("")
                     .setDeploymentName("mjtest.war")
                     .addServlets(servlets)

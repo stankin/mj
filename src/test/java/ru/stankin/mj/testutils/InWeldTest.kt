@@ -15,7 +15,10 @@ import org.jboss.weld.environment.se.Weld
 import org.jboss.weld.environment.se.WeldContainer
 import org.jboss.weld.injection.spi.ResourceInjectionServices
 import org.jboss.weld.resources.spi.ResourceLoader
+import org.sql2o.Sql2o
 import ru.stankin.mj.UtilProducer
+import ru.stankin.mj.model.UserResolver
+import ru.stankin.mj.utils.ThreadLocalTransaction
 import java.util.*
 
 abstract class InWeldTest : FunSpec() {
@@ -89,6 +92,13 @@ abstract class InWeldTest : FunSpec() {
             sts.restore()
         }
 
+    }
+
+    fun <T> asAdminTransaction(f: () -> T): T {
+        val admin = bean<UserResolver>().getUserBy("admin")!!
+        return runAs(admin) {
+            ThreadLocalTransaction.within(bean<Sql2o>(), f)
+        }
     }
 
 }

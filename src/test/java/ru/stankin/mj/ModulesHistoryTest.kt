@@ -108,13 +108,5 @@ class ModulesHistoryTest : InWeldTest() {
 
     }
 
-    fun <T> asAdminTransaction(f: () -> T): T {
-
-        val admin = bean<UserResolver>().getUserBy("admin")!!
-        return runAs(admin) {
-            ThreadLocalTransaction.within(bean<Sql2o>(), f)
-        }
-    }
-
 }
 

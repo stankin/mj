@@ -20,12 +20,13 @@
         - name: Collect pg_info for further setup
           postgresql_info:
           register: pg_info
-        - debug:
-            var: pg_info
         - name: "Allow md5 connection for the db user"
-          lineinfile:
-            path: "{{ pg_info.settings.hba_file.setting }}"
-            line: "host    mj               {{ pg_user }}           127.0.0.1/32            md5"
+          postgresql_pg_hba:
+            dest: "{{ pg_info.settings.hba_file.setting }}"
+            contype: host
+            databases: mj
+            method: md5
+            users: "{{ pg_user }}"
           notify: restart postgres
   handlers:
     - name: restart postgres
@@ -49,7 +50,6 @@
         creates: /opt/wildfly-16.0.0.Final
       # https://medium.com/@hasnat.saeed/install-jboss-wildfly-on-ubuntu-18-04-ac00719a2f02
     - name: symlink wildfly
-      tags: [ initialisation ]
       file: { src: "/opt/wildfly-16.0.0.Final", dest: /opt/wildfly, state: link, owner: wildfly }
     - name: copy wildfly.conf
       copy:
@@ -85,6 +85,9 @@
         name: wildfly.service
         state: started
         enabled: true
+    - name: "Wait for wildfly to start"
+      wait_for:
+        port: 8080
     - unarchive:
         src: "https://github.com/bserdar/jcliff/releases/download/v2.12.8/jcliff-2.12.8-dist.tar.gz"
         creates: /opt/jcliff-2.12.8

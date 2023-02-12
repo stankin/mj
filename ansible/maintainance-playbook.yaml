@@ -1,0 +1,46 @@
+- hosts: mj_pg
+  tasks:
+    - name: Setup local backup
+      block:
+      - name: copy mj_backup.service
+        copy:
+          content: |
+            [Unit]
+            Description=Backups MJ database
+            Wants=mj_backup.timer
+  
+            [Service]
+            Type=oneshot
+            User=postgres
+            ExecStart=/usr/local/bin/dump_mj.sh
+          dest: /etc/systemd/system/mj_backup.service
+      - name: copy mj_backup.timer
+        copy:
+          content: |
+            [Unit]
+            Description=MJ database backup timer
+            Requires=mj_backup.service
+            
+            [Timer]
+            Unit=mj_backup.service
+            OnCalendar=*-*-* 04:00:00
+            AccuracySec=10m
+            
+            [Install]
+            WantedBy=timers.target
+          dest: /etc/systemd/system/mj_backup.timer
+      - name: copy /usr/local/bin/dump_mj.sh
+        copy:
+          content: |
+            #!/bin/bash
+            mkdir -p ~/backups/mj_pg_backups/
+            pg_dump -c mj | xz -1 -z - > ~/backups/mj_pg_backups/pg_mj_dump-$(date +%Y-%m-%d-%H-%M-%S).sql.xz
+          dest: /usr/local/bin/dump_mj.sh
+          owner: postgres
+          mode: 'u=rwx,g=rwx,o=rx'
+      - name: mj_backup.timer
+        systemd:
+          name: mj_backup.timer
+          state: started
+          daemon_reload: true
+          enabled: true

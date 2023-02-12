@@ -1,0 +1,43 @@
+---
+- name: Configure Nginx WildFly Proxy
+  hosts: test
+  become: yes
+  
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Start and enable Nginx service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Create Nginx Proxy configuration
+      template:
+        src: nginx-wildfly-proxy.conf.j2
+        dest: /etc/nginx/sites-available/nginx-wildfly-proxy.conf
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - restart nginx
+
+    - name: Enable Nginx WildFly Proxy configuration
+      file:
+        src: /etc/nginx/sites-available/nginx-wildfly-proxy.conf
+        dest: /etc/nginx/sites-enabled/nginx-wildfly-proxy.conf
+        state: link
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - restart nginx
+  
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted

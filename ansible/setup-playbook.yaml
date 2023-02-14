@@ -8,6 +8,10 @@
       become_user: postgres
       become: yes
       block:
+        - name: Set PostgreSQL listen_addresses to localhost
+          postgresql_set:
+            name: listen_addresses
+            value: localhost
         - name: Create pg_user
           postgresql_user:
             name: "{{ pg_user }}"
@@ -20,12 +24,12 @@
         - name: Collect pg_info for further setup
           postgresql_info:
           register: pg_info
-        - name: "Allow md5 connection for the db user"
+        - name: "Allow trust connection for the db user"
           postgresql_pg_hba:
             dest: "{{ pg_info.settings.hba_file.setting }}"
-            contype: host
+            contype: local
             databases: mj
-            method: md5
+            method: trust
             users: "{{ pg_user }}"
           notify: restart postgres
   handlers:
@@ -117,6 +121,7 @@
                 user_name: "{{ pg_user }}"
                 password: "{{ pg_password }}"
                 driver_name: postgres
+      notify: "restart wildfly"
     - name: Setup mj.properties
       template:
         dest: /opt/wildfly/standalone/configuration/mj.properties
@@ -124,4 +129,7 @@
     - name: setup user
       shell:
         cmd: '/opt/wildfly/bin/add-user.sh -u "{{ wfly_user }}" -p "{{ wfly_password }}"'
+  handlers:
+    - name: restart wildfly
+      service: name=wildfly state=restarted
       

@@ -20,6 +20,7 @@ object FlywayMigrations {
         val flyway = Flyway(FluentConfiguration()
             .locations("classpath:/sql", "classpath:/ru/stankin/mj/javamigrations")
             .dataSource(dataSource)
+            .table("schema_version")
             .baselineOnMigrate(true))
         
         val cleanup = props.getProperty("flyway.cleandb")

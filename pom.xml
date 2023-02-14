@@ -35,7 +35,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <kotlin.version>1.8.10</kotlin.version>
         <bujiVersion>4.0.0</bujiVersion>
-        <pac4jVersion>3.4.0</pac4jVersion>
+        <pac4jVersion>4.5.5</pac4jVersion>
         <vaadin.version>7.7.6</vaadin.version>
     </properties>
 

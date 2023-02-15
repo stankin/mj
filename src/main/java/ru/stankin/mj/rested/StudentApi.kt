@@ -1,8 +1,6 @@
 package ru.stankin.mj.rested
 
-import org.sql2o.Sql2o
 import ru.stankin.mj.model.StudentsStorage
-import ru.stankin.mj.model.UserResolver
 import ru.stankin.mj.rested.security.MjRoles
 import javax.inject.Inject
 import javax.ws.rs.GET
@@ -36,13 +34,12 @@ open class StudentApi {
             "modules" to student.modules.groupBy { it.subject }.map { (s, ms) ->
                 mapOf(
                     "subject" to s.let { mapOf("title" to it.title, "factor" to it.factor) },
-                    "marks" to ms.map { m ->
+                    "marks" to ms.associateBy({ markTypesMapping[it.num] ?: it.num }, { m ->
                         mapOf(
-                            "num" to m.num,
                             "value" to m.value,
                             "color" to m.color,
                         )
-                    }
+                    })
                 )
             },
         )
@@ -56,4 +53,7 @@ open class StudentApi {
     }
 
 }
+
+private val markTypesMapping =
+    mapOf("М1" to "module1", "М2" to "module2", "З" to "credit", "Э" to "exam", "К" to "courseWork")
 

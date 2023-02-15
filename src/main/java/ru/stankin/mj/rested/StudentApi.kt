@@ -25,7 +25,7 @@ open class StudentApi {
 
     @Path("marks")
     @GET
-    open fun marks(@QueryParam("sem") sem: String?): Any? {
+    open fun marks(@QueryParam("sem") sem: String): Any? {
         val student = storage.getStudentById(MjRoles.userAsStudent.id, sem) ?: throw NotFoundException()
         return mapOf(
             "group" to student.stgroup,
@@ -33,12 +33,16 @@ open class StudentApi {
             "surname" to student.surname,
             "patronym" to student.patronym,
             "initials" to student.initials,
-            "modules" to student.modules.map { m ->
+            "modules" to student.modules.groupBy { it.subject }.map { (s, ms) ->
                 mapOf(
-                    "subject" to m.subject.let { mapOf("title" to it.title, "factor" to it.factor) },
-                    "num" to m.num,
-                    "value" to m.value,
-                    "color" to m.color,
+                    "subject" to s.let { mapOf("title" to it.title, "factor" to it.factor) },
+                    "marks" to ms.map { m ->
+                        mapOf(
+                            "num" to m.num,
+                            "value" to m.value,
+                            "color" to m.color,
+                        )
+                    }
                 )
             },
         )

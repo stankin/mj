@@ -18,7 +18,7 @@
 
         <!-- JBoss dependency versions -->
 
-        <version.wildfly.maven.plugin>1.0.2.Final</version.wildfly.maven.plugin>
+        <version.wildfly.maven.plugin>2.1.0.Final</version.wildfly.maven.plugin>
 
         <!-- Define the version of the JBoss BOMs we want to import to specify tested stacks. -->
         <version.jboss.bom>10.0.1.Final</version.jboss.bom>
@@ -587,7 +587,7 @@
                         </property>
                         <property>
                             <name>mj.test.pg.url</name>
-                            <value>postgresql://localhost/mj_test</value>
+                            <value>jdbc:postgresql://localhost:5432/mj_test</value>
                         </property>
                         <property>
                             <name>mj.test.pg.user</name>

@@ -137,12 +137,23 @@ class ModulesStorage @Inject constructor(private val sql2o: Sql2o, private val s
     fun getStudentModulesChanges(semester: String, studentid: Int): Map<Transaction, List<Module>> =
             sql2o.open(ThreadLocalTransaction.get()).use {
 
-                it.createQuery("""WITH subjs AS (SELECT id FROM subjects WHERE semester = :semester)
-                                  (SELECT student_id, num, value, color, subject_id, transaction FROM modules WHERE student_id = :id AND subject_id IN (SELECT * FROM subjs))
-                                  UNION ALL
-                                  (SELECT student_id, num, value, color, subject_id, transaction FROM moduleshistory WHERE student_id = :id AND subject_id IN (SELECT * FROM subjs)) ORDER BY transaction DESC
-                                  """.trimIndent())
-                        .addParameter("id", studentid)
+                it.createQuery(
+                    """
+                    SELECT * FROM (
+                      WITH subjs AS (
+                        SELECT id FROM subjects WHERE semester = :semester
+                      )
+                      SELECT student_id, num, value, color, subject_id, transaction
+                      FROM modules
+                      WHERE student_id = :id AND subject_id IN (SELECT * FROM subjs)
+                      UNION ALL
+                      SELECT student_id, num, value, color, subject_id, transaction
+                      FROM moduleshistory
+                      WHERE student_id = :id AND subject_id IN (SELECT * FROM subjs)
+                    ) AS combined_results
+                    ORDER BY transaction DESC
+                    """.trimIndent()
+                ).addParameter("id", studentid)
                         .addParameter("semester", semester)
                         .throwOnMappingFailure(false)
                         .executeAndFetch(HistoryRecord::class.java).map {

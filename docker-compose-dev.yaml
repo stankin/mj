@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   pg-dev:
-    image: postgres:9.6-alpine
+    image: postgres:11.6-alpine
     environment:
       POSTGRES_PASSWORD: mj
     ports:

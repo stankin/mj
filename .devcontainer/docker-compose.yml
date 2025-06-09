@@ -1,0 +1,18 @@
+version: '3.1'
+
+services:
+  app:
+    build: 
+      context: ./.devcontainer
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    environment:
+      - POSTGRES_HOST=pg-dev
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mj
+    depends_on:
+      - pg-dev
+    network_mode: service:pg-dev

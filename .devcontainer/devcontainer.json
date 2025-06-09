@@ -1,0 +1,31 @@
+{
+  "name": "Modules Journal Dev Environment",
+  "dockerComposeFile": [
+    "../docker-compose-dev.yaml",
+    "docker-compose.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "redhat.vscode-xml",
+        "ms-azuretools.vscode-docker",
+        "fwcd.kotlin",
+        "vscjava.vscode-maven"
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.server.launchMode": "Standard",
+        "editor.formatOnSave": true,
+        "java.compile.nullAnalysis.mode": "automatic"
+      }
+    }
+  },
+  
+  "forwardPorts": [8080, 5432],
+  "postCreateCommand": "mvn clean install -DskipTests",
+  "remoteUser": "vscode"
+}

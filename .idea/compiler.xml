@@ -6,15 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="modules-journal" />
+        <module name="sql2o-postgres" />
         <module name="sql2o" />
         <module name="sql2o-db2" />
-        <module name="sql2o-postgres" />
+        <module name="modules-journal" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="extensions-parent" target="1.7" />
-      <module name="modules-journal" target="1.8" />
       <module name="sql2o" target="1.7" />
       <module name="sql2o-db2" target="1.7" />
       <module name="sql2o-parent" target="1.7" />

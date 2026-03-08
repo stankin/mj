@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+# agentplane-hook-shim (do not edit)
+set -e
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+REPO_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+LOCAL_BIN="$REPO_ROOT/packages/agentplane/bin/agentplane.js"
+if command -v node >/dev/null 2>&1 && [ -f "$LOCAL_BIN" ]; then
+  exec node "$LOCAL_BIN" "$@"
+fi
+if command -v npx >/dev/null 2>&1; then
+  exec npx --yes agentplane "$@"
+fi
+if command -v agentplane >/dev/null 2>&1; then
+  exec agentplane "$@"
+fi
+echo "agentplane shim: runner not found (need node+npx or agentplane in PATH)." >&2
+  exit 127

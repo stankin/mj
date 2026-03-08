@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "workflow_mode": "direct",
+  "status_commit_policy": "warn",
+  "commit_automation": "finish_only",
+  "finish_auto_status_commit": false,
+  "agents": {
+    "approvals": {
+      "require_plan": true,
+      "require_network": true,
+      "require_verify": true,
+      "require_force": false
+    }
+  },
+  "recipes": {
+    "storage_default": "link"
+  },
+  "execution": {
+    "profile": "balanced",
+    "reasoning_effort": "medium",
+    "tool_budget": {
+      "discovery": 6,
+      "implementation": 10,
+      "verification": 6
+    },
+    "stop_conditions": [
+      "Missing required input blocks correctness.",
+      "Requested action expands scope or risk beyond approved plan.",
+      "Verification fails and remediation changes scope."
+    ],
+    "handoff_conditions": [
+      "Role boundary reached (for example CODER -> TESTER/REVIEWER).",
+      "Task depends_on prerequisites are incomplete.",
+      "Specialized agent is required."
+    ],
+    "unsafe_actions_requiring_explicit_user_ok": [
+      "Destructive git history operations.",
+      "Outside-repo read/write.",
+      "Credential, keychain, or SSH material changes."
+    ]
+  },
+  "paths": {
+    "agents_dir": ".agentplane/agents",
+    "tasks_path": ".agentplane/tasks.json",
+    "workflow_dir": ".agentplane/tasks",
+    "worktrees_dir": ".agentplane/worktrees"
+  },
+  "branch": {
+    "task_prefix": "task"
+  },
+  "framework": {
+    "source": "https://github.com/basilisk-labs/agentplane",
+    "last_update": null,
+    "cli": {
+      "expected_version": "0.3.3"
+    }
+  },
+  "tasks": {
+    "id_suffix_length_default": 6,
+    "verify": {
+      "required_tags": [
+        "code",
+        "backend",
+        "frontend"
+      ],
+      "require_steps_for_primary": [
+        "code",
+        "data",
+        "ops"
+      ],
+      "require_verification_for_primary": [
+        "code",
+        "data",
+        "ops"
+      ],
+      "spike_tag": "spike",
+      "enforce_on_plan_approve": true,
+      "enforce_on_start_when_no_plan": true
+    },
+    "tags": {
+      "primary_allowlist": [
+        "code",
+        "data",
+        "research",
+        "docs",
+        "ops",
+        "product",
+        "meta"
+      ],
+      "strict_primary": false,
+      "fallback_primary": "meta",
+      "lock_primary_on_update": true
+    },
+    "doc": {
+      "sections": [
+        "Summary",
+        "Context",
+        "Scope",
+        "Plan",
+        "Verify Steps",
+        "Verification",
+        "Rollback Plan",
+        "Notes",
+        "Findings"
+      ],
+      "required_sections": [
+        "Summary",
+        "Scope",
+        "Plan",
+        "Verification",
+        "Rollback Plan"
+      ]
+    },
+    "comments": {
+      "start": {
+        "prefix": "Start:",
+        "min_chars": 40
+      },
+      "blocked": {
+        "prefix": "Blocked:",
+        "min_chars": 40
+      },
+      "verified": {
+        "prefix": "Verified:",
+        "min_chars": 60
+      }
+    }
+  },
+  "commit": {
+    "generic_tokens": [
+      "start",
+      "status",
+      "mark",
+      "done",
+      "wip",
+      "update",
+      "tasks",
+      "task"
+    ]
+  },
+  "tasks_backend": {
+    "config_path": ".agentplane/backends/local/backend.json"
+  },
+  "closure_commit_requires_approval": false
+}

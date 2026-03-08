@@ -1,0 +1,24 @@
+# Maven build output
+target/
+
+# IntelliJ IDEA — auto-generated/user-specific files
+.idea/workspace.xml
+.idea/libraries/
+.idea/codeStyles/
+.idea/kotlinc.xml
+.idea/misc.xml
+.idea/jarRepositories.xml
+.idea/ClojureProjectResolveSettings.xml
+.idea/artifacts/
+*.iml
+
+# Vaadin compiled artifacts
+src/main/webapp/VAADIN/widgetsets/
+src/main/webapp/VAADIN/themes/modules-journal/styles.css
+
+# Temporary/local files
+tmp.txt
+endpoints.txt
+
+# OS
+.DS_Store
